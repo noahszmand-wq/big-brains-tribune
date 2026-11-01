@@ -233,6 +233,24 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
 .scoreboard .tops div { display: grid; gap: 2px; }
 .scoreboard .tops span { display: flex; justify-content: space-between; gap: 6px; }
 .scoreboard .tops span i { font-style: normal; font-variant-numeric: tabular-nums; }
+.pkhead { display: flex; justify-content: space-between; align-items: baseline; margin: 6px 0 2px; }
+.pkcount { font-size: 0.8rem; font-weight: 700; color: var(--ink-2); }
+.tiles { display: grid; gap: 8px; margin: 6px 0 16px; }
+.tiles.two { grid-template-columns: 1fr 1fr; }
+.tile { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 3px; padding: 10px 12px; min-height: 48px; background: var(--surface); border: 2px solid var(--rule); border-radius: 8px; min-width: 0; -webkit-tap-highlight-color: transparent; }
+.tile:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.tile.sel { border-color: var(--pylon); box-shadow: 0 0 0 1px var(--pylon) inset; background: var(--surface-2); }
+.tile:disabled { cursor: default; opacity: 0.8; }
+.tile .r { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font-size: 0.95rem; }
+.tile .r.l { color: var(--ink-2); }
+.tile .r b { font-variant-numeric: tabular-nums; }
+.tile .tw small { display: block; font-size: 0.72rem; color: var(--ink-2); font-weight: 500; }
+.tile .k { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.tile .v { font-family: var(--display); font-weight: 900; font-size: 1.5rem; line-height: 1; }
+.tile .s { font-size: 0.82rem; color: var(--ink-2); overflow-wrap: anywhere; }
+.tile.pt { grid-template-columns: 22px 1fr auto; align-items: baseline; gap: 8px; font-size: 0.95rem; }
+.tile.pt small { color: var(--ink-2); }
+.tile.pt .rk { color: var(--ink-2); }
 .numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 14px; }
 .numbers .nb { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; min-width: 0; }
 .numbers .nb .k { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
@@ -561,7 +579,7 @@ function columnEditor(parent, ro) {
 }
 async function historyEditor(parent, ro) {
   const c = S.content;
-  if (!c.include) c.include = { scores: true, players: true, numbers: true };
+  ensurePick(c);
   const top = el(`<div><p class="dim">Pick a season and week. We'll pull the scoreboard, and you write the story around it. <span class="small">Pull any week back to 2021.</span></p>
     <div class="pickrow"><div class="field"><label class="lab" for="hs">Season</label><select id="hs" ${ro ? "disabled" : ""}><option>Loading…</option></select></div>
     <div class="field"><label class="lab" for="hw">Week</label><select id="hw" ${ro ? "disabled" : ""}>${Array.from({ length: 17 }, (_, i) => `<option value="${i + 1}" ${c.hweek == i + 1 ? "selected" : ""}>Week ${i + 1}</option>`).join("")}</select></div></div>
@@ -570,10 +588,14 @@ async function historyEditor(parent, ro) {
   const drawCard = () => {
     const h = $("#hcard");
     if (!c.card) { h.innerHTML = `<div class="card dim">Pick a season and week. We'll pull the scoreboard.</div>`; return; }
-    h.innerHTML = scoreboard(c.card, true) + numbersBlock(c.card) + topList(c.card) +
-      `<div class="includes"><span class="lab">Runs in the paper</span>
-       ${[["scores", "Scoreboard"], ["numbers", "Week numbers"], ["players", "Top performers"]].map(([k, l]) => `<label class="check"><input type="checkbox" data-inc="${k}" ${c.include[k] !== false ? "checked" : ""} ${ro ? "disabled" : ""}> ${l}</label>`).join("")}</div>`;
-    h.querySelectorAll("[data-inc]").forEach((cb) => cb.onchange = () => { c.include[cb.dataset.inc] = cb.checked; touch(); });
+    h.innerHTML = `<p class="hint">Tap anything you want to run in the paper. Selected tiles get an outline. Nothing selected means just your story.</p>` + tileBoard(c, ro);
+    h.querySelectorAll("[data-pk]").forEach((b) => b.onclick = () => {
+      if (ro) return;
+      const [grp, id] = b.dataset.pk.split(":"); const arr = c.pick[grp]; const key = grp === "nums" ? id : Number(id);
+      const i = arr.indexOf(key); if (i >= 0) arr.splice(i, 1); else arr.push(key);
+      b.classList.toggle("sel", i < 0); b.setAttribute("aria-pressed", i < 0 ? "true" : "false"); touch();
+      const n = c.pick.games.length + c.pick.nums.length + c.pick.players.length; const sc = $("#pkcount"); if (sc) sc.textContent = n ? `${n} selected` : "Nothing selected";
+    });
   };
   drawCard();
   const story = el(`<div></div>`); parent.appendChild(story);
@@ -589,10 +611,41 @@ async function historyEditor(parent, ro) {
   $("#pull").onclick = async () => {
     const season = $("#hs").value, hweek = Number($("#hw").value); const b = $("#pull"); b.disabled = true; b.innerHTML = `<span class="spin"></span> Pulling…`;
     $("#hmsg").textContent = "";
-    try { const r = await api("history", { season, hweek }); c.season = season; c.hweek = hweek; c.card = r.card; drawCard(); touch(); }
+    try { const r = await api("history", { season, hweek }); c.season = season; c.hweek = hweek; c.card = r.card; c.pick = { games: [], nums: [], players: [] }; drawCard(); touch(); }
     catch (err) { $("#hmsg").textContent = errText(err.code); $("#hmsg").className = "msg err"; }
     b.disabled = false; b.textContent = "Pull that week";
   };
+}
+const NUMKEYS = ["high", "low", "avg", "closest", "blowout"];
+function ensurePick(c) {
+  if (c.pick) return;
+  const inc = c.include || { scores: true, players: true, numbers: true }, card = c.card || {}, x = card.extras || {};
+  c.pick = { games: inc.scores !== false ? (card.games || []).map((_, i) => i) : [],
+    nums: inc.numbers !== false ? NUMKEYS.filter((k) => (k === "high" ? card.high : k === "avg" ? x.avg != null : x[k])) : [],
+    players: inc.players !== false ? (x.top_players || []).map((_, i) => i) : [] };
+}
+function pickedCard(card, pick) {
+  if (!pick) return card;
+  const x = card.extras || {}, ex = {};
+  NUMKEYS.forEach((k) => { if (k !== "high" && pick.nums.includes(k) && x[k] != null) ex[k] = x[k]; });
+  ex.top_players = (x.top_players || []).filter((_, i) => pick.players.includes(i));
+  if (x.final_records) ex.final_records = x.final_records;
+  return { ...card, games: card.games.filter((_, i) => pick.games.includes(i)), extras: ex, showHigh: pick.nums.includes("high") };
+}
+function tileBoard(c, ro) {
+  const card = c.card, x = card.extras || {}, pk = c.pick, f = (n) => Number(n).toFixed(2), fr = x.final_records || {};
+  const on = (g, id) => (pk[g].includes(g === "nums" ? id : Number(id)) ? " sel" : "");
+  const tile = (g, id, cls, inner) => `<button type="button" class="tile ${cls}${on(g, id)}" data-pk="${g}:${id}" aria-pressed="${on(g, id) ? "true" : "false"}" ${ro ? "disabled" : ""}>${inner}</button>`;
+  const games = card.games.map((g, i) => tile("games", i, "gt", `<span class="r"><span class="tw">${esc(g.w.team)}${fr[g.w.team] ? `<small>finished ${esc(fr[g.w.team])}</small>` : ""}</span><b>${f(g.w.pts)}</b></span><span class="r l"><span class="tw">${esc(g.l.team)}${fr[g.l.team] ? `<small>finished ${esc(fr[g.l.team])}</small>` : ""}</span><b>${f(g.l.pts)}</b></span>`)).join("");
+  const nb = (k, lab, v, sub) => tile("nums", k, "nt", `<span class="k">${lab}</span><span class="v">${v}</span><span class="s">${sub}</span>`);
+  const nums = [card.high ? nb("high", "High", f(card.high.pts), esc(card.high.team)) : "", x.low ? nb("low", "Low", f(x.low.pts), esc(x.low.team)) : "",
+    x.avg != null ? nb("avg", "Average", f(x.avg), "across the league") : "", x.closest ? nb("closest", "Closest", "by " + f(x.closest.margin), `${esc(x.closest.w)} over ${esc(x.closest.l)}`) : "",
+    x.blowout ? nb("blowout", "Blowout", "by " + f(x.blowout.margin), `${esc(x.blowout.w)} over ${esc(x.blowout.l)}`) : ""].join("");
+  const players = (x.top_players || []).map((p, i) => tile("players", i, "pt", `<span class="rk">${i + 1}</span><span class="pn">${esc(p.name)} <small>${esc(p.pos || "")} · ${esc(p.team || "")}</small></span><b>${f(p.pts)}</b>`)).join("");
+  const n = pk.games.length + pk.nums.length + pk.players.length;
+  return `<div class="pkhead"><span class="lab">${esc(card.season)} · Week ${esc(card.week)}</span><span class="pkcount" id="pkcount">${n ? n + " selected" : "Nothing selected"}</span></div>` +
+    `<span class="lab">Matchups</span><div class="tiles">${games}</div>` + (nums ? `<span class="lab">Week numbers</span><div class="tiles two">${nums}</div>` : "") +
+    (players ? `<span class="lab">Top performers</span><div class="tiles">${players}</div>` : "");
 }
 function scoreboard(card, withTops) {
   const fr = (card.extras && card.extras.final_records) || {};
@@ -604,10 +657,11 @@ function scoreboard(card, withTops) {
 }
 function numbersBlock(card) {
   const x = card.extras; if (!x) return "";
+  if (!(card.showHigh !== false) && !x.low && x.avg == null && !x.closest && !x.blowout) return "";
   const f = (n) => Number(n).toFixed(2);
   const nb = (k, v, s) => `<div class="nb"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
   return `<span class="lab">Week numbers</span><div class="numbers">` +
-    nb("High", f(card.high.pts), esc(card.high.team)) + (x.low ? nb("Low", f(x.low.pts), esc(x.low.team)) : "") +
+    (card.showHigh !== false ? nb("High", f(card.high.pts), esc(card.high.team)) : "") + (x.low ? nb("Low", f(x.low.pts), esc(x.low.team)) : "") +
     (x.avg != null ? nb("Average", f(x.avg), "across the league") : "") +
     (x.closest ? nb("Closest", "by " + f(x.closest.margin), `${esc(x.closest.w)} over ${esc(x.closest.l)}`) : "") +
     (x.blowout ? nb("Blowout", "by " + f(x.blowout.margin), `${esc(x.blowout.w)} over ${esc(x.blowout.l)}`) : "") + `</div>`;
@@ -701,8 +755,9 @@ function preview() {
         <div class="prow">${t.teams.map((x) => `<span class="nfl"><b>${x}</b>${esc(NAME[x])}</span>`).join("") || `<span class="dim small">Nobody here</span>`}</div></div>`;
     }).join("") + `</div>` + (k.note ? `<p class="pnote">${esc(k.note)}</p>` : "") + img;
   } else if (sec.kind === "history") {
-    const inc = k.include || {};
-    body = (k.card ? (inc.scores !== false ? scoreboard(k.card, false) : "") + (inc.numbers !== false ? numbersBlock(k.card) : "") + (inc.players !== false ? topList(k.card) : "") : `<p class="dim">No scoreboard pulled yet.</p>`) + (k.headline ? `<h3 class="hl">${esc(k.headline)}</h3>` : "") + img + `<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet.</p>`}</div>`;
+    if (k.card) ensurePick(k);
+    const pc = k.card ? pickedCard(k.card, k.pick) : null;
+    body = (pc ? (pc.games.length ? scoreboard(pc, false) : "") + numbersBlock(pc) + topList(pc) : `<p class="dim">No scoreboard pulled yet.</p>`) + (k.headline ? `<h3 class="hl">${esc(k.headline)}</h3>` : "") + img + `<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet.</p>`}</div>`;
   } else if (sec.kind === "note") {
     body = `<div class="pnote-card">${k.headline ? `<h3 class="hl" style="font-size:1.5rem">${esc(k.headline)}</h3>` : ""}${img}<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet. An empty note just doesn't run.</p>`}</div></div>`;
   } else {
