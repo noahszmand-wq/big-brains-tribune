@@ -136,6 +136,9 @@ input:focus, select:focus, textarea:focus, [contenteditable]:focus { outline: 3p
 .teams { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .teams:empty::after { content: "Tap teams below to add them here"; color: var(--ink-2); font-size: 0.85rem; padding: 6px 2px; }
 .team { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 7px; border: 1px solid var(--rule); background: var(--bg); border-radius: 6px; font-weight: 600; font-size: 0.95rem; }
+.tn { display: grid; line-height: 1.15; text-align: left; }
+.tn .ni { font-size: 0.72rem; font-weight: 500; color: var(--ink-2); white-space: nowrap; }
+.preview .tn .ni { color: #9BA9BD; }
 .team b { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; background: var(--surface-2); color: var(--ink-2); padding: 3px 5px; border-radius: 4px; }
 .pool { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; margin-top: 12px; }
 .pool .lab b { color: var(--pylon); text-transform: none; letter-spacing: 0; }
@@ -329,6 +332,11 @@ function statusChip(status, locked) {
   const map = { none: ["none", "Not started"], draft: ["draft", "Draft saved"], submitted: ["submitted", "Submitted"], held: ["held", "Held by editor"] };
   const [cls, label] = map[status] || map.none;
   return `<span class="chip ${cls}">${label}</span>` + (locked ? ` <span class="chip locked">Locked</span>` : "");
+}
+function nflLine(code, nfl) {
+  const t = ((nfl || (S.boot && S.boot.nfl) || {}).teams || {})[code]; if (!t) return "";
+  const parts = [t.rec, t.opp ? `${t.ha} ${t.opp}` : (t.rec ? "bye" : "")].filter(Boolean);
+  return parts.length ? `<small class="ni">${esc(parts.join(" · "))}</small>` : "";
 }
 function setDue() {
   const el = document.getElementById("due");
@@ -688,7 +696,7 @@ function tiersEditor(parent, ro) {
   parent.appendChild(root);
   $("#tnote", root).addEventListener("input", (e) => { c.note = e.target.value; touch(); });
   const placed = () => new Set(c.tiers.flatMap((t) => t.teams));
-  const chip = (code) => `<button type="button" class="team" data-t="${code}"><b>${code}</b>${esc(NAME[code])}</button>`;
+  const chip = (code) => `<button type="button" class="team" data-t="${code}"><b>${code}</b><span class="tn">${esc(NAME[code])}${nflLine(code)}</span></button>`;
   function draw() {
     const T = $("#tiers", root); T.innerHTML = "";
     if (S.tierSel >= c.tiers.length) S.tierSel = Math.max(0, c.tiers.length - 1);
@@ -752,7 +760,7 @@ function preview() {
     body = `<div class="ptiers">` + (k.tiers || []).map((t, i) => {
       const fraud = /fraud/i.test(t.name), dark = i >= 5;
       return `<div class="ptier ${fraud ? "fraud" : ""} ${dark ? "dark" : ""}" style="--tc:${TIER_COLORS[Math.min(i, TIER_COLORS.length - 1)]}"><div class="lab2">${fraud ? `<span>${esc(t.name)}</span>` : esc(t.name)}<small>${t.teams.length} team${t.teams.length === 1 ? "" : "s"}</small></div>
-        <div class="prow">${t.teams.map((x) => `<span class="nfl"><b>${x}</b>${esc(NAME[x])}</span>`).join("") || `<span class="dim small">Nobody here</span>`}</div></div>`;
+        <div class="prow">${t.teams.map((x) => `<span class="nfl"><b>${x}</b><span class="tn">${esc(NAME[x])}${nflLine(x)}</span></span>`).join("") || `<span class="dim small">Nobody here</span>`}</div></div>`;
     }).join("") + `</div>` + (k.note ? `<p class="pnote">${esc(k.note)}</p>` : "") + img;
   } else if (sec.kind === "history") {
     if (k.card) ensurePick(k);
