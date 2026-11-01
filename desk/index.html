@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A1220" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F6F3EC" media="(prefers-color-scheme: light)">
+<title>BBT Desk</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23FF6A1F'/%3E%3Ctext x='32' y='42' font-family='Arial Black,Arial' font-weight='900' font-size='24' text-anchor='middle' fill='%230A1220'%3EBBT%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@1,6..72,400..600&display=swap">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #F6F3EC; --surface: #FFFFFF; --surface-2: #EEE9DE; --ink: #14202F; --ink-2: #5E6B7D; --rule: #DAD3C5;
+  --pylon: #E55A12; --on-pylon: #FFFFFF; --yellow: #E6BF00; --on-yellow: #14202F; --win: #1F9A5F; --loss: #D23B3B;
+  --sel: rgba(229, 90, 18, 0.10);
+  --display: "Big Shoulders Display", "Arial Narrow", sans-serif; --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif; --quote: "Newsreader", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0A1220; --surface: #101B2D; --surface-2: #17243A; --ink: #EAF0F7; --ink-2: #9BA9BD; --rule: #22314A;
+  --pylon: #FF6A1F; --on-pylon: #0A1220; --yellow: #FFD60A; --on-yellow: #0A1220; --win: #3DD68C; --loss: #FF7070; --sel: rgba(255, 214, 10, 0.12);
+} }
+:root[data-theme="dark"] {
+  --bg: #0A1220; --surface: #101B2D; --surface-2: #17243A; --ink: #EAF0F7; --ink-2: #9BA9BD; --rule: #22314A;
+  --pylon: #FF6A1F; --on-pylon: #0A1220; --yellow: #FFD60A; --on-yellow: #0A1220; --win: #3DD68C; --loss: #FF7070; --sel: rgba(255, 214, 10, 0.12);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 0 16px 48px; }
+.hidden { display: none !important; }
+.sr { position: absolute; left: -9999px; }
+
+/* Top bar */
+.top { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--rule); padding-top: env(safe-area-inset-top); }
+.top .in { max-width: 640px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 10px; min-height: 56px; }
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.brand .mark { background: var(--pylon); color: var(--on-pylon); font-family: var(--display); font-weight: 900; font-size: 0.95rem; padding: 4px 7px 3px; line-height: 1; }
+.brand .word { font-family: var(--display); font-weight: 800; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1; }
+.top .who { margin-left: auto; text-align: right; font-size: 0.85rem; color: var(--ink-2); line-height: 1.2; }
+.top .who b { display: block; color: var(--ink); font-weight: 600; }
+.top .who button { background: none; border: 0; padding: 0; color: var(--ink-2); font-size: 0.78rem; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Type */
+h1 { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 2.4rem; line-height: 0.95; margin: 0 0 6px; }
+h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.5rem; line-height: 1; margin: 26px 0 10px; }
+.lab { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.dim { color: var(--ink-2); }
+.small { font-size: 0.88rem; }
+p { margin: 0 0 12px; }
+
+/* Cards and controls */
+.card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; margin-bottom: 12px; }
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+input[type=text], input[type=password], input[type=number], input[type=date], input[type=time], select, textarea {
+  width: 100%; min-height: 48px; background: var(--bg); border: 1px solid var(--rule); padding: 10px 12px; font-size: 16px; border-radius: 6px; }
+textarea { min-height: 96px; resize: vertical; }
+input:focus, select:focus, textarea:focus, [contenteditable]:focus { outline: 3px solid var(--yellow); outline-offset: 0; border-color: var(--yellow); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 18px; border: 1px solid var(--rule); background: var(--surface); border-radius: 6px; font-weight: 600; }
+.btn.primary { background: var(--pylon); color: var(--on-pylon); border-color: var(--pylon); font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 1.2rem; letter-spacing: 0.02em; }
+.btn.yellow { background: var(--yellow); color: var(--on-yellow); border-color: var(--yellow); }
+.btn.block { width: 100%; }
+.btn.quiet { background: none; border-color: transparent; color: var(--ink-2); }
+.btn.sm { min-height: 40px; padding: 6px 12px; font-size: 0.92rem; }
+.btn.danger { color: var(--loss); }
+.btn[disabled] { opacity: 0.55; cursor: default; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.row.between { justify-content: space-between; }
+.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.check input { width: 22px; height: 22px; accent-color: var(--pylon); margin: 0; }
+.msg { min-height: 1.4em; margin: 8px 0 0; font-weight: 600; }
+.msg.err { color: var(--loss); } .msg.ok { color: var(--win); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; border: 1.5px solid currentColor; white-space: nowrap; }
+.chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.chip.none { color: var(--ink-2); } .chip.draft { color: var(--pylon); } .chip.submitted { color: var(--win); } .chip.held { color: var(--loss); } .chip.locked { color: var(--ink-2); }
+.notice { background: var(--surface-2); border-left: 4px solid var(--yellow); padding: 10px 12px; margin-bottom: 14px; font-size: 0.95rem; }
+.notice.red { border-left-color: var(--loss); }
+
+/* Gate + picker */
+.gate { padding-top: 10vh; }
+.gate .card { border-top: 6px solid var(--yellow); padding: 24px 20px; }
+.people { display: grid; gap: 10px; }
+.person { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; text-align: left; padding: 14px 16px; min-height: 64px; }
+.person b { font-size: 1.15rem; font-weight: 700; }
+.person span { color: var(--ink-2); font-size: 0.9rem; grid-column: 1; }
+.person i { grid-column: 2; grid-row: 1 / span 2; font-style: normal; color: var(--ink-2); font-size: 1.4rem; }
+
+/* Home header */
+.ph { padding: 18px 0 8px; }
+.ph .meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; color: var(--ink-2); font-size: 0.92rem; margin: 6px 0 10px; }
+.ph .meta .due { font-weight: 600; color: var(--ink); }
+.savestate { font-size: 0.82rem; color: var(--ink-2); min-height: 1.2em; }
+.actions { position: sticky; bottom: 0; background: linear-gradient(to top, var(--bg) 75%, transparent); padding: 14px 0 calc(10px + env(safe-area-inset-bottom)); display: grid; gap: 8px; }
+.actions .row { gap: 8px; }
+.actions .row .btn { flex: 1; }
+
+/* Rich editor */
+.toolbar { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+.toolbar button { min-width: 44px; min-height: 44px; padding: 0 10px; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 6px; font-weight: 700; }
+.toolbar button.i { font-style: italic; font-family: Georgia, serif; }
+.rich { min-height: 180px; background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; font-size: 1.02rem; line-height: 1.55; }
+.rich:empty::before, .rich.empty::before { content: attr(data-ph); color: var(--ink-2); }
+.rich p { margin: 0 0 10px; }
+.rich ul, .rich ol { margin: 0 0 10px; padding-left: 22px; }
+.rich blockquote.pq { margin: 12px 0; padding: 4px 0 4px 14px; border-left: 4px solid var(--pylon); font-family: var(--quote); font-style: italic; font-size: 1.25rem; line-height: 1.3; }
+.rich a { color: var(--pylon); }
+.rich[contenteditable=false] { opacity: 0.85; }
+.imgbox { display: grid; gap: 8px; }
+.imgbox img { max-width: 100%; max-height: 260px; display: block; border: 1px solid var(--rule); }
+.imgbox .pick { position: relative; overflow: hidden; }
+.imgbox .pick input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.spin { width: 18px; height: 18px; border: 3px solid var(--rule); border-top-color: var(--pylon); border-radius: 50%; animation: sp 0.8s linear infinite; display: inline-block; vertical-align: middle; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+/* Tier builder */
+.tiers { display: grid; gap: 8px; }
+.tier { background: var(--surface); border: 1px solid var(--rule); border-left: 8px solid var(--tc, var(--pylon)); border-radius: 6px; padding: 10px 10px 10px 12px; }
+.tier.sel { outline: 3px solid var(--yellow); background: var(--sel); }
+.tier .hd { display: flex; align-items: center; gap: 6px; min-height: 44px; }
+.tier .nm { flex: 1; text-align: left; background: none; border: 0; padding: 6px 4px; font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 1.3rem; line-height: 1; min-height: 44px; }
+.tier .nm small { display: block; font-family: var(--body); font-weight: 500; text-transform: none; font-size: 0.78rem; color: var(--ink-2); margin-top: 3px; }
+.tier .hd input { flex: 1; min-height: 44px; }
+.tier .ctl { width: 44px; height: 44px; border: 1px solid var(--rule); background: var(--surface-2); border-radius: 6px; font-size: 1rem; padding: 0; }
+.teams { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.teams:empty::after { content: "Tap teams below to add them here"; color: var(--ink-2); font-size: 0.85rem; padding: 6px 2px; }
+.team { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 7px; border: 1px solid var(--rule); background: var(--bg); border-radius: 6px; font-weight: 600; font-size: 0.95rem; }
+.team b { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; background: var(--surface-2); color: var(--ink-2); padding: 3px 5px; border-radius: 4px; }
+.pool { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; margin-top: 12px; }
+.pool .lab b { color: var(--pylon); text-transform: none; letter-spacing: 0; }
+.toast { position: fixed; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 0.9rem; z-index: 35; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
+.toast.on { opacity: 1; }
+.pool .teams { margin-top: 6px; }
+.pool .teams:empty::after { content: "Every team is placed."; }
+.hint { font-size: 0.88rem; color: var(--ink-2); margin: 6px 0 10px; }
+.addtier { width: 100%; }
+/* bottom sheet */
+.sheet { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 30; display: flex; align-items: flex-end; justify-content: center; }
+.sheet .box { width: 100%; max-width: 640px; background: var(--surface); border-radius: 14px 14px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); max-height: 80dvh; overflow: auto; }
+.sheet .box .btn { width: 100%; justify-content: flex-start; margin-bottom: 8px; }
+
+/* History */
+.scoreboard { border: 1px solid var(--rule); background: var(--surface); border-radius: 6px; overflow: hidden; margin: 10px 0 14px; }
+.scoreboard .sbh { padding: 8px 12px; background: var(--surface-2); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.scoreboard .g { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 8px 12px; border-top: 1px solid var(--rule); font-size: 0.95rem; }
+.scoreboard .g .w { font-weight: 700; }
+.scoreboard .g .l { color: var(--ink-2); }
+.scoreboard .g .n { text-align: right; font-variant-numeric: tabular-nums; }
+.scoreboard .g.high .w { color: var(--pylon); }
+.pickrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Admin */
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+.tabs button { flex: none; min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); font-weight: 600; }
+.tabs button[aria-current] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.brow { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; }
+.brow .t { font-weight: 700; font-size: 1.08rem; }
+.brow .s { color: var(--ink-2); font-size: 0.9rem; }
+.brow .bt { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.banner { background: var(--pylon); color: var(--on-pylon); padding: 8px 16px; font-weight: 700; text-align: center; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule); }
+.kv:first-child { border-top: 0; }
+footer { margin-top: 40px; text-align: center; font-size: 0.82rem; color: var(--ink-2); }
+footer button { background: none; border: 0; color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; padding: 8px; }
+
+/* Preview overlay (always the paper's dark look) */
+.preview { position: fixed; inset: 0; z-index: 40; background: #0A1220; color: #EAF0F7; overflow: auto; -webkit-overflow-scrolling: touch; }
+.preview .pin { max-width: 720px; margin: 0 auto; padding: 16px 16px 60px; }
+.preview .pbar { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; background: #0A1220; padding: 10px 0; border-bottom: 1px solid #22314A; margin-bottom: 18px; }
+.preview .pbar .btn { background: #FFD60A; color: #0A1220; border-color: #FFD60A; }
+.preview .ptag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9BA9BD; }
+.preview h2.ph2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 2.2rem; line-height: 1; margin: 0 0 8px; color: #EAF0F7; }
+.preview .byline { display: flex; align-items: center; gap: 8px; color: #9BA9BD; margin-bottom: 16px; font-size: 0.92rem; }
+.preview .byline b { color: #EAF0F7; }
+.preview .ptiers { border: 1px solid #22314A; background: #101B2D; }
+.preview .ptier { display: grid; grid-template-columns: 1fr; border-bottom: 1px solid #22314A; }
+.preview .ptier:last-child { border-bottom: 0; }
+.preview .ptier .lab2 { background: var(--tc); color: #0A1220; padding: 10px 14px; font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 1.35rem; line-height: 1; display: flex; align-items: baseline; gap: 10px; }
+.preview .ptier .lab2 small { font-family: var(--body); font-weight: 600; font-size: 0.7rem; letter-spacing: 0.06em; opacity: 0.8; }
+.preview .ptier.dark .lab2 { color: #EAF0F7; }
+.preview .ptier.fraud .lab2 { background: repeating-linear-gradient(135deg, #FFD60A 0 12px, #0A1220 12px 24px); }
+.preview .ptier.fraud .lab2 span { background: #0A1220; color: #FF7070; padding: 4px 8px; border: 2px solid #FF7070; transform: rotate(-3deg); display: inline-block; }
+.preview .ptier.fraud .lab2 small { background: #0A1220; color: #9BA9BD; padding: 3px 6px; opacity: 1; }
+.preview .ptier .prow { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; }
+.preview .nfl { display: inline-flex; align-items: center; gap: 6px; background: #0A1220; border: 1px solid #22314A; padding: 5px 9px 5px 6px; font-weight: 600; font-size: 0.9rem; line-height: 1; }
+.preview .nfl b { font-size: 0.64rem; font-weight: 700; background: #17243A; color: #9BA9BD; padding: 3px 5px; letter-spacing: 0.04em; }
+.preview .ptier.fraud .nfl { border-style: dashed; border-color: #FF7070; }
+.preview h3.hl { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 2rem; line-height: 0.95; margin: 0 0 12px; }
+.preview .pbody { font-size: 1.05rem; line-height: 1.6; max-width: 62ch; }
+.preview .pbody p { margin: 0 0 14px; }
+.preview .pbody blockquote.pq { margin: 18px 0; padding: 0 0 0 16px; border-left: 5px solid #FF6A1F; font-family: var(--quote); font-style: italic; font-size: 1.6rem; line-height: 1.2; color: #FFD60A; }
+.preview .pbody a { color: #FF8A4C; }
+.preview .pimg { max-width: 100%; display: block; margin: 0 0 16px; border: 1px solid #22314A; }
+.preview .signoff { font-family: var(--quote); font-style: italic; font-size: 1.5rem; color: #FF8A4C; margin-top: 8px; }
+.preview .pnote { color: #9BA9BD; font-size: 0.9rem; margin-top: 12px; }
+.preview .scoreboard { background: #101B2D; border-color: #22314A; }
+.preview .scoreboard .sbh { background: #17243A; color: #9BA9BD; }
+.preview .scoreboard .g { border-color: #22314A; }
+.preview .scoreboard .g .l { color: #9BA9BD; }
+.preview .scoreboard .g.high .w { color: #FFD60A; }
+.preview .pnote-card { background: #17243A; border-left: 6px solid #FFD60A; padding: 16px 18px; }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="brand" href="#" id="brand"><span class="mark">BBT</span><span class="word">Desk</span></a>
+  <div class="who" id="who"></div>
+</div></header>
+<div class="banner hidden" id="adminbanner">Editing as editor</div>
+<main class="wrap" id="app" aria-live="polite"></main>
+<footer><button type="button" id="editorlink">Editor</button></footer>
+<div id="overlay"></div>
+
+<script>
+(() => {
+"use strict";
+const ENDPOINT = "https://eempzkiumbnffftkqdas.supabase.co/functions/v1/tribune-desk";
+const NFL = [["ARI","Cardinals"],["ATL","Falcons"],["BAL","Ravens"],["BUF","Bills"],["CAR","Panthers"],["CHI","Bears"],["CIN","Bengals"],["CLE","Browns"],["DAL","Cowboys"],["DEN","Broncos"],["DET","Lions"],["GB","Packers"],["HOU","Texans"],["IND","Colts"],["JAX","Jaguars"],["KC","Chiefs"],["LV","Raiders"],["LAC","Chargers"],["LAR","Rams"],["MIA","Dolphins"],["MIN","Vikings"],["NE","Patriots"],["NO","Saints"],["NYG","Giants"],["NYJ","Jets"],["PHI","Eagles"],["PIT","Steelers"],["SF","49ers"],["SEA","Seahawks"],["TB","Buccaneers"],["TEN","Titans"],["WAS","Commanders"]];
+const NAME = Object.fromEntries(NFL);
+const TIER_COLORS = ["#FF6A1F","#FFA23A","#FFD60A","#8FE3B5","#5BA4E6","#8B6B4A","#6B4C31","#4A3221"];
+const ERR = { wrong_word: "That's not the league word.", locked: "The desk is locked for this week.", not_admin: "That's not the editor word.", too_long: "That's too long for one piece.",
+  image_too_big: "That image is too big. Try a smaller one.", bad_image: "That file type won't work. Use a JPG, PNG, GIF or WebP.", no_season: "Sleeper doesn't have that season.", no_games: "No games found for that week.", error: "Something went wrong. Try again." };
+
+// ---------- storage ----------
+const store = {
+  get(k) { try { return localStorage.getItem("bbtdesk_" + k); } catch (_) { return null; } },
+  set(k, v) { try { if (v == null) localStorage.removeItem("bbtdesk_" + k); else localStorage.setItem("bbtdesk_" + k, v); } catch (_) {} },
+};
+
+// ---------- state ----------
+const S = { word: null, admin_word: null, boot: null, me: null, piece: null, content: null, image_url: null, status: "none",
+  view: "gate", adminTab: "week", adminWeek: null, editingAs: null, dirty: false, saveTimer: null, saving: false, remember: true, tierSel: 0 };
+const $ = (sel, root = document) => root.querySelector(sel);
+const app = $("#app"), who = $("#who"), overlay = $("#overlay"), banner = $("#adminbanner");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+function ago(ts) {
+  if (!ts) return "never"; const d = (Date.now() - Date.parse(ts)) / 1000;
+  if (d < 45) return "just now"; if (d < 3600) return Math.round(d / 60) + " min ago"; if (d < 86400) return Math.round(d / 3600) + " hr ago";
+  return Math.round(d / 86400) + " days ago";
+}
+function errText(code) { return ERR[code] || (code && code.startsWith("sleeper") ? "Sleeper didn't answer. Try again in a minute." : ERR.error); }
+
+// ---------- api ----------
+async function api(action, body = {}, opts = {}) {
+  const payload = { action, word: S.word, ...body };
+  if (S.admin_word && !opts.noAdmin) payload.admin_word = S.admin_word;
+  if (S.adminWeek && !("week" in body)) payload.week = S.adminWeek;
+  const r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  const j = await r.json().catch(() => ({ ok: false, error: "error" }));
+  if (!j.ok) { const e = new Error(j.error || "error"); e.code = j.error || "error"; throw e; }
+  return j;
+}
+
+// ---------- helpers ----------
+const sectionOf = (c) => S.boot.sections.find((s) => s.key === c.section_key) || { title: c.section_key, kind: "note" };
+const pieceRowFor = (cid) => S.boot.pieces.find((p) => p.contributor_id === cid);
+function statusChip(status, locked) {
+  const map = { none: ["none", "Not started"], draft: ["draft", "Draft saved"], submitted: ["submitted", "Submitted"], held: ["held", "Held by editor"] };
+  const [cls, label] = map[status] || map.none;
+  return `<span class="chip ${cls}">${label}</span>` + (locked ? ` <span class="chip locked">Locked</span>` : "");
+}
+function setWho() {
+  if (!S.me) { who.innerHTML = ""; return; }
+  who.innerHTML = `<b>${esc(S.me.name)}</b><button type="button" id="switch">Not you? Switch</button>`;
+  $("#switch").onclick = () => { S.me = null; S.editingAs = null; store.set("cid", null); banner.classList.add("hidden"); render("picker"); };
+}
+
+// ---------- sanitize ----------
+const ALLOW = { P: 1, BR: 1, B: 1, STRONG: 1, I: 1, EM: 1, UL: 1, OL: 1, LI: 1, A: 1, BLOCKQUOTE: 1 };
+function sanitize(html) {
+  const root = document.createElement("div"); root.innerHTML = html || "";
+  const walk = (node) => {
+    [...node.childNodes].forEach((n) => {
+      if (n.nodeType === 3) return;
+      if (n.nodeType !== 1) { n.remove(); return; }
+      const tag = n.tagName;
+      if (tag === "SCRIPT" || tag === "STYLE" || tag === "IMG" || tag === "IFRAME") { n.remove(); return; }
+      walk(n);
+      if (tag === "DIV") { const p = document.createElement("p"); while (n.firstChild) p.appendChild(n.firstChild); n.replaceWith(p); return; }
+      if (!ALLOW[tag]) { while (n.firstChild) n.parentNode.insertBefore(n.firstChild, n); n.remove(); return; }
+      const keepPq = tag === "BLOCKQUOTE";
+      [...n.attributes].forEach((a) => {
+        if (tag === "A" && a.name === "href" && /^https?:\/\//i.test(a.value)) return;
+        n.removeAttribute(a.name);
+      });
+      if (keepPq) n.className = "pq";
+      if (tag === "A") { n.setAttribute("target", "_blank"); n.setAttribute("rel", "noopener"); if (!n.getAttribute("href")) { while (n.firstChild) n.parentNode.insertBefore(n.firstChild, n); n.remove(); } }
+    });
+  };
+  walk(root);
+  return root.innerHTML.replace(/<p>(\s|&nbsp;|<br>)*<\/p>/g, "").trim();
+}
+const plain = (html) => { const d = document.createElement("div"); d.innerHTML = html || ""; return d.textContent.trim(); };
+
+// ---------- render router ----------
+function render(view) {
+  S.view = view || S.view; app.innerHTML = ""; overlay.innerHTML = "";
+  setWho();
+  ({ gate, picker, home, admin }[S.view])();
+  window.scrollTo(0, 0);
+}
+
+// ---------- gate ----------
+function gate(msg) {
+  const v = el(`<div class="gate"><div class="card">
+    <h1>Big Brains only</h1><p class="dim">Type the league word to open the desk.</p>
+    <form id="gf"><div class="field"><label class="lab" for="gw">League word</label><input id="gw" type="password" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
+    <label class="check"><input type="checkbox" id="grem" checked> Remember me on this phone</label>
+    <button class="btn primary block" type="submit">Let me in</button><p class="msg err" id="gmsg">${esc(msg || "")}</p></form></div></div>`);
+  app.appendChild(v);
+  $("#gf").onsubmit = async (e) => {
+    e.preventDefault(); const w = norm($("#gw").value); if (!w) return;
+    const b = e.target.querySelector("button"); b.disabled = true; $("#gmsg").textContent = "";
+    S.word = w; S.remember = $("#grem").checked;
+    try { await boot(); store.set("word", S.remember ? w : null); render(S.me ? "home" : "picker"); }
+    catch (err) { S.word = null; b.disabled = false; $("#gmsg").textContent = errText(err.code); }
+  };
+}
+async function boot() { S.boot = await api("bootstrap", {}, { noAdmin: !S.admin_word }); }
+
+// ---------- picker ----------
+function picker() {
+  const people = S.boot.contributors.filter((c) => c.active);
+  const v = el(`<div class="gate"><h1>Who's writing?</h1><p class="dim">Tap your name. You can switch any time.</p><div class="people"></div></div>`);
+  const list = $(".people", v);
+  people.forEach((c) => {
+    const sec = sectionOf(c); const row = pieceRowFor(c.id);
+    const b = el(`<button type="button" class="btn person"><b>${esc(c.name)}</b><span>${esc(sec.title)}</span><i>${row ? (row.status === "submitted" ? "✓" : "…") : "›"}</i></button>`);
+    b.onclick = () => { S.me = c; store.set("cid", S.remember ? String(c.id) : null); openPiece(); };
+    list.appendChild(b);
+  });
+  if (!people.length) list.appendChild(el(`<div class="card dim">No contributors yet. The editor can add some.</div>`));
+  app.appendChild(v);
+}
+
+// ---------- open a piece ----------
+async function openPiece(asAdmin) {
+  app.innerHTML = `<p class="dim" style="padding-top:24px"><span class="spin"></span> Opening your piece…</p>`;
+  S.editingAs = asAdmin ? S.me : null;
+  banner.classList.toggle("hidden", !asAdmin);
+  try {
+    const r = await api("get_piece", { contributor_id: S.me.id });
+    S.piece = r.piece; S.content = (r.piece && r.piece.content) || {}; S.image_url = r.piece ? r.piece.image_url : null;
+    S.status = r.piece ? r.piece.status : "none"; S.boot.locked = r.locked; S.dirty = false; S.tierSel = 0;
+    render("home");
+  } catch (err) { app.innerHTML = `<div class="notice red" style="margin-top:20px">${esc(errText(err.code))}</div><button class="btn" id="retry">Try again</button>`; $("#retry").onclick = () => openPiece(asAdmin); }
+}
+
+// ---------- home ----------
+function home() {
+  const c = S.me, sec = sectionOf(c), B = S.boot;
+  const ro = B.locked && !S.editingAs;
+  const h = el(`<div>
+    <div class="ph"><div class="lab">${esc(c.name)} · Week ${B.week}</div><h1>${esc(sec.title)}</h1>
+      <div class="meta"><span class="due">${esc(B.deadline_label || "Due Tue 8 AM")}</span><span id="chip">${statusChip(S.status, B.locked)}</span></div>
+      <div class="savestate" id="savestate"></div></div>
+    ${ro ? `<div class="notice">This week is locked, so the piece is read-only now. Next week's desk opens after the issue goes out.</div>` : ""}
+    ${S.status === "held" && !S.editingAs ? `<div class="notice red">The editor is holding this piece this week. You can still edit it; it won't run unless it's released.</div>` : ""}
+    <div id="editor"></div>
+    <div class="actions" id="actions"></div>
+  </div>`);
+  app.appendChild(h);
+  const ed = $("#editor", h);
+  ({ tiers: tiersEditor, column: columnEditor, history: historyEditor, note: noteEditor }[sec.kind] || noteEditor)(ed, ro);
+  renderActions(ro);
+}
+function renderActions(ro) {
+  const a = $("#actions"); if (!a) return;
+  if (ro) { a.innerHTML = `<button class="btn block" id="pv">Preview in the paper</button>`; $("#pv").onclick = preview; return; }
+  const sub = S.status === "submitted";
+  a.innerHTML = `<div class="row"><button class="btn" id="pv">Preview in the paper</button>${sub ? `<button class="btn" id="unsub">Unsubmit</button>` : ""}</div>
+    <button class="btn ${sub ? "yellow" : "primary"} block" id="submit">${sub ? `Submitted · keep editing until ${esc((S.boot.deadline_label || "Tue 8 AM").replace(/^Due\s+/i, ""))}` : "Submit"}</button>`;
+  $("#pv").onclick = preview;
+  $("#submit").onclick = async () => { if (sub) return; await saveNow("submitted", true); };
+  if (sub) $("#unsub").onclick = async () => { await saveNow("draft", true); };
+}
+function setSaveState(t, cls) { const s = $("#savestate"); if (s) { s.textContent = t; s.className = "savestate " + (cls || ""); } }
+function touch() { if (S.boot.locked && !S.editingAs) return; S.dirty = true; setSaveState("Editing…"); clearTimeout(S.saveTimer); S.saveTimer = setTimeout(() => saveNow(), 1500); }
+async function saveNow(status, loud) {
+  clearTimeout(S.saveTimer);
+  if (!S.me || (S.boot.locked && !S.editingAs)) return;
+  const st = status || (S.status === "submitted" ? "submitted" : S.status === "held" ? "held" : "draft");
+  if (!S.dirty && !status) return;
+  S.saving = true; setSaveState("Saving…");
+  try {
+    const r = await api("save_piece", { contributor_id: S.me.id, content: S.content, status: st, image_url: S.image_url, as_admin: !!S.editingAs });
+    S.dirty = false; S.status = r.piece.status; S.piece = { ...(S.piece || {}), ...r.piece, content: S.content };
+    const row = pieceRowFor(S.me.id); if (row) Object.assign(row, { status: r.piece.status, updated_at: r.piece.updated_at }); else S.boot.pieces.push({ contributor_id: S.me.id, status: r.piece.status, updated_at: r.piece.updated_at });
+    setSaveState(status === "submitted" ? "Submitted. You can keep editing until the deadline." : "Saved just now", status === "submitted" ? "ok" : "");
+    const chip = $("#chip"); if (chip) chip.innerHTML = statusChip(S.status, S.boot.locked);
+    if (loud) renderActions(false);
+  } catch (err) {
+    if (err.code === "locked") { S.boot.locked = true; setSaveState("The desk locked for this week. Your last saved version is the one that runs.", "err"); }
+    else { setSaveState("Couldn't save, retrying…", "err"); S.saveTimer = setTimeout(() => saveNow(status), 5000); }
+  } finally { S.saving = false; }
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && S.dirty) saveNow(); });
+
+// ---------- rich editor ----------
+function richField(parent, { label, key, ph, ro, short }) {
+  const box = el(`<div class="field"><span class="lab">${esc(label)}</span>
+    ${ro ? "" : `<div class="toolbar" role="toolbar" aria-label="Formatting">
+      <button type="button" data-cmd="bold" aria-label="Bold"><b>B</b></button><button type="button" class="i" data-cmd="italic" aria-label="Italic">I</button>
+      <button type="button" data-cmd="insertUnorderedList" aria-label="Bullet list">• List</button><button type="button" data-cmd="link">Link</button><button type="button" data-cmd="pq">“ Quote</button></div>`}
+    <div class="rich" contenteditable="${ro ? "false" : "true"}" data-ph="${esc(ph)}" ${short ? 'style="min-height:120px"' : ""}></div></div>`);
+  const rich = $(".rich", box); rich.innerHTML = S.content[key] || ""; rich.classList.toggle("empty", !plain(rich.innerHTML));
+  const sync = () => { S.content[key] = sanitize(rich.innerHTML); rich.classList.toggle("empty", !plain(rich.innerHTML)); touch(); };
+  rich.addEventListener("input", sync);
+  rich.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    const q = closestBlock(rich, "BLOCKQUOTE"); if (!q) return;
+    const sel = window.getSelection(); if (!sel.rangeCount) return;
+    const r = sel.getRangeAt(0).cloneRange(); r.selectNodeContents(q); r.setStart(sel.getRangeAt(0).endContainer, sel.getRangeAt(0).endOffset);
+    if (r.toString().trim() !== "") return;               // not at the end of the quote: normal newline
+    e.preventDefault(); const p = document.createElement("p"); p.innerHTML = "<br>"; q.after(p);
+    const nr = document.createRange(); nr.setStart(p, 0); nr.collapse(true); sel.removeAllRanges(); sel.addRange(nr); sync();
+  });
+  rich.addEventListener("paste", (e) => { e.preventDefault(); document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain")); });
+  box.querySelectorAll(".toolbar button").forEach((b) => {
+    b.addEventListener("mousedown", (e) => e.preventDefault());
+    b.onclick = () => {
+      rich.focus(); const cmd = b.dataset.cmd;
+      if (cmd === "link") { let u = prompt("Link to where? Paste the address."); if (!u) return; if (!/^https?:\/\//i.test(u)) u = "https://" + u; document.execCommand("createLink", false, u); }
+      else if (cmd === "pq") { const inQ = closestBlock(rich, "BLOCKQUOTE"); document.execCommand("formatBlock", false, inQ ? "p" : "blockquote"); rich.querySelectorAll("blockquote").forEach((q) => q.classList.add("pq")); }
+      else document.execCommand(cmd, false, null);
+      sync();
+    };
+  });
+  parent.appendChild(box); return rich;
+}
+function closestBlock(rich, tag) {
+  const sel = window.getSelection(); if (!sel.rangeCount) return null;
+  let n = sel.getRangeAt(0).startContainer; if (n.nodeType === 3) n = n.parentNode;
+  while (n && n !== rich) { if (n.tagName === tag) return n; n = n.parentNode; }
+  return null;
+}
+function textField(parent, { label, key, ph, ro, hint }) {
+  const f = el(`<div class="field"><label class="lab">${esc(label)}</label><input type="text" placeholder="${esc(ph || "")}" ${ro ? "disabled" : ""} value="${esc(S.content[key] || "")}">${hint ? `<span class="small dim">${esc(hint)}</span>` : ""}</div>`);
+  $("input", f).addEventListener("input", (e) => { S.content[key] = e.target.value; touch(); });
+  parent.appendChild(f);
+}
+function imageField(parent, ro) {
+  const box = el(`<div class="field"><span class="lab">Image, meme or GIF <span class="dim" style="text-transform:none;letter-spacing:0;font-weight:500">· optional, one per piece</span></span><div class="imgbox" id="imgbox"></div></div>`);
+  parent.appendChild(box);
+  const draw = () => {
+    const ib = $("#imgbox");
+    if (S.image_url) ib.innerHTML = `<img src="${esc(S.image_url)}" alt=""><div class="row">${ro ? "" : `<button type="button" class="btn sm" id="imgrm">Remove</button>`}</div>`;
+    else ib.innerHTML = ro ? `<span class="dim small">No image.</span>` : `<label class="btn pick">Add a picture<input type="file" accept="image/*" id="imgin"></label><span class="small dim">We shrink it for you. Nothing bigger than about 1.5 MB.</span>`;
+    if ($("#imgrm")) $("#imgrm").onclick = () => { S.image_url = null; touch(); draw(); };
+    if ($("#imgin")) $("#imgin").onchange = async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      ib.innerHTML = `<span class="dim"><span class="spin"></span> Shrinking and uploading…</span>`;
+      try {
+        const { b64, mime } = await shrink(f);
+        const r = await api("upload_image", { contributor_id: S.me.id, mime, data_b64: b64 });
+        S.image_url = r.url; touch(); draw();
+      } catch (err) { draw(); ib.insertAdjacentHTML("beforeend", `<p class="msg err">${esc(err.code ? errText(err.code) : err.message)}</p>`); }
+    };
+  };
+  draw();
+}
+async function shrink(file) {
+  const toB64 = (blob) => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result.split(",")[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
+  if (file.type === "image/gif") { if (file.size > 1.5 * 1024 * 1024) throw new Error("That GIF is too big (over 1.5 MB). Try a shorter one."); return { b64: await toB64(file), mime: "image/gif" }; }
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("Couldn't read that image.")); i.src = URL.createObjectURL(file); });
+  const max = 1200, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const cv = document.createElement("canvas"); cv.width = Math.round(img.naturalWidth * sc); cv.height = Math.round(img.naturalHeight * sc);
+  const ctx = cv.getContext("2d"); ctx.drawImage(img, 0, 0, cv.width, cv.height);
+  let mime = "image/jpeg";
+  if (file.type === "image/png") { const d = ctx.getImageData(0, 0, cv.width, cv.height).data; for (let i = 3; i < d.length; i += 4 * 97) if (d[i] < 255) { mime = "image/png"; break; } }
+  const blob = await new Promise((res) => cv.toBlob(res, mime, 0.82));
+  if (blob.size > 1.5 * 1024 * 1024) throw new Error("That image is still too big after shrinking. Try a smaller one.");
+  return { b64: await toB64(blob), mime };
+}
+
+// ---------- editors ----------
+function noteEditor(parent, ro) {
+  parent.appendChild(el(`<p class="dim">A few lines from the editor's chair. Leave it empty and the issue just skips it.</p>`));
+  textField(parent, { label: "Headline (optional)", key: "headline", ph: "e.g. Programming note", ro });
+  richField(parent, { label: "Note", key: "body_html", ph: "Short and sweet. Two or three sentences is plenty.", ro, short: true });
+  imageField(parent, ro);
+}
+function columnEditor(parent, ro) {
+  textField(parent, { label: "Headline", key: "headline", ph: "Give it a title", ro });
+  richField(parent, { label: "Column", key: "body_html", ph: "The league, football, your team, politics, life. A paragraph or two.", ro });
+  textField(parent, { label: "Sign-off (optional)", key: "signoff", ph: "— JUD", ro });
+  imageField(parent, ro);
+}
+async function historyEditor(parent, ro) {
+  const c = S.content;
+  const top = el(`<div><p class="dim">Pick a season and week. We'll pull the scoreboard, and you write the story around it.</p>
+    <div class="pickrow"><div class="field"><label class="lab" for="hs">Season</label><select id="hs" ${ro ? "disabled" : ""}><option>Loading…</option></select></div>
+    <div class="field"><label class="lab" for="hw">Week</label><select id="hw" ${ro ? "disabled" : ""}>${Array.from({ length: 17 }, (_, i) => `<option value="${i + 1}" ${c.hweek == i + 1 ? "selected" : ""}>Week ${i + 1}</option>`).join("")}</select></div></div>
+    ${ro ? "" : `<button type="button" class="btn block" id="pull">Pull that week</button>`}<p class="msg" id="hmsg"></p><div id="hcard"></div></div>`);
+  parent.appendChild(top);
+  const drawCard = () => { $("#hcard").innerHTML = c.card ? scoreboard(c.card) : `<div class="card dim">Pick a season and week. We'll pull the scoreboard.</div>`; };
+  drawCard();
+  const story = el(`<div></div>`); parent.appendChild(story);
+  textField(story, { label: "Headline (optional)", key: "headline", ph: "e.g. The week JUD started a kicker at flex", ro });
+  richField(story, { label: "The story", key: "body_html", ph: "What happened, who's still mad about it, and what it meant.", ro });
+  imageField(story, ro);
+  try {
+    const r = await api("seasons"); const sel = $("#hs");
+    sel.innerHTML = r.seasons.map((s) => `<option ${String(c.season) === String(s) ? "selected" : ""}>${esc(s)}</option>`).join("");
+    if (!c.season) sel.selectedIndex = Math.min(1, r.seasons.length - 1);
+  } catch (err) { $("#hs").innerHTML = `<option>${esc(S.content.season || "2025")}</option>`; $("#hmsg").textContent = "Couldn't load the season list. Try again later."; $("#hmsg").className = "msg err"; }
+  if (ro) return;
+  $("#pull").onclick = async () => {
+    const season = $("#hs").value, hweek = Number($("#hw").value); const b = $("#pull"); b.disabled = true; b.innerHTML = `<span class="spin"></span> Pulling…`;
+    $("#hmsg").textContent = "";
+    try { const r = await api("history", { season, hweek }); c.season = season; c.hweek = hweek; c.card = r.card; drawCard(); touch(); }
+    catch (err) { $("#hmsg").textContent = errText(err.code); $("#hmsg").className = "msg err"; }
+    b.disabled = false; b.textContent = "Pull that week";
+  };
+}
+function scoreboard(card) {
+  return `<div class="scoreboard"><div class="sbh">${esc(card.season)} · Week ${esc(card.week)} · ${card.games.length} games</div>` +
+    card.games.map((g) => `<div class="g ${g.w.team === card.high.team && g.w.pts === card.high.pts ? "high" : ""}"><span class="w">${esc(g.w.team)}</span><span class="n w">${Number(g.w.pts).toFixed(2)}</span><span class="l">${esc(g.l.team)}</span><span class="n l">${Number(g.l.pts).toFixed(2)}</span></div>`).join("") + `</div>`;
+}
+
+// ----- tier builder -----
+function tiersEditor(parent, ro) {
+  const c = S.content; let fresh = false;
+  if (!Array.isArray(c.tiers) || !c.tiers.length) {
+    c.tiers = (S.boot.prev_tiers || [{ name: "S tier", teams: [] }, { name: "A tier", teams: [] }, { name: "B tier", teams: [] }, { name: "C tier", teams: [] }, { name: "D tier", teams: [] }]).map((t) => ({ name: t.name, style: t.style, teams: [...(t.teams || [])] }));
+    fresh = !!S.boot.prev_tiers;
+  }
+  // a team can live in one tier only
+  const seen = new Set(); c.tiers.forEach((t) => { t.teams = t.teams.filter((x) => NAME[x] && !seen.has(x) && seen.add(x)); });
+  const root = el(`<div>${fresh ? `<div class="notice">Starting from last week's board${S.boot.prev_tiers_week ? ` (Week ${S.boot.prev_tiers_week})` : ""}. Move only what changed.</div>` : ""}
+    ${ro ? "" : `<p class="hint">Tap a tier to select it, then tap teams below to drop them in. Tap a placed team to move it.</p>`}
+    <div class="tiers" id="tiers"></div>${ro ? "" : `<button type="button" class="btn addtier" id="addtier" style="margin-top:10px">+ Add tier</button>`}
+    <div class="pool"><span class="lab" id="poollab">Unplaced</span><div class="teams" id="pool"></div></div>
+    <div class="field" style="margin-top:14px"><label class="lab">Note (optional)</label><input type="text" id="tnote" placeholder="One line under the board" ${ro ? "disabled" : ""} value="${esc(c.note || "")}"></div></div>`);
+  parent.appendChild(root);
+  $("#tnote", root).addEventListener("input", (e) => { c.note = e.target.value; touch(); });
+  const placed = () => new Set(c.tiers.flatMap((t) => t.teams));
+  const chip = (code) => `<button type="button" class="team" data-t="${code}"><b>${code}</b>${esc(NAME[code])}</button>`;
+  function draw() {
+    const T = $("#tiers", root); T.innerHTML = "";
+    if (S.tierSel >= c.tiers.length) S.tierSel = Math.max(0, c.tiers.length - 1);
+    c.tiers.forEach((t, i) => {
+      const color = /fraud/i.test(t.name) ? "repeating-linear-gradient(135deg,#FFD60A 0 6px,#0A1220 6px 12px)" : TIER_COLORS[Math.min(i, TIER_COLORS.length - 1)];
+      const d = el(`<div class="tier ${!ro && i === S.tierSel ? "sel" : ""}" style="--tc:${color}; border-image: ${/fraud/i.test(t.name) ? color + " 1" : "none"}">
+        <div class="hd"><button type="button" class="nm" ${ro ? "disabled" : ""}>${esc(t.name)}<small>${t.teams.length} team${t.teams.length === 1 ? "" : "s"}${!ro && i === S.tierSel ? " · selected" : ""}</small></button>
+        ${ro ? "" : `<button type="button" class="ctl" data-a="up" aria-label="Move tier up" ${i === 0 ? "disabled" : ""}>▲</button><button type="button" class="ctl" data-a="down" aria-label="Move tier down" ${i === c.tiers.length - 1 ? "disabled" : ""}>▼</button><button type="button" class="ctl" data-a="del" aria-label="Delete tier">✕</button>`}</div>
+        <div class="teams">${t.teams.map(chip).join("")}</div></div>`);
+      if (!ro) {
+        d.addEventListener("click", (e) => { if (!e.target.closest("button") || e.target.closest(".nm")) {} });
+        d.onclick = (e) => {
+          const b = e.target.closest("button");
+          if (!b) { S.tierSel = i; draw(); return; }
+          if (b.classList.contains("nm")) { if (S.tierSel !== i) { S.tierSel = i; draw(); } else rename(i, d); return; }
+          if (b.classList.contains("team")) { sheet(b.dataset.t, i); return; }
+          const a = b.dataset.a;
+          if (a === "up" || a === "down") { const j = a === "up" ? i - 1 : i + 1;[c.tiers[i], c.tiers[j]] = [c.tiers[j], c.tiers[i]]; S.tierSel = j; }
+          if (a === "del") { if (c.tiers.length === 1) return; if (t.teams.length && !confirm(`Delete "${t.name}"? Its ${t.teams.length} teams go back to Unplaced.`)) return; c.tiers.splice(i, 1); }
+          touch(); draw();
+        };
+      }
+      T.appendChild(d);
+    });
+    const P = $("#pool", root); const p = placed();
+    const pl = $("#poollab", root); if (pl) pl.innerHTML = ro ? "Unplaced" : `Unplaced · tap to add to <b>${esc(c.tiers[S.tierSel] ? c.tiers[S.tierSel].name : "")}</b>`;
+    P.innerHTML = NFL.filter(([code]) => !p.has(code)).map(([code]) => chip(code)).join("");
+    if (!ro) P.querySelectorAll(".team").forEach((b) => { b.onclick = () => { if (!c.tiers.length) return; c.tiers[S.tierSel].teams.push(b.dataset.t); toast(`${b.dataset.t} → ${c.tiers[S.tierSel].name}`); touch(); draw(); }; });
+  }
+  function rename(i, d) {
+    const hd = $(".hd", d); const inp = el(`<input type="text" value="${esc(c.tiers[i].name)}" aria-label="Tier name" maxlength="40">`);
+    hd.replaceChildren(inp); inp.focus(); inp.select();
+    const done = () => { const v = inp.value.trim(); if (v) c.tiers[i].name = v; touch(); draw(); };
+    inp.onblur = done; inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); inp.blur(); } if (e.key === "Escape") { inp.onblur = null; draw(); } };
+  }
+  function sheet(code, from) {
+    const sh = el(`<div class="sheet" role="dialog" aria-label="Move ${code}"><div class="box"><p><b>${code} ${esc(NAME[code])}</b> <span class="dim">· in ${esc(c.tiers[from].name)}</span></p>
+      ${c.tiers.map((t, j) => j === from ? "" : `<button type="button" class="btn" data-j="${j}">Move to ${esc(t.name)}</button>`).join("")}
+      <button type="button" class="btn danger" data-j="pool">Back to Unplaced</button><button type="button" class="btn quiet" data-j="x">Cancel</button></div></div>`);
+    sh.onclick = (e) => {
+      const b = e.target.closest("button"); if (!b && e.target !== sh) return;
+      const j = b ? b.dataset.j : "x";
+      if (j !== "x") { c.tiers[from].teams = c.tiers[from].teams.filter((x) => x !== code); if (j !== "pool") c.tiers[Number(j)].teams.push(code); touch(); draw(); }
+      sh.remove();
+    };
+    overlay.appendChild(sh);
+  }
+  if (!ro) $("#addtier", root).onclick = () => { c.tiers.push({ name: "New tier", teams: [] }); S.tierSel = c.tiers.length - 1; touch(); draw(); setTimeout(() => rename(S.tierSel, $("#tiers", root).lastElementChild), 0); };
+  draw();
+  if (fresh) touch();
+}
+
+let toastT; function toast(msg) { let t = $(".toast"); if (!t) { t = el(`<div class="toast" role="status"></div>`); document.body.appendChild(t); } t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 1400); }
+// ---------- preview ----------
+function preview() {
+  const c = S.me, sec = sectionOf(c), k = S.content;
+  const img = S.image_url ? `<img class="pimg" src="${esc(S.image_url)}" alt="">` : "";
+  let body = "";
+  if (sec.kind === "tiers") {
+    body = `<div class="ptiers">` + (k.tiers || []).map((t, i) => {
+      const fraud = /fraud/i.test(t.name), dark = i >= 5;
+      return `<div class="ptier ${fraud ? "fraud" : ""} ${dark ? "dark" : ""}" style="--tc:${TIER_COLORS[Math.min(i, TIER_COLORS.length - 1)]}"><div class="lab2">${fraud ? `<span>${esc(t.name)}</span>` : esc(t.name)}<small>${t.teams.length} team${t.teams.length === 1 ? "" : "s"}</small></div>
+        <div class="prow">${t.teams.map((x) => `<span class="nfl"><b>${x}</b>${esc(NAME[x])}</span>`).join("") || `<span class="dim small">Nobody here</span>`}</div></div>`;
+    }).join("") + `</div>` + (k.note ? `<p class="pnote">${esc(k.note)}</p>` : "") + img;
+  } else if (sec.kind === "history") {
+    body = (k.card ? scoreboard(k.card) : `<p class="dim">No scoreboard pulled yet.</p>`) + (k.headline ? `<h3 class="hl">${esc(k.headline)}</h3>` : "") + img + `<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet.</p>`}</div>`;
+  } else if (sec.kind === "note") {
+    body = `<div class="pnote-card">${k.headline ? `<h3 class="hl" style="font-size:1.5rem">${esc(k.headline)}</h3>` : ""}${img}<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet. An empty note just doesn't run.</p>`}</div></div>`;
+  } else {
+    body = (k.headline ? `<h3 class="hl">${esc(k.headline)}</h3>` : "") + img + `<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet.</p>`}</div>` + (k.signoff ? `<div class="signoff">${esc(k.signoff)}</div>` : "");
+  }
+  const pv = el(`<div class="preview" role="dialog" aria-label="Preview"><div class="pin"><div class="pbar"><span class="ptag">Preview · how it runs in the paper</span><button type="button" class="btn sm" id="pvclose">Close</button></div>
+    <h2 class="ph2">${esc(sec.title)}</h2><div class="byline">By <b>${esc(c.name)}</b>${c.team && c.team !== c.name ? `<span>· ${esc(c.team)}</span>` : ""}</div>${body}</div></div>`);
+  $("#pvclose", pv).onclick = () => pv.remove();
+  overlay.appendChild(pv);
+}
+
+// ---------- admin ----------
+function admin() {
+  if (!S.admin_word) return adminGate();
+  const v = el(`<div><div class="ph"><div class="lab">Editor</div><h1>The desk</h1></div>
+    <nav class="tabs" aria-label="Admin sections">${[["week", "This week"], ["people", "People"], ["sections", "Sections"], ["settings", "Settings"], ["archive", "Archive"]].map(([k, l]) => `<button type="button" data-t="${k}" ${S.adminTab === k ? "aria-current=true" : ""}>${l}</button>`).join("")}</nav><div id="atab"></div></div>`);
+  app.appendChild(v);
+  v.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { S.adminTab = b.dataset.t; render("admin"); });
+  ({ week: adminWeek, people: adminPeople, sections: adminSections, settings: adminSettings, archive: adminArchive }[S.adminTab])($("#atab", v));
+}
+function adminGate() {
+  const v = el(`<div class="gate"><div class="card"><h1>Editor's desk</h1><p class="dim">Type the editor word.</p>
+    <form id="af"><div class="field"><label class="lab" for="aw">Editor word</label><input id="aw" type="password" autocapitalize="off" autocomplete="off"></div>
+    <button class="btn primary block" type="submit">Open the desk</button><p class="msg err" id="amsg"></p></form><button type="button" class="btn quiet block" id="aback">Back to writing</button></div></div>`);
+  app.appendChild(v);
+  $("#aback").onclick = () => render(S.me ? "home" : "picker");
+  $("#af").onsubmit = async (e) => {
+    e.preventDefault(); S.admin_word = norm($("#aw").value);
+    try { const r = await api("bootstrap"); if (!r.admin) throw Object.assign(new Error("not_admin"), { code: "not_admin" }); S.boot = r; store.set("aword", S.remember ? S.admin_word : null); render("admin"); }
+    catch (err) { S.admin_word = null; $("#amsg").textContent = errText(err.code); }
+  };
+}
+async function adminWeek(root) {
+  const wk = S.adminWeek || S.boot.week;
+  root.innerHTML = `<div class="row between" style="margin:6px 0 12px"><div><span class="lab">Week ${wk}${S.adminWeek && S.adminWeek !== S.boot.week ? " · from the archive" : ""}</span><div class="small dim">${esc(S.boot.deadline_label || "")}${S.boot.locked ? " · locked" : ""}</div></div>${S.adminWeek && S.adminWeek !== S.boot.week ? `<button type="button" class="btn sm" id="backnow">Back to this week</button>` : ""}</div><p class="dim"><span class="spin"></span> Loading the board…</p>`;
+  if ($("#backnow")) $("#backnow").onclick = () => { S.adminWeek = null; render("admin"); };
+  try {
+    const r = await api("board", { week: wk });
+    const list = el(`<div></div>`);
+    if (!r.rows.length) list.innerHTML = `<div class="card dim">Nobody's on the desk yet. Add people in the People tab.</div>`;
+    r.rows.forEach((row) => {
+      const st = row.piece_id ? row.status : "none";
+      const card = el(`<div class="card brow"><div><div class="t">${esc(row.name)}</div><div class="s">${esc(row.title)}${row.active ? "" : " · inactive"}</div></div>
+        <div>${statusChip(st, false)}</div><div class="s" style="grid-column:1/-1">${row.piece_id ? `Last edited ${ago(row.updated_at)}${row.edited_by_admin ? " · touched by editor" : ""}${row.image_url ? " · has image" : ""}` : "Nothing filed yet"}</div>
+        <div class="bt"><button type="button" class="btn sm" data-a="open">Open</button>${row.piece_id ? (st === "held" ? `<button type="button" class="btn sm" data-a="release">Release</button>` : `<button type="button" class="btn sm danger" data-a="hold">Hold back</button>`) : ""}</div></div>`);
+      card.onclick = async (e) => {
+        const b = e.target.closest("button"); if (!b) return;
+        const c = S.boot.contributors.find((x) => x.id === row.contributor_id) || { id: row.contributor_id, name: row.name, team: row.team, section_key: row.section_key, active: row.active };
+        if (b.dataset.a === "open") { S.me = c; S.adminWeek = wk; openPiece(true); return; }
+        b.disabled = true;
+        try { await api("set_status", { contributor_id: row.contributor_id, status: b.dataset.a === "hold" ? "held" : "submitted", week: wk }); adminWeek(root); }
+        catch (err) { b.disabled = false; alert(errText(err.code)); }
+      };
+      list.appendChild(card);
+    });
+    const spinner = root.querySelector("p.dim"); if (spinner) spinner.replaceWith(list);
+  } catch (err) { root.insertAdjacentHTML("beforeend", `<div class="notice red">${esc(errText(err.code))}</div>`); }
+}
+function adminPeople(root) {
+  const secs = S.boot.sections;
+  const form = (c = {}) => `<form class="card" data-id="${c.id || ""}">
+    <div class="field"><label class="lab">Name in the paper</label><input type="text" name="name" value="${esc(c.name || "")}" required></div>
+    <div class="field"><label class="lab">Sleeper team (optional)</label><input type="text" name="team" value="${esc(c.team || "")}"></div>
+    <div class="field"><label class="lab">Writes</label><select name="section_key">${secs.map((s) => `<option value="${esc(s.key)}" ${s.key === c.section_key ? "selected" : ""}>${esc(s.title)}</option>`).join("")}</select></div>
+    <div class="row between"><label class="check"><input type="checkbox" name="active" ${c.active !== false ? "checked" : ""}> On the desk</label><label class="check small dim">Order <input type="number" name="sort" value="${c.sort ?? 100}" style="width:80px;min-height:40px"></label></div>
+    <div class="row" style="margin-top:8px"><button class="btn sm primary" type="submit">${c.id ? "Save" : "Add"}</button>${c.id ? "" : `<button class="btn sm quiet" type="button" data-cancel>Cancel</button>`}</div><p class="msg" ></p></form>`;
+  root.innerHTML = `<p class="dim">Who writes what. Switch someone off to take them off the desk without losing their old pieces.</p><div id="plist"></div><button type="button" class="btn block" id="addp">+ Add a contributor</button><div id="pnew"></div>`;
+  const list = $("#plist", root);
+  S.boot.contributors.forEach((c) => list.insertAdjacentHTML("beforeend", form(c)));
+  $("#addp", root).onclick = () => { $("#pnew", root).innerHTML = form({}); wire($("#pnew form", root)); };
+  const wire = (f) => {
+    f.onsubmit = async (e) => {
+      e.preventDefault(); const fd = new FormData(f); const msg = $(".msg", f);
+      const contributor = { id: f.dataset.id ? Number(f.dataset.id) : undefined, name: fd.get("name"), team: fd.get("team") || null, section_key: fd.get("section_key"), active: fd.get("active") === "on", sort: Number(fd.get("sort") || 100) };
+      try { await api("upsert_contributor", { contributor }); S.boot = await api("bootstrap"); render("admin"); } catch (err) { msg.textContent = errText(err.code); msg.className = "msg err"; }
+    };
+    const cx = f.querySelector("[data-cancel]"); if (cx) cx.onclick = () => f.remove();
+  };
+  root.querySelectorAll("form").forEach(wire);
+}
+function adminSections(root) {
+  const form = (s = {}) => `<form class="card" data-new="${s.key ? "" : "1"}">
+    ${s.key ? `<div class="lab" style="margin-bottom:8px">${esc(s.key)} · ${esc(s.kind)}</div><input type="hidden" name="key" value="${esc(s.key)}"><input type="hidden" name="kind" value="${esc(s.kind)}">` :
+      `<div class="pickrow"><div class="field"><label class="lab">Short key</label><input type="text" name="key" placeholder="e.g. mailbag" required></div><div class="field"><label class="lab">Editor type</label><select name="kind"><option value="column">Column (headline + body)</option><option value="note">Short note</option><option value="tiers">Tier board</option><option value="history">History (Sleeper scoreboard + story)</option></select></div></div>`}
+    <div class="field"><label class="lab">Title in the paper</label><input type="text" name="title" value="${esc(s.title || "")}" required></div>
+    <div class="field"><label class="lab">If nobody files, run this roast</label><textarea name="roast" placeholder="Leave empty to skip the section instead">${esc(s.roast || "")}</textarea></div>
+    <div class="row between"><label class="check"><input type="checkbox" name="active" ${s.active !== false ? "checked" : ""}> In the paper</label><label class="check small dim">Order <input type="number" name="sort" value="${s.sort ?? 100}" style="width:80px;min-height:40px"></label></div>
+    <div class="row" style="margin-top:8px"><button class="btn sm primary" type="submit">${s.key ? "Save" : "Add section"}</button></div><p class="msg"></p></form>`;
+  root.innerHTML = `<p class="dim">Sections run in this order. The Editor's Note always sits at the top of the issue.</p><div id="slist"></div><button type="button" class="btn block" id="adds">+ Add a section</button><div id="snew"></div>`;
+  S.boot.sections.forEach((s) => $("#slist", root).insertAdjacentHTML("beforeend", form(s)));
+  const wire = (f) => f.onsubmit = async (e) => {
+    e.preventDefault(); const fd = new FormData(f); const msg = $(".msg", f);
+    const section = { key: fd.get("key"), kind: fd.get("kind"), title: fd.get("title"), roast: fd.get("roast") || null, active: fd.get("active") === "on", sort: Number(fd.get("sort") || 100) };
+    try { await api("upsert_section", { section }); S.boot = await api("bootstrap"); render("admin"); } catch (err) { msg.textContent = errText(err.code); msg.className = "msg err"; }
+  };
+  root.querySelectorAll("form").forEach(wire);
+  $("#adds", root).onclick = () => { $("#snew", root).innerHTML = form({}); wire($("#snew form", root)); };
+}
+function adminSettings(root) {
+  const B = S.boot; const d = new Date(B.deadline_at || Date.now());
+  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+  const parts = Object.fromEntries(fmt.formatToParts(d).map((p) => [p.type, p.value]));
+  root.innerHTML = `<form class="card" id="sf">
+    <div class="field"><label class="lab">Current issue week</label><input type="number" name="current_week" value="${B.week}" min="1" max="18"></div>
+    <div class="pickrow"><div class="field"><label class="lab">Deadline date</label><input type="date" name="ddate" value="${parts.year}-${parts.month}-${parts.day}"></div><div class="field"><label class="lab">Time (Chicago)</label><input type="time" name="dtime" value="${parts.hour === "24" ? "00" : parts.hour}:${parts.minute}"></div></div>
+    <div class="field"><label class="lab">Deadline label contributors see</label><input type="text" name="deadline_label" value="${esc(B.deadline_label || "Due Tue 8 AM")}"></div>
+    <button class="btn primary block" type="submit">Save settings</button><p class="msg"></p></form>
+    <div class="card"><div class="lab" style="margin-bottom:8px">Words</div>
+    <p class="small dim">Changing the league word logs everyone out of the desk and the paper until they type the new one.</p>
+    <div class="row"><button type="button" class="btn sm" id="chw">Change league word</button><button type="button" class="btn sm" id="caw">Change editor word</button></div><p class="msg" id="wmsg"></p></div>`;
+  $("#sf", root).onsubmit = async (e) => {
+    e.preventDefault(); const fd = new FormData(e.target); const msg = $(".msg", e.target);
+    const iso = chicagoToISO(fd.get("ddate"), fd.get("dtime"));
+    try { await api("set_settings", { settings: { current_week: fd.get("current_week"), deadline_at: iso, deadline_label: fd.get("deadline_label") } }); S.boot = await api("bootstrap"); S.adminWeek = null; msg.textContent = "Saved."; msg.className = "msg ok"; }
+    catch (err) { msg.textContent = errText(err.code); msg.className = "msg err"; }
+  };
+  const change = (key, label) => async () => {
+    const w = prompt(`New ${label}. Letters and numbers only; spaces and caps are ignored.`); if (!w) return;
+    if (!confirm(`Set the ${label} to "${norm(w)}"?`)) return;
+    try { await api("set_settings", { settings: { [key]: norm(w) } }); if (key === "league_word") { S.word = norm(w); store.set("word", S.remember ? S.word : null); } else { S.admin_word = norm(w); store.set("aword", S.remember ? S.admin_word : null); }
+      $("#wmsg").textContent = "Changed. Tell the group."; $("#wmsg").className = "msg ok"; } catch (err) { $("#wmsg").textContent = errText(err.code); $("#wmsg").className = "msg err"; }
+  };
+  $("#chw", root).onclick = change("league_word", "league word"); $("#caw", root).onclick = change("admin_word", "editor word");
+}
+function chicagoToISO(date, time) {
+  // Find the UTC instant whose Chicago wall-clock equals date+time (handles DST by probing both offsets).
+  const [y, m, d] = date.split("-").map(Number), [hh, mm] = time.split(":").map(Number);
+  for (const off of [5, 6]) {
+    const t = Date.UTC(y, m - 1, d, hh + off, mm);
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago", hour: "2-digit", minute: "2-digit", day: "2-digit", hour12: false }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+    if (Number(p.day) === d && Number(p.hour) % 24 === hh && Number(p.minute) === mm) return new Date(t).toISOString();
+  }
+  return new Date(Date.UTC(y, m - 1, d, hh + 6, mm)).toISOString();
+}
+async function adminArchive(root) {
+  root.innerHTML = `<p class="dim"><span class="spin"></span> Loading past weeks…</p>`;
+  try {
+    const r = await api("archive");
+    root.innerHTML = r.weeks.length ? `<p class="dim">Tap a week to see its board and open pieces.</p>` : `<div class="card dim">Nothing in the archive yet. It fills up after the first Tuesday.</div>`;
+    r.weeks.forEach((w) => {
+      const b = el(`<button type="button" class="btn person"><b>${esc(w.season)} · Week ${esc(w.week)}</b><span>${w.filed} of ${w.pieces} filed · last edit ${ago(w.last)}</span><i>›</i></button>`);
+      b.style.width = "100%"; b.style.marginBottom = "8px";
+      b.onclick = () => { S.adminWeek = Number(w.week); S.adminTab = "week"; render("admin"); };
+      root.appendChild(b);
+    });
+  } catch (err) { root.innerHTML = `<div class="notice red">${esc(errText(err.code))}</div>`; }
+}
+
+// ---------- wiring ----------
+$("#editorlink").onclick = () => { S.adminTab = "week"; S.adminWeek = null; render(S.word ? "admin" : "gate"); };
+$("#brand").onclick = (e) => { e.preventDefault(); if (!S.word) return; banner.classList.add("hidden"); S.editingAs = null; S.adminWeek = null; if (S.me && !S.me.__viaAdmin) openPiece(); else render("picker"); };
+
+(async function start() {
+  const w = store.get("word"), cid = store.get("cid"), aw = store.get("aword");
+  if (aw) S.admin_word = aw;
+  if (!w) { render("gate"); return; }
+  S.word = w; app.innerHTML = `<p class="dim" style="padding-top:24px"><span class="spin"></span> Opening the desk…</p>`;
+  try {
+    await boot();
+    const me = cid && S.boot.contributors.find((c) => String(c.id) === cid && c.active);
+    if (me) { S.me = me; openPiece(); } else render("picker");
+  } catch (err) { S.word = null; store.set("word", null); render("gate"); if (err.code === "wrong_word") $("#gmsg").textContent = "The league word changed. Type the new one."; }
+})();
+})();
+</script>
+</body>
+</html>
