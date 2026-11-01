@@ -203,6 +203,42 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
 .preview .scoreboard .g .l { color: #9BA9BD; }
 .preview .scoreboard .g.high .w { color: #FFD60A; }
 .preview .pnote-card { background: #17243A; border-left: 6px solid #FFD60A; padding: 16px 18px; }
+/* pencil affordances */
+.pen { width: 44px; height: 44px; display: inline-grid; place-items: center; background: none; border: 0; padding: 0; color: var(--ink-2); flex: none; }
+.pen svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.penwrap { position: relative; }
+.penwrap input { padding-right: 48px; }
+.penwrap .pen { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); }
+.penwrap input:disabled + .pen { display: none; }
+.editrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* history numbers */
+.scoreboard .g { grid-template-columns: 1fr auto auto; }
+.scoreboard .g .rec { font-size: 0.75rem; color: var(--ink-2); font-weight: 500; margin-left: 6px; }
+.scoreboard .g .w, .scoreboard .g .l { grid-column: 1 / span 2; }
+.scoreboard .g span.n { grid-column: 3; grid-row: auto; }
+.scoreboard .g .rec { display: block; margin-left: 0; }
+.scoreboard details { grid-column: 1 / -1; font-size: 0.85rem; color: var(--ink-2); }
+.scoreboard summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; list-style: none; }
+.scoreboard summary::-webkit-details-marker { display: none; }
+.scoreboard summary::before { content: "›"; display: inline-block; margin-right: 6px; transition: transform 0.15s; }
+.scoreboard details[open] summary::before { transform: rotate(90deg); }
+.scoreboard .tops { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; padding: 4px 0 6px; }
+.scoreboard .tops div { display: grid; gap: 2px; }
+.scoreboard .tops span { display: flex; justify-content: space-between; gap: 6px; }
+.scoreboard .tops span i { font-style: normal; font-variant-numeric: tabular-nums; }
+.numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 14px; }
+.numbers .nb { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+.numbers .nb .k { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.numbers .nb .v { font-family: var(--display); font-weight: 900; font-size: 1.6rem; line-height: 1; margin: 4px 0 2px; }
+.numbers .nb .s { font-size: 0.82rem; color: var(--ink-2); overflow-wrap: anywhere; }
+.topl { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; margin: 0 0 14px; }
+.topl div { display: grid; grid-template-columns: 24px 1fr auto; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--rule); align-items: baseline; font-size: 0.95rem; }
+.topl div:first-child { border-top: 0; }
+.topl b { font-variant-numeric: tabular-nums; }
+.topl small { color: var(--ink-2); }
+.includes { display: grid; gap: 4px; margin: 10px 0 16px; }
+.preview .numbers .nb, .preview .topl { background: #101B2D; border-color: #22314A; }
+.preview .topl div { border-color: #22314A; }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 </style>
 </head>
@@ -259,6 +295,8 @@ async function api(action, body = {}, opts = {}) {
 }
 
 // ---------- helpers ----------
+const PEN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M13.5 6.5l3 3"/></svg>`;
+const penBtn = (label) => `<button type="button" class="pen" aria-label="${esc(label)}">${PEN}</button>`;
 const sectionOf = (c) => S.boot.sections.find((s) => s.key === c.section_key) || { title: c.section_key, kind: "note" };
 const pieceRowFor = (cid) => S.boot.pieces.find((p) => p.contributor_id === cid);
 function statusChip(status, locked) {
@@ -442,8 +480,9 @@ function closestBlock(rich, tag) {
   return null;
 }
 function textField(parent, { label, key, ph, ro, hint }) {
-  const f = el(`<div class="field"><label class="lab">${esc(label)}</label><input type="text" placeholder="${esc(ph || "")}" ${ro ? "disabled" : ""} value="${esc(S.content[key] || "")}">${hint ? `<span class="small dim">${esc(hint)}</span>` : ""}</div>`);
-  $("input", f).addEventListener("input", (e) => { S.content[key] = e.target.value; touch(); });
+  const f = el(`<div class="field"><label class="lab">${esc(label)}</label><div class="penwrap"><input type="text" placeholder="${esc(ph || "")}" ${ro ? "disabled" : ""} value="${esc(S.content[key] || "")}">${penBtn("Edit " + label)}</div>${hint ? `<span class="small dim">${esc(hint)}</span>` : ""}</div>`);
+  const inp = $("input", f); inp.addEventListener("input", (e) => { S.content[key] = e.target.value; touch(); });
+  $(".pen", f).onclick = () => { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); };
   parent.appendChild(f);
 }
 function imageField(parent, ro) {
@@ -495,12 +534,20 @@ function columnEditor(parent, ro) {
 }
 async function historyEditor(parent, ro) {
   const c = S.content;
-  const top = el(`<div><p class="dim">Pick a season and week. We'll pull the scoreboard, and you write the story around it.</p>
+  if (!c.include) c.include = { scores: true, players: true, numbers: true };
+  const top = el(`<div><p class="dim">Pick a season and week. We'll pull the scoreboard, and you write the story around it. <span class="small">Pull any week back to 2021.</span></p>
     <div class="pickrow"><div class="field"><label class="lab" for="hs">Season</label><select id="hs" ${ro ? "disabled" : ""}><option>Loading…</option></select></div>
     <div class="field"><label class="lab" for="hw">Week</label><select id="hw" ${ro ? "disabled" : ""}>${Array.from({ length: 17 }, (_, i) => `<option value="${i + 1}" ${c.hweek == i + 1 ? "selected" : ""}>Week ${i + 1}</option>`).join("")}</select></div></div>
     ${ro ? "" : `<button type="button" class="btn block" id="pull">Pull that week</button>`}<p class="msg" id="hmsg"></p><div id="hcard"></div></div>`);
   parent.appendChild(top);
-  const drawCard = () => { $("#hcard").innerHTML = c.card ? scoreboard(c.card) : `<div class="card dim">Pick a season and week. We'll pull the scoreboard.</div>`; };
+  const drawCard = () => {
+    const h = $("#hcard");
+    if (!c.card) { h.innerHTML = `<div class="card dim">Pick a season and week. We'll pull the scoreboard.</div>`; return; }
+    h.innerHTML = scoreboard(c.card, true) + numbersBlock(c.card) + topList(c.card) +
+      `<div class="includes"><span class="lab">Runs in the paper</span>
+       ${[["scores", "Scoreboard"], ["numbers", "Week numbers"], ["players", "Top performers"]].map(([k, l]) => `<label class="check"><input type="checkbox" data-inc="${k}" ${c.include[k] !== false ? "checked" : ""} ${ro ? "disabled" : ""}> ${l}</label>`).join("")}</div>`;
+    h.querySelectorAll("[data-inc]").forEach((cb) => cb.onchange = () => { c.include[cb.dataset.inc] = cb.checked; touch(); });
+  };
   drawCard();
   const story = el(`<div></div>`); parent.appendChild(story);
   textField(story, { label: "Headline (optional)", key: "headline", ph: "e.g. The week JUD started a kicker at flex", ro });
@@ -520,9 +567,27 @@ async function historyEditor(parent, ro) {
     b.disabled = false; b.textContent = "Pull that week";
   };
 }
-function scoreboard(card) {
+function scoreboard(card, withTops) {
+  const fr = (card.extras && card.extras.final_records) || {};
+  const side = (s, cls) => `<span class="${cls}">${esc(s.team)}${s.record || fr[s.team] ? `<span class="rec">${esc(s.record || "")}${fr[s.team] ? ` · finished ${esc(fr[s.team])}` : ""}</span>` : ""}</span><span class="n ${cls}">${Number(s.pts).toFixed(2)}</span>`;
+  const tops = (s) => `<div><b>${esc(s.team)}</b>${(s.top || []).map((p) => `<span>${esc(p.name)} <small>${esc(p.pos || "")}</small><i>${Number(p.pts).toFixed(1)}</i></span>`).join("") || `<span class="dim">No lineup data</span>`}</div>`;
   return `<div class="scoreboard"><div class="sbh">${esc(card.season)} · Week ${esc(card.week)} · ${card.games.length} games</div>` +
-    card.games.map((g) => `<div class="g ${g.w.team === card.high.team && g.w.pts === card.high.pts ? "high" : ""}"><span class="w">${esc(g.w.team)}</span><span class="n w">${Number(g.w.pts).toFixed(2)}</span><span class="l">${esc(g.l.team)}</span><span class="n l">${Number(g.l.pts).toFixed(2)}</span></div>`).join("") + `</div>`;
+    card.games.map((g) => `<div class="g ${g.w.team === card.high.team && g.w.pts === card.high.pts ? "high" : ""}">${side(g.w, "w")}${side(g.l, "l")}` +
+      (withTops && (g.w.top || g.l.top) ? `<details><summary>Top scorers</summary><div class="tops">${tops(g.w)}${tops(g.l)}</div></details>` : "") + `</div>`).join("") + `</div>`;
+}
+function numbersBlock(card) {
+  const x = card.extras; if (!x) return "";
+  const f = (n) => Number(n).toFixed(2);
+  const nb = (k, v, s) => `<div class="nb"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+  return `<span class="lab">Week numbers</span><div class="numbers">` +
+    nb("High", f(card.high.pts), esc(card.high.team)) + (x.low ? nb("Low", f(x.low.pts), esc(x.low.team)) : "") +
+    (x.avg != null ? nb("Average", f(x.avg), "across the league") : "") +
+    (x.closest ? nb("Closest", "by " + f(x.closest.margin), `${esc(x.closest.w)} over ${esc(x.closest.l)}`) : "") +
+    (x.blowout ? nb("Blowout", "by " + f(x.blowout.margin), `${esc(x.blowout.w)} over ${esc(x.blowout.l)}`) : "") + `</div>`;
+}
+function topList(card) {
+  const tp = card.extras && card.extras.top_players; if (!tp || !tp.length) return "";
+  return `<span class="lab">Top performers</span><div class="topl">` + tp.map((p, i) => `<div><span class="dim">${i + 1}</span><span>${esc(p.name)} <small>${esc(p.pos || "")} · ${esc(p.team || "")}</small></span><b>${Number(p.pts).toFixed(1)}</b></div>`).join("") + `</div>`;
 }
 
 // ----- tier builder -----
@@ -550,13 +615,14 @@ function tiersEditor(parent, ro) {
       const color = /fraud/i.test(t.name) ? "repeating-linear-gradient(135deg,#FFD60A 0 6px,#0A1220 6px 12px)" : TIER_COLORS[Math.min(i, TIER_COLORS.length - 1)];
       const d = el(`<div class="tier ${!ro && i === S.tierSel ? "sel" : ""}" style="--tc:${color}; border-image: ${/fraud/i.test(t.name) ? color + " 1" : "none"}">
         <div class="hd"><button type="button" class="nm" ${ro ? "disabled" : ""}>${esc(t.name)}<small>${t.teams.length} team${t.teams.length === 1 ? "" : "s"}${!ro && i === S.tierSel ? " · selected" : ""}</small></button>
-        ${ro ? "" : `<button type="button" class="ctl" data-a="up" aria-label="Move tier up" ${i === 0 ? "disabled" : ""}>▲</button><button type="button" class="ctl" data-a="down" aria-label="Move tier down" ${i === c.tiers.length - 1 ? "disabled" : ""}>▼</button><button type="button" class="ctl" data-a="del" aria-label="Delete tier">✕</button>`}</div>
+        ${ro ? "" : penBtn("Rename " + t.name) + `<button type="button" class="ctl" data-a="up" aria-label="Move tier up" ${i === 0 ? "disabled" : ""}>▲</button><button type="button" class="ctl" data-a="down" aria-label="Move tier down" ${i === c.tiers.length - 1 ? "disabled" : ""}>▼</button><button type="button" class="ctl" data-a="del" aria-label="Delete tier">✕</button>`}</div>
         <div class="teams">${t.teams.map(chip).join("")}</div></div>`);
       if (!ro) {
         d.addEventListener("click", (e) => { if (!e.target.closest("button") || e.target.closest(".nm")) {} });
         d.onclick = (e) => {
           const b = e.target.closest("button");
           if (!b) { S.tierSel = i; draw(); return; }
+          if (b.classList.contains("pen")) { S.tierSel = i; rename(i, d); return; }
           if (b.classList.contains("nm")) { if (S.tierSel !== i) { S.tierSel = i; draw(); } else rename(i, d); return; }
           if (b.classList.contains("team")) { sheet(b.dataset.t, i); return; }
           const a = b.dataset.a;
@@ -608,7 +674,8 @@ function preview() {
         <div class="prow">${t.teams.map((x) => `<span class="nfl"><b>${x}</b>${esc(NAME[x])}</span>`).join("") || `<span class="dim small">Nobody here</span>`}</div></div>`;
     }).join("") + `</div>` + (k.note ? `<p class="pnote">${esc(k.note)}</p>` : "") + img;
   } else if (sec.kind === "history") {
-    body = (k.card ? scoreboard(k.card) : `<p class="dim">No scoreboard pulled yet.</p>`) + (k.headline ? `<h3 class="hl">${esc(k.headline)}</h3>` : "") + img + `<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet.</p>`}</div>`;
+    const inc = k.include || {};
+    body = (k.card ? (inc.scores !== false ? scoreboard(k.card, false) : "") + (inc.numbers !== false ? numbersBlock(k.card) : "") + (inc.players !== false ? topList(k.card) : "") : `<p class="dim">No scoreboard pulled yet.</p>`) + (k.headline ? `<h3 class="hl">${esc(k.headline)}</h3>` : "") + img + `<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet.</p>`}</div>`;
   } else if (sec.kind === "note") {
     body = `<div class="pnote-card">${k.headline ? `<h3 class="hl" style="font-size:1.5rem">${esc(k.headline)}</h3>` : ""}${img}<div class="pbody">${sanitize(k.body_html) || `<p class="dim">Nothing written yet. An empty note just doesn't run.</p>`}</div></div>`;
   } else {
@@ -677,7 +744,12 @@ function adminPeople(root) {
     <div class="row" style="margin-top:8px"><button class="btn sm primary" type="submit">${c.id ? "Save" : "Add"}</button>${c.id ? "" : `<button class="btn sm quiet" type="button" data-cancel>Cancel</button>`}</div><p class="msg" ></p></form>`;
   root.innerHTML = `<p class="dim">Who writes what. Switch someone off to take them off the desk without losing their old pieces.</p><div id="plist"></div><button type="button" class="btn block" id="addp">+ Add a contributor</button><div id="pnew"></div>`;
   const list = $("#plist", root);
-  S.boot.contributors.forEach((c) => list.insertAdjacentHTML("beforeend", form(c)));
+  S.boot.contributors.forEach((c) => {
+    const sec = sectionOf(c);
+    const row = el(`<div class="card editrow"><div><b>${esc(c.name)}</b>${c.active ? "" : ` <span class="dim small">· off the desk</span>`}<div class="small dim">${esc(sec.title)}${c.team ? ` · ${esc(c.team)}` : ""}</div></div>${penBtn("Edit " + c.name)}</div>`);
+    $(".pen", row).onclick = () => { const f = el(form(c)); row.replaceWith(f); wire(f); $("input[name=name]", f).focus(); };
+    list.appendChild(row);
+  });
   $("#addp", root).onclick = () => { $("#pnew", root).innerHTML = form({}); wire($("#pnew form", root)); };
   const wire = (f) => {
     f.onsubmit = async (e) => {
@@ -698,7 +770,11 @@ function adminSections(root) {
     <div class="row between"><label class="check"><input type="checkbox" name="active" ${s.active !== false ? "checked" : ""}> In the paper</label><label class="check small dim">Order <input type="number" name="sort" value="${s.sort ?? 100}" style="width:80px;min-height:40px"></label></div>
     <div class="row" style="margin-top:8px"><button class="btn sm primary" type="submit">${s.key ? "Save" : "Add section"}</button></div><p class="msg"></p></form>`;
   root.innerHTML = `<p class="dim">Sections run in this order. The Editor's Note always sits at the top of the issue.</p><div id="slist"></div><button type="button" class="btn block" id="adds">+ Add a section</button><div id="snew"></div>`;
-  S.boot.sections.forEach((s) => $("#slist", root).insertAdjacentHTML("beforeend", form(s)));
+  S.boot.sections.forEach((s) => {
+    const row = el(`<div class="card editrow"><div><b>${esc(s.title)}</b>${s.active ? "" : ` <span class="dim small">· not in the paper</span>`}<div class="small dim">${s.roast ? `Roast: ${esc(s.roast)}` : "No roast · skipped if empty"}</div></div>${penBtn("Edit " + s.title)}</div>`);
+    $(".pen", row).onclick = () => { const f = el(form(s)); row.replaceWith(f); wire(f); $("input[name=title]", f).focus(); };
+    $("#slist", root).appendChild(row);
+  });
   const wire = (f) => f.onsubmit = async (e) => {
     e.preventDefault(); const fd = new FormData(f); const msg = $(".msg", f);
     const section = { key: fd.get("key"), kind: fd.get("kind"), title: fd.get("title"), roast: fd.get("roast") || null, active: fd.get("active") === "on", sort: Number(fd.get("sort") || 100) };
