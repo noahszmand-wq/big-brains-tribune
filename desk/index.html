@@ -42,7 +42,14 @@ a { color: inherit; }
 .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
 .brand .mark { background: var(--pylon); color: var(--on-pylon); font-family: var(--display); font-weight: 900; font-size: 0.95rem; padding: 4px 7px 3px; line-height: 1; }
 .brand .word { font-family: var(--display); font-weight: 800; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1; }
-.top .who { margin-left: auto; text-align: right; font-size: 0.85rem; color: var(--ink-2); line-height: 1.2; }
+.top .due { margin-left: auto; text-align: center; line-height: 1.1; border: 1px solid var(--rule); border-radius: 10px; padding: 5px 10px; min-width: 0; }
+.top .due:empty { display: none; }
+.top .due .wk { display: block; font-family: var(--display); font-weight: 800; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.top .due .cd { display: block; font-size: 0.8rem; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.top .due.soon .cd { color: #E0A21A; }
+.top .due.urgent .cd { color: #E5484D; }
+.top .due.locked .cd { color: var(--ink-2); }
+.top .who { margin-left: 0; text-align: right; font-size: 0.85rem; color: var(--ink-2); line-height: 1.2; }
 .top .who b { display: block; color: var(--ink); font-weight: 600; }
 .top .who button { background: none; border: 0; padding: 0; color: var(--ink-2); font-size: 0.78rem; text-decoration: underline; text-underline-offset: 2px; }
 
@@ -245,6 +252,7 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
 <body>
 <header class="top"><div class="in">
   <a class="brand" href="#" id="brand"><span class="mark">BBT</span><span class="word">Desk</span></a>
+  <div class="due" id="due" aria-live="off"></div>
   <div class="who" id="who"></div>
 </div></header>
 <div class="banner hidden" id="adminbanner">Editing as editor</div>
@@ -304,7 +312,26 @@ function statusChip(status, locked) {
   const [cls, label] = map[status] || map.none;
   return `<span class="chip ${cls}">${label}</span>` + (locked ? ` <span class="chip locked">Locked</span>` : "");
 }
+function setDue() {
+  const el = document.getElementById("due");
+  const b = S.boot;
+  if (!el || !b || b.week == null) { if (el) el.innerHTML = ""; return; }
+  const ms = b.deadline_at ? new Date(b.deadline_at).getTime() - Date.now() : NaN;
+  let cd, cls = "";
+  if (b.locked || ms <= 0) { cd = "Locked"; cls = "locked"; }
+  else if (isNaN(ms)) { cd = b.deadline_label || ""; }
+  else {
+    const m = Math.floor(ms / 60000), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+    cd = "Due in " + (d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${mm}m` : `${mm}m`);
+    cls = ms < 3600e3 * 3 ? "urgent" : ms < 3600e3 * 24 ? "soon" : "";
+  }
+  el.className = "due " + cls;
+  el.innerHTML = `<span class="wk">Week ${esc(String(b.week))}</span><span class="cd">${esc(cd)}</span>`;
+  el.title = b.deadline_label || "";
+}
+setInterval(setDue, 30000);
 function setWho() {
+  setDue();
   if (!S.me) { who.innerHTML = ""; return; }
   who.innerHTML = `<b>${esc(S.me.name)}</b><button type="button" id="switch">Not you? Switch</button>`;
   $("#switch").onclick = () => { S.me = null; S.editingAs = null; store.set("cid", null); banner.classList.add("hidden"); render("picker"); };
