@@ -136,6 +136,13 @@ input:focus, select:focus, textarea:focus, [contenteditable]:focus { outline: 3p
 .teams { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .teams:empty::after { content: "Tap teams below to add them here"; color: var(--ink-2); font-size: 0.85rem; padding: 6px 2px; }
 .team { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 7px; border: 1px solid var(--rule); background: var(--bg); border-radius: 6px; font-weight: 600; font-size: 0.95rem; }
+.xw { display: inline-flex; align-items: stretch; }
+.xw .team { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.xdel { min-width: 44px; border: 1px solid var(--rule); border-left: 0; background: var(--bg); color: var(--ink-2); border-radius: 0 6px 6px 0; font-size: 0.9rem; }
+.addteam { margin-top: 12px; }
+.addform { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); }
+.addform input { min-height: 48px; }
+.addform .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .tn { display: grid; line-height: 1.15; text-align: left; }
 .tn .ni { font-size: 0.72rem; font-weight: 500; color: var(--ink-2); white-space: nowrap; }
 .preview .tn .ni { color: #9BA9BD; }
@@ -326,6 +333,7 @@ async function api(action, body = {}, opts = {}) {
 // ---------- helpers ----------
 const PEN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M13.5 6.5l3 3"/></svg>`;
 const penBtn = (label) => `<button type="button" class="pen" aria-label="${esc(label)}">${PEN}</button>`;
+const tOf = (id, extra) => (NAME[id] ? { code: id, name: NAME[id] } : ((extra || []).find((e) => e.id === id) || null));
 const sectionOf = (c) => S.boot.sections.find((s) => s.key === c.section_key) || { title: c.section_key, kind: "note" };
 const pieceRowFor = (cid) => S.boot.pieces.find((p) => p.contributor_id === cid);
 function statusChip(status, locked) {
@@ -685,18 +693,22 @@ function tiersEditor(parent, ro) {
   if (!Array.isArray(c.tiers) || !c.tiers.length) {
     c.tiers = (S.boot.prev_tiers || [{ name: "S tier", teams: [] }, { name: "A tier", teams: [] }, { name: "B tier", teams: [] }, { name: "C tier", teams: [] }, { name: "D tier", teams: [] }]).map((t) => ({ name: t.name, style: t.style, teams: [...(t.teams || [])] }));
     fresh = !!S.boot.prev_tiers;
+    if (!Array.isArray(c.extra)) c.extra = fresh && Array.isArray(S.boot.prev_extra) ? S.boot.prev_extra.map((e) => ({ ...e })) : [];
   }
+  if (!Array.isArray(c.extra)) c.extra = [];
   // a team can live in one tier only
-  const seen = new Set(); c.tiers.forEach((t) => { t.teams = t.teams.filter((x) => NAME[x] && !seen.has(x) && seen.add(x)); });
+  const seen = new Set(); c.tiers.forEach((t) => { t.teams = t.teams.filter((x) => tOf(x, c.extra) && !seen.has(x) && seen.add(x)); });
   const root = el(`<div>${fresh ? `<div class="notice">Starting from last week's board${S.boot.prev_tiers_week ? ` (Week ${S.boot.prev_tiers_week})` : ""}. Move only what changed.</div>` : ""}
     ${ro ? "" : `<p class="hint">Tap a tier to select it, then tap teams below to drop them in. Tap a placed team to move it.</p>`}
     <div class="tiers" id="tiers"></div>${ro ? "" : `<button type="button" class="btn addtier" id="addtier" style="margin-top:10px">+ Add tier</button>`}
-    <div class="pool"><span class="lab" id="poollab">Unplaced</span><div class="teams" id="pool"></div></div>
+    <div class="pool"><span class="lab" id="poollab">Unplaced</span><div class="teams" id="pool"></div>
+      ${ro ? "" : `<div class="addteam" id="addteam"><button type="button" class="btn" id="addteambtn">+ Add a team to rank</button></div>`}</div>
     <div class="field" style="margin-top:14px"><label class="lab">Note (optional)</label><input type="text" id="tnote" placeholder="One line under the board" ${ro ? "disabled" : ""} value="${esc(c.note || "")}"></div></div>`);
   parent.appendChild(root);
   $("#tnote", root).addEventListener("input", (e) => { c.note = e.target.value; touch(); });
   const placed = () => new Set(c.tiers.flatMap((t) => t.teams));
-  const chip = (code) => `<button type="button" class="team" data-t="${code}"><b>${code}</b><span class="tn">${esc(NAME[code])}${nflLine(code)}</span></button>`;
+  const chip = (id) => { const t = tOf(id, c.extra) || { code: id, name: id }; return `<button type="button" class="team" data-t="${esc(id)}"><b>${esc(t.code)}</b><span class="tn">${esc(t.name)}${nflLine(id)}</span></button>`; };
+  const xchip = (e) => `<span class="xw">${chip(e.id)}<button type="button" class="xdel" data-del="${esc(e.id)}" aria-label="Remove ${esc(e.name)}">✕</button></span>`;
   function draw() {
     const T = $("#tiers", root); T.innerHTML = "";
     if (S.tierSel >= c.tiers.length) S.tierSel = Math.max(0, c.tiers.length - 1);
@@ -724,8 +736,30 @@ function tiersEditor(parent, ro) {
     });
     const P = $("#pool", root); const p = placed();
     const pl = $("#poollab", root); if (pl) pl.innerHTML = ro ? "Unplaced" : `Unplaced · tap to add to <b>${esc(c.tiers[S.tierSel] ? c.tiers[S.tierSel].name : "")}</b>`;
-    P.innerHTML = NFL.filter(([code]) => !p.has(code)).map(([code]) => chip(code)).join("");
-    if (!ro) P.querySelectorAll(".team").forEach((b) => { b.onclick = () => { if (!c.tiers.length) return; c.tiers[S.tierSel].teams.push(b.dataset.t); toast(`${b.dataset.t} → ${c.tiers[S.tierSel].name}`); touch(); draw(); }; });
+    P.innerHTML = NFL.filter(([code]) => !p.has(code)).map(([code]) => chip(code)).join("") + c.extra.filter((e) => !p.has(e.id)).map(xchip).join("");
+    if (!ro) P.querySelectorAll(".xdel").forEach((b) => { b.onclick = (e) => { e.stopPropagation(); c.extra = c.extra.filter((x) => x.id !== b.dataset.del); toast("Removed"); touch(); draw(); }; });
+    if (!ro) P.querySelectorAll(".team").forEach((b) => { b.onclick = () => { if (!c.tiers.length) return; c.tiers[S.tierSel].teams.push(b.dataset.t); toast(`${(tOf(b.dataset.t, c.extra) || { code: b.dataset.t }).code} → ${c.tiers[S.tierSel].name}`); touch(); draw(); }; });
+  }
+  if (!ro) {
+    const box = $("#addteam", root);
+    const showBtn = () => { box.innerHTML = `<button type="button" class="btn" id="addteambtn">+ Add a team to rank</button>`; $("#addteambtn", box).onclick = showForm; };
+    const showForm = () => {
+      box.innerHTML = `<div class="addform"><label class="lab" for="xn">Team name</label><input type="text" id="xn" maxlength="30" placeholder="e.g. Tennessee Titans kicker" autocomplete="off">
+        <label class="lab" for="xc">Short tag (optional, up to 4 letters)</label><input type="text" id="xc" maxlength="4" placeholder="auto" autocapitalize="characters" autocomplete="off">
+        <div class="row2"><button type="button" class="btn" id="xok">Add</button><button type="button" class="btn quiet" id="xno">Cancel</button></div></div>`;
+      $("#xn", box).focus();
+      $("#xno", box).onclick = showBtn;
+      $("#xok", box).onclick = () => {
+        const name = $("#xn", box).value.trim(); if (!name) { $("#xn", box).focus(); return; }
+        let code = $("#xc", box).value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4)
+          || name.replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(Boolean).map((w) => w[0]).join("").toUpperCase().slice(0, 4) || "TM";
+        if (NAME[code]) code += "+";
+        const base = "x_" + name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 20); let id = base, k = 2;
+        while (NAME[id] || c.extra.some((e) => e.id === id)) id = base + "-" + k++;
+        c.extra.push({ id, code, name }); touch(); toast(`${name} added`); draw(); showBtn();
+      };
+    };
+    showBtn();
   }
   function rename(i, d) {
     const hd = $(".hd", d); const inp = el(`<input type="text" value="${esc(c.tiers[i].name)}" aria-label="Tier name" maxlength="40">`);
@@ -734,13 +768,13 @@ function tiersEditor(parent, ro) {
     inp.onblur = done; inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); inp.blur(); } if (e.key === "Escape") { inp.onblur = null; draw(); } };
   }
   function sheet(code, from) {
-    const sh = el(`<div class="sheet" role="dialog" aria-label="Move ${code}"><div class="box"><p><b>${code} ${esc(NAME[code])}</b> <span class="dim">· in ${esc(c.tiers[from].name)}</span></p>
+    const sh = el(`<div class="sheet" role="dialog" aria-label="Move ${code}"><div class="box"><p><b>${esc((tOf(code, c.extra) || { code }).code)} ${esc((tOf(code, c.extra) || { name: "" }).name)}</b> <span class="dim">· in ${esc(c.tiers[from].name)}</span></p>
       ${c.tiers.map((t, j) => j === from ? "" : `<button type="button" class="btn" data-j="${j}">Move to ${esc(t.name)}</button>`).join("")}
-      <button type="button" class="btn danger" data-j="pool">Back to Unplaced</button><button type="button" class="btn quiet" data-j="x">Cancel</button></div></div>`);
+      <button type="button" class="btn danger" data-j="pool">Back to Unplaced</button>${NAME[code] ? "" : `<button type="button" class="btn danger" data-j="del">Delete this team</button>`}<button type="button" class="btn quiet" data-j="x">Cancel</button></div></div>`);
     sh.onclick = (e) => {
       const b = e.target.closest("button"); if (!b && e.target !== sh) return;
       const j = b ? b.dataset.j : "x";
-      if (j !== "x") { c.tiers[from].teams = c.tiers[from].teams.filter((x) => x !== code); if (j !== "pool") c.tiers[Number(j)].teams.push(code); touch(); draw(); }
+      if (j !== "x") { c.tiers[from].teams = c.tiers[from].teams.filter((x) => x !== code); if (j === "del") c.extra = c.extra.filter((x) => x.id !== code); else if (j !== "pool") c.tiers[Number(j)].teams.push(code); touch(); draw(); }
       sh.remove();
     };
     overlay.appendChild(sh);
@@ -760,7 +794,7 @@ function preview() {
     body = `<div class="ptiers">` + (k.tiers || []).map((t, i) => {
       const fraud = /fraud/i.test(t.name), dark = i >= 5;
       return `<div class="ptier ${fraud ? "fraud" : ""} ${dark ? "dark" : ""}" style="--tc:${TIER_COLORS[Math.min(i, TIER_COLORS.length - 1)]}"><div class="lab2">${fraud ? `<span>${esc(t.name)}</span>` : esc(t.name)}<small>${t.teams.length} team${t.teams.length === 1 ? "" : "s"}</small></div>
-        <div class="prow">${t.teams.map((x) => `<span class="nfl"><b>${x}</b><span class="tn">${esc(NAME[x])}${nflLine(x)}</span></span>`).join("") || `<span class="dim small">Nobody here</span>`}</div></div>`;
+        <div class="prow">${t.teams.map((x) => { const tt = tOf(x, k.extra) || { code: x, name: x }; return `<span class="nfl"><b>${esc(tt.code)}</b><span class="tn">${esc(tt.name)}${nflLine(x)}</span></span>`; }).join("") || `<span class="dim small">Nobody here</span>`}</div></div>`;
     }).join("") + `</div>` + (k.note ? `<p class="pnote">${esc(k.note)}</p>` : "") + img;
   } else if (sec.kind === "history") {
     if (k.card) ensurePick(k);
