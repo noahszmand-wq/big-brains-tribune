@@ -815,10 +815,10 @@ function preview() {
 function admin() {
   if (!S.admin_word) return adminGate();
   const v = el(`<div><div class="ph"><div class="lab">Editor</div><h1>The desk</h1></div>
-    <nav class="tabs" aria-label="Admin sections">${[["week", "This week"], ["people", "People"], ["sections", "Sections"], ["settings", "Settings"], ["archive", "Archive"]].map(([k, l]) => `<button type="button" data-t="${k}" ${S.adminTab === k ? "aria-current=true" : ""}>${l}</button>`).join("")}</nav><div id="atab"></div></div>`);
+    <nav class="tabs" aria-label="Admin sections">${[["week", "This week"], ["people", "People"], ["sections", "Sections"], ["settings", "Settings"], ["comments", "Comments"], ["archive", "Archive"]].map(([k, l]) => `<button type="button" data-t="${k}" ${S.adminTab === k ? "aria-current=true" : ""}>${l}</button>`).join("")}</nav><div id="atab"></div></div>`);
   app.appendChild(v);
   v.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { S.adminTab = b.dataset.t; render("admin"); });
-  ({ week: adminWeek, people: adminPeople, sections: adminSections, settings: adminSettings, archive: adminArchive }[S.adminTab])($("#atab", v));
+  ({ week: adminWeek, people: adminPeople, sections: adminSections, settings: adminSettings, comments: adminComments, archive: adminArchive }[S.adminTab])($("#atab", v));
 }
 function adminGate() {
   const v = el(`<div class="gate"><div class="card"><h1>Editor's desk</h1><p class="dim">Type the editor word.</p>
@@ -942,6 +942,24 @@ function chicagoToISO(date, time) {
     if (Number(p.day) === d && Number(p.hour) % 24 === hh && Number(p.minute) === mm) return new Date(t).toISOString();
   }
   return new Date(Date.UTC(y, m - 1, d, hh + 6, mm)).toISOString();
+}
+const CM_ENDPOINT = "https://eempzkiumbnffftkqdas.supabase.co/functions/v1/tribune-comments";
+async function cmApi(body) {
+  const r = await fetch(CM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ word: S.word, admin_word: S.admin_word, week: S.boot.week, ...body }) });
+  const j = await r.json().catch(() => ({})); if (!j.ok) throw Object.assign(new Error(j.error || "error"), { code: j.error || "error" }); return j;
+}
+async function adminComments(root) {
+  root.innerHTML = `<p class="dim"><span class="spin"></span> Loading comments…</p>`;
+  try {
+    const r = await cmApi({ action: "all" });
+    const live = r.comments.filter((c) => !c.deleted_at);
+    root.innerHTML = live.length ? `<p class="dim">${live.length} comment${live.length === 1 ? "" : "s"} this season, newest first. Delete hides it from the paper right away.</p>` : `<div class="card dim">No comments yet.</div>`;
+    live.forEach((c) => {
+      const row = el(`<div class="card editrow" style="align-items:start"><div style="min-width:0"><div class="small dim">Week ${esc(c.week)} · ${esc(c.team)} · ${ago(c.created_at)}</div><div style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(c.body)}</div></div><button type="button" class="btn sm danger">Delete</button></div>`);
+      row.querySelector("button").onclick = async () => { if (!confirm(`Delete this comment from ${c.team}?`)) return; try { await cmApi({ action: "delete", id: c.id }); row.remove(); } catch (err) { alert(errText(err.code)); } };
+      root.appendChild(row);
+    });
+  } catch (err) { root.innerHTML = `<div class="notice red">${esc(errText(err.code))}</div>`; }
 }
 async function adminArchive(root) {
   root.innerHTML = `<p class="dim"><span class="spin"></span> Loading past weeks…</p>`;
