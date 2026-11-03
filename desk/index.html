@@ -458,7 +458,7 @@ function home() {
   const ro = B.locked && !S.editingAs;
   const h = el(`<div>
     <div class="ph"><div class="lab">${esc(c.name)} · Week ${B.week}</div><h1>${esc(sec.title)}</h1>
-      <div class="meta"><span class="due">${esc(B.deadline_label || "Due Tue 8 AM")}</span><span id="chip">${statusChip(S.status, B.locked)}</span></div>
+      <div class="meta"><span class="due">${esc(B.deadline_label || "Due Tue 3 PM")}</span><span id="chip">${statusChip(S.status, B.locked)}</span></div>
       <div class="savestate" id="savestate"></div></div>
     ${ro ? `<div class="notice">This week is locked, so the piece is read-only now. Next week's desk opens after the issue goes out.</div>` : ""}
     ${S.status === "held" && !S.editingAs ? `<div class="notice red">The editor is holding this piece this week. You can still edit it; it won't run unless it's released.</div>` : ""}
@@ -475,7 +475,7 @@ function renderActions(ro) {
   if (ro) { a.innerHTML = `<button class="btn block" id="pv">Preview in the paper</button>`; $("#pv").onclick = preview; return; }
   const sub = S.status === "submitted";
   a.innerHTML = `<div class="row"><button class="btn" id="pv">Preview in the paper</button>${sub ? `<button class="btn" id="unsub">Unsubmit</button>` : ""}</div>
-    <button class="btn ${sub ? "yellow" : "primary"} block" id="submit">${sub ? `Submitted · keep editing until ${esc((S.boot.deadline_label || "Tue 8 AM").replace(/^Due\s+/i, ""))}` : "Submit"}</button>`;
+    <button class="btn ${sub ? "yellow" : "primary"} block" id="submit">${sub ? `Submitted · keep editing until ${esc((S.boot.deadline_label || "Tue 3 PM").replace(/^Due\s+/i, ""))}` : "Submit"}</button>`;
   $("#pv").onclick = preview;
   $("#submit").onclick = async () => { if (sub) return; await saveNow("submitted", true); };
   if (sub) $("#unsub").onclick = async () => { await saveNow("draft", true); };
@@ -914,7 +914,7 @@ function adminSettings(root) {
   root.innerHTML = `<form class="card" id="sf">
     <div class="field"><label class="lab">Current issue week</label><input type="number" name="current_week" value="${B.week}" min="1" max="18"></div>
     <div class="pickrow"><div class="field"><label class="lab">Deadline date</label><input type="date" name="ddate" value="${parts.year}-${parts.month}-${parts.day}"></div><div class="field"><label class="lab">Time (Chicago)</label><input type="time" name="dtime" value="${parts.hour === "24" ? "00" : parts.hour}:${parts.minute}"></div></div>
-    <div class="field"><label class="lab">Deadline label contributors see</label><input type="text" name="deadline_label" value="${esc(B.deadline_label || "Due Tue 8 AM")}"></div>
+    <div class="field"><label class="lab">Deadline label contributors see</label><input type="text" name="deadline_label" value="${esc(B.deadline_label || "Due Tue 3 PM")}"></div>
     <button class="btn primary block" type="submit">Save settings</button><p class="msg"></p></form>
     <div class="card"><div class="lab" style="margin-bottom:8px">Words</div>
     <p class="small dim">Changing the league word logs everyone out of the desk and the paper until they type the new one.</p>
