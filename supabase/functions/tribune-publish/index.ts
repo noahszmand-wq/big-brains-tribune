@@ -60,8 +60,10 @@ function sanitize(html: string): string {
   s = s.replace(/<\/?div\b[^>]*>/gi, (m) => (m.startsWith("</") ? "</p>" : "<p>"));
   s = s.replace(/<(\/?)([a-zA-Z0-9]+)([^>]*)>/g, (m, close, tag, attrs) => {
     const t = tag.toLowerCase();
-    if (!["p", "br", "b", "strong", "i", "em", "ul", "ol", "li", "a", "blockquote"].includes(t)) return "";
-    if (close) return `</${t}>`;
+    const tt = t === "strike" || t === "del" ? "s" : t === "h2" || t === "h3" || t === "h5" ? "h4" : t;
+    if (!["p", "br", "b", "strong", "i", "em", "u", "s", "mark", "h4", "ul", "ol", "li", "a", "blockquote"].includes(tt)) return "";
+    if (close) return `</${tt}>`;
+    if (tt !== "a" && tt !== "blockquote") return `<${tt}>`;
     if (t === "a") { const h = /href\s*=\s*["']?(https?:\/\/[^"'\s>]+)/i.exec(attrs); return h ? `<a href="${esc(h[1])}" target="_blank" rel="noopener">` : "<a>"; }
     if (t === "blockquote") return `<blockquote class="pq">`;
     return `<${t}>`;
@@ -196,7 +198,10 @@ const sh = (id: string, title: string, extra = "", chat = true) => `<div class="
 const NFL_NAMES: Record<string, string> = { ARI: "Cardinals", ATL: "Falcons", BAL: "Ravens", BUF: "Bills", CAR: "Panthers", CHI: "Bears", CIN: "Bengals", CLE: "Browns", DAL: "Cowboys", DEN: "Broncos", DET: "Lions", GB: "Packers", HOU: "Texans", IND: "Colts", JAX: "Jaguars", KC: "Chiefs", LV: "Raiders", LAC: "Chargers", LAR: "Rams", MIA: "Dolphins", MIN: "Vikings", NE: "Patriots", NO: "Saints", NYG: "Giants", NYJ: "Jets", PHI: "Eagles", PIT: "Steelers", SF: "49ers", SEA: "Seahawks", TB: "Buccaneers", TEN: "Titans", WAS: "Commanders" };
 const TIER_VARS = ["--tier-s", "--tier-a", "--tier-b", "--tier-c", "--tier-d", "--tier-ass", "--tier-mega", "--tier-super"];
 
-type Piece = { contributor_id: number; name: string; team: string | null; section_key: string; title: string; kind: string; status: string | null; content: any; image_url: string | null; roast: string | null; include: boolean };
+type Profile = { tagline?: string; topics?: string[]; emoji?: string; signoff?: string };
+type Piece = { contributor_id: number; name: string; team: string | null; section_key: string; title: string; kind: string; status: string | null; content: any; image_url: string | null; roast: string | null; include: boolean; profile: Profile };
+const figure = (p: Piece) => p.image_url ? `<figure class="pieceimg"><img src="${esc(p.image_url)}" alt="${esc(p.content?.image_caption || "")}" loading="lazy">${p.content?.image_caption ? `<figcaption class="mono">${esc(p.content.image_caption)}</figcaption>` : ""}</figure>` : "";
+const who = (p: Piece) => `${p.profile.emoji ? `<span class="emoji" aria-hidden="true">${esc(p.profile.emoji)}</span> ` : ""}${esc(p.name)}`;
 type Ctx = { week: number; issue: number; season: number; L: League | null; prevTiers: any | null; tipsRun: { id: number; headline: string; tip: string }[]; hottest: { headline: string; n: number } | null; word: string; now: Date; T: Template; notes: { id: number; title: string; body: string | null }[] };
 
 function sectionTiers(p: Piece, ctx: Ctx) {
@@ -225,10 +230,10 @@ function sectionTiers(p: Piece, ctx: Ctx) {
     mvline = `<p class="mvline mono">${up.d > 0 ? `Biggest riser: <b>${esc(nameOf(up.id))}</b> ▲${up.d}` : ""}${up.d > 0 && dn.d < 0 ? " · " : ""}${dn.d < 0 ? `Biggest faller: <b>${esc(nameOf(dn.id))}</b> ▼${Math.abs(dn.d)}` : ""} · ${moves.length} team${moves.length === 1 ? "" : "s"} moved vs. last week</p>`;
   }
   const team = ctx.L?.byName[p.team ?? ""] ?? null;
-  const img = p.image_url ? `<figure class="pieceimg"><img src="${esc(p.image_url)}" alt="" loading="lazy"></figure>` : "";
+  const img = figure(p);
   return `<section id="${esc(p.section_key)}" aria-labelledby="h-${esc(p.section_key)}">${sh(p.section_key, p.title, `<span class="sticker">Guest ranker</span><span class="mono">Week ${ctx.week} edition</span>`)}
 <p class="rk-quote"><q>babe wake up, ${esc(firstName(p.name).toLowerCase())} released his weekly NFL Power Rankings</q></p>
-<div class="byline"><span class="who">${tb(team)}By ${esc(p.name)}</span><span class="mono">Contributing ranker · printed as submitted</span></div>
+<div class="byline"><span class="who">${tb(team)}By ${who(p)}</span><span class="mono">${esc(p.profile.tagline || "Contributing ranker · printed as submitted")}</span></div>
 <div class="tiers">
 ${mvline}${rows}
 </div>${c.note ? `<p class="note">${esc(c.note)}</p>` : ""}${img}
@@ -238,21 +243,23 @@ ${mvline}${rows}
 function sectionColumn(p: Piece, ctx: Ctx) {
   const c = p.content ?? {}; const team = ctx.L?.byName[p.team ?? ""] ?? null;
   const body = sanitize(c.body_html);
-  const img = p.image_url ? `<figure class="pieceimg"><img src="${esc(p.image_url)}" alt="" loading="lazy"></figure>` : "";
-  const host = `<aside class="host"><span class="onair"><i aria-hidden="true"></i>ON AIR</span><div class="nm">${tb(team, true)}<b>${esc(p.team || p.name)}</b></div><div class="hh">Where his head is at while writing</div>${team ? `<dl><dt>Record</dt><dd>${rec(team.wins, team.losses, team.ties)} · seed ${team.seed}</dd><dt>Points</dt><dd>${fc(team.pf)} for · ${fc(team.pa)} against</dd></dl>` : ""}<div><div class="mono dim" style="margin-bottom:6px">Topics</div><div class="topics"><span>The league</span><span>Football</span>${p.team ? `<span>${esc(p.team)}</span>` : ""}<span>Politics</span><span>Life</span></div></div></aside>`;
+  const img = figure(p);
+  const topics = (p.profile.topics?.length ? p.profile.topics : ["The league", "Football", ...(p.team ? [p.team] : []), "Politics", "Life"]).slice(0, 8);
+  const host = `<aside class="host"><span class="onair"><i aria-hidden="true"></i>ON AIR</span><div class="nm">${tb(team, true)}<b>${p.profile.emoji ? `<span class="emoji" aria-hidden="true">${esc(p.profile.emoji)}</span> ` : ""}${esc(p.team || p.name)}</b></div><div class="hh">${esc(p.profile.tagline || "Where his head is at while writing")}</div>${team ? `<dl><dt>Record</dt><dd>${rec(team.wins, team.losses, team.ties)} · seed ${team.seed}</dd><dt>Points</dt><dd>${fc(team.pf)} for · ${fc(team.pa)} against</dd></dl>` : ""}<div><div class="mono dim" style="margin-bottom:6px">Topics</div><div class="topics">${topics.map((t) => `<span>${esc(t)}</span>`).join("")}</div></div></aside>`;
+  const signoff = c.signoff || p.profile.signoff || "";
   return `<section id="${esc(p.section_key)}" aria-labelledby="h-${esc(p.section_key)}">${sh(p.section_key, p.title, `<span class="sticker">Guest column</span><span class="mono">A column by ${esc(p.name)}</span>`)}
-<div class="room">${host}<div class="page">${c.headline ? `<h3 class="colhead">${esc(c.headline)}</h3>` : ""}<div class="prose">${body || `<p class="dim">Filed without a body.</p>`}</div>${img}${c.signoff ? `<div class="signoff">${esc(c.signoff)}</div>` : ""}</div></div></section>`;
+<div class="room">${host}<div class="page">${c.headline ? `<h3 class="colhead">${esc(c.headline)}</h3>` : ""}${c.subhead ? `<p class="subhead">${esc(c.subhead)}</p>` : ""}<div class="prose">${body || `<p class="dim">Filed without a body.</p>`}</div>${img}${signoff ? `<div class="signoff">${esc(signoff)}</div>` : ""}</div></div></section>`;
 }
 
 function sectionNote(p: Piece, ctx: Ctx, editor = false) {
   const c = p.content ?? {}; const team = ctx.L?.byName[p.team ?? ""] ?? null;
-  const img = p.image_url ? `<figure class="pieceimg"><img src="${esc(p.image_url)}" alt="" loading="lazy"></figure>` : "";
+  const img = figure(p);
   return `<section id="${esc(p.section_key)}" aria-labelledby="h-${esc(p.section_key)}"${editor ? ' style="padding-top:28px"' : ""}>${sh(p.section_key, p.title, "", !editor)}
 <div class="ednote-box">${tb(team, true)}<div>${c.headline ? `<h3 class="colhead">${esc(c.headline)}</h3>` : ""}<div class="prose">${sanitize(c.body_html)}</div>${img}</div></div></section>`;
 }
 
 function sectionHistory(p: Piece, ctx: Ctx) {
-  const c = p.content ?? {}; const card = c.card; const img = p.image_url ? `<figure class="pieceimg"><img src="${esc(p.image_url)}" alt="" loading="lazy"></figure>` : "";
+  const c = p.content ?? {}; const card = c.card; const img = figure(p);
   let left = "";
   if (card && Array.isArray(card.games)) {
     const pick = c.pick ?? { games: card.games.map((_: any, i: number) => i), nums: ["high", "low", "avg", "closest", "blowout"], players: (card.extras?.top_players ?? []).map((_: any, i: number) => i) };
@@ -268,8 +275,8 @@ function sectionHistory(p: Piece, ctx: Ctx) {
     const players = (x.top_players ?? []).filter((_: any, i: number) => pick.players.includes(i)).map((pl: any) => `<li><b>${esc(pl.name)}</b> <span class="dim">${esc(pl.pos || "")} · ${esc(pl.team || "")}</span><span class="pts">${f2(pl.pts)}</span></li>`).join("");
     if (games || nums.length || players) left = `<div class="histcard"><div class="yr">${esc(card.season)}</div><div class="wk mono">Week ${esc(card.week)} scoreboard</div>${games}${nums.length ? `<div class="histnums">${nums.join("")}</div>` : ""}${players ? `<div class="mono dim" style="margin-top:14px">Top performers</div><ol class="histtop">${players}</ol>` : ""}</div>`;
   }
-  const story = `<div>${c.headline ? `<h3 class="colhead">${esc(c.headline)}</h3>` : ""}<div class="prose">${sanitize(c.body_html) || `<p class="dim">Filed without a story.</p>`}</div>${img}</div>`;
-  return `<section id="${esc(p.section_key)}" aria-labelledby="h-${esc(p.section_key)}">${sh(p.section_key, p.title, `<span class="sticker">Guest column</span><span class="mono">By ${esc(p.name)}</span>`)}
+  const story = `<div>${c.headline ? `<h3 class="colhead">${esc(c.headline)}</h3>` : ""}${c.subhead ? `<p class="subhead">${esc(c.subhead)}</p>` : ""}<div class="prose">${sanitize(c.body_html) || `<p class="dim">Filed without a story.</p>`}</div>${img}</div>`;
+  return `<section id="${esc(p.section_key)}" aria-labelledby="h-${esc(p.section_key)}">${sh(p.section_key, p.title, `<span class="sticker">Guest column</span><span class="mono">By ${who(p)}${p.profile.tagline ? ` · ${esc(p.profile.tagline)}` : ""}</span>`)}
 ${left ? `<div class="hist">${left}${story}</div>` : story}</section>`;
 }
 
@@ -486,13 +493,13 @@ async function settings(): Promise<Record<string, string>> {
   return Object.fromEntries(rows.map((r) => [r.key, r.value]));
 }
 async function loadPieces(season: number, week: number): Promise<Piece[]> {
-  const rows = await sql`select c.id as contributor_id, c.name, c.team, c.section_key, s.title, s.kind, s.sort, s.roast, s.active as section_active, c.is_editor,
+  const rows = await sql`select c.id as contributor_id, c.name, c.team, c.section_key, s.title, s.kind, s.sort, s.roast, s.active as section_active, c.is_editor, c.profile,
       p.status, p.content, p.image_url, p.updated_at, p.submitted_at
     from tribune.contributors c join tribune.sections s on s.key = c.section_key
     left join tribune.pieces p on p.contributor_id = c.id and p.season = ${season} and p.week = ${week}
     where c.active order by s.sort, c.sort, c.id`;
   return rows.map((r) => ({ contributor_id: Number(r.contributor_id), name: r.name, team: r.team, section_key: r.section_key, title: r.title, kind: r.kind, status: r.status ?? null,
-    content: r.content ?? {}, image_url: r.image_url ?? null, roast: r.section_active || r.kind === "note" ? r.roast : null, include: r.status === "submitted",
+    content: r.content ?? {}, image_url: r.image_url ?? null, profile: (r.profile && typeof r.profile === "object" ? r.profile : {}) as Profile, roast: r.section_active || r.kind === "note" ? r.roast : null, include: r.status === "submitted",
     // extra fields used by preflight only
     ...( { updated_at: r.updated_at, submitted_at: r.submitted_at, is_editor: r.is_editor, section_active: r.section_active, has_content: !!plain(r.content?.body_html ?? "") || (Array.isArray(r.content?.tiers) && r.content.tiers.some((t: any) => (t.teams ?? []).length)) } as any) }));
 }

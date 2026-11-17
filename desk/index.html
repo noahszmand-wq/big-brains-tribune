@@ -116,6 +116,15 @@ input:focus, select:focus, textarea:focus, [contenteditable]:focus { outline: 3p
 .rich ul, .rich ol { margin: 0 0 10px; padding-left: 22px; }
 .rich blockquote.pq { margin: 12px 0; padding: 4px 0 4px 14px; border-left: 4px solid var(--pylon); font-family: var(--quote); font-style: italic; font-size: 1.25rem; line-height: 1.3; }
 .rich a { color: var(--pylon); }
+.rich h4 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.25rem; line-height: 1; margin: 14px 0 6px; }
+.rich mark { background: var(--yellow); color: var(--on-yellow); padding: 0 0.15em; }
+.rich u { text-decoration-color: var(--pylon); } .rich s { opacity: 0.7; }
+.wc { font-size: 0.78rem; color: var(--ink-2); text-align: right; margin-top: 4px; }
+.toolbar button.u { text-decoration: underline; } .toolbar button.s { text-decoration: line-through; } .toolbar button.mk { background: var(--yellow); color: var(--on-yellow); }
+.bylinebtn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--rule); border-radius: 999px; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; min-height: 36px; }
+.topicchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.topicchips span { display: inline-flex; align-items: center; gap: 6px; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 6px 4px 10px; font-size: 0.88rem; }
+.topicchips span button { background: none; border: 0; padding: 0 4px; color: var(--ink-2); font-size: 0.9rem; min-height: 28px; }
 .rich[contenteditable=false] { opacity: 0.85; }
 .imgbox { display: grid; gap: 8px; }
 .imgbox img { max-width: 100%; max-height: 260px; display: block; border: 1px solid var(--rule); }
@@ -472,7 +481,8 @@ function setWho() {
 }
 
 // ---------- sanitize ----------
-const ALLOW = { P: 1, BR: 1, B: 1, STRONG: 1, I: 1, EM: 1, UL: 1, OL: 1, LI: 1, A: 1, BLOCKQUOTE: 1 };
+const ALLOW = { P: 1, BR: 1, B: 1, STRONG: 1, I: 1, EM: 1, U: 1, S: 1, MARK: 1, H4: 1, UL: 1, OL: 1, LI: 1, A: 1, BLOCKQUOTE: 1 };
+const RENAME = { STRIKE: "s", DEL: "s", H1: "h4", H2: "h4", H3: "h4", H5: "h4", H6: "h4" };
 function sanitize(html) {
   const root = document.createElement("div"); root.innerHTML = html || "";
   const walk = (node) => {
@@ -483,6 +493,7 @@ function sanitize(html) {
       if (tag === "SCRIPT" || tag === "STYLE" || tag === "IMG" || tag === "IFRAME") { n.remove(); return; }
       walk(n);
       if (tag === "DIV") { const p = document.createElement("p"); while (n.firstChild) p.appendChild(n.firstChild); n.replaceWith(p); return; }
+      if (RENAME[tag]) { const r = document.createElement(RENAME[tag]); while (n.firstChild) r.appendChild(n.firstChild); n.replaceWith(r); return; }
       if (!ALLOW[tag]) { while (n.firstChild) n.parentNode.insertBefore(n.firstChild, n); n.remove(); return; }
       const keepPq = tag === "BLOCKQUOTE";
       [...n.attributes].forEach((a) => {
@@ -560,7 +571,7 @@ function home() {
     ${S.editingAs ? `<div class="row between" style="margin-top:10px"><button type="button" class="btn sm" id="backissue">‹ Back to ${S.returnTo === "publish" ? "the issue" : "the board"}</button><span class="small dim">Editing as editor</span></div>` : ""}
     <div class="ph"><div class="lab">${esc(c.name)} · Week ${B.week}</div><h1>${esc(sec.title)}</h1>
       <div class="meta"><span class="due">${esc(B.deadline_label || "Due Tue 3 PM")}</span><span id="chip">${statusChip(S.status, B.locked)}</span></div>
-      <div class="savestate" id="savestate"></div></div>
+      <div class="row between" style="margin-top:6px"><div class="savestate" id="savestate"></div>${S.editingAs ? "" : `<button type="button" class="bylinebtn" id="bylinebtn">${esc((S.me.profile && S.me.profile.emoji) || "✎")} Your byline</button>`}</div></div>
     ${ro ? `<div class="notice">This week is locked, so the piece is read-only now. Next week's desk opens after the issue goes out.</div>` : ""}
     ${S.status === "held" && !S.editingAs ? `<div class="notice red">The editor is holding this piece this week. You can still edit it; it won't run unless it's released.</div>` : ""}
     <div id="editor"></div>
@@ -568,6 +579,7 @@ function home() {
   </div>`);
   app.appendChild(h);
   if ($("#backissue", h)) $("#backissue", h).onclick = async () => { clearTimeout(S.saveTimer); if (S.dirty) await saveNow(); S.adminTab = S.returnTo === "publish" ? "publish" : "week"; banner.classList.add("hidden"); S.editingAs = null; render("admin"); };
+  if ($("#bylinebtn", h)) $("#bylinebtn", h).onclick = profileSheet;
   const ed = $("#editor", h);
   ({ tiers: tiersEditor, column: columnEditor, history: historyEditor, note: noteEditor }[sec.kind] || noteEditor)(ed, ro);
   renderActions(ro);
@@ -604,15 +616,42 @@ async function saveNow(status, loud) {
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && S.dirty) saveNow(); });
 
+// ---------- byline / personalization ----------
+function profileSheet() {
+  const c = S.me, p = Object.assign({ tagline: "", topics: [], emoji: "", signoff: "" }, c.profile || {});
+  const sh = el(`<div class="sheet" role="dialog" aria-label="Your byline"><div class="box">
+    <h2 style="margin-top:4px">Your byline</h2><p class="dim small">How you show up in the paper. Everything here is optional.</p>
+    <div class="field"><label class="lab" for="pf-emoji">Emoji</label><input type="text" id="pf-emoji" maxlength="8" placeholder="🏈" value="${esc(p.emoji)}" style="width:90px"><span class="small dim">Sits next to your name.</span></div>
+    <div class="field"><label class="lab" for="pf-tag">Tagline</label><input type="text" id="pf-tag" maxlength="80" placeholder="e.g. Where his head is at while writing" value="${esc(p.tagline)}"></div>
+    <div class="field"><label class="lab" for="pf-topic">Topics <span class="dim" style="text-transform:none;letter-spacing:0;font-weight:500">· the chips on your card</span></label><div class="row"><input type="text" id="pf-topic" maxlength="24" placeholder="Add a topic" style="flex:1"><button type="button" class="btn sm" id="pf-add">Add</button></div><div class="topicchips" id="pf-chips"></div></div>
+    <div class="field"><label class="lab" for="pf-sign">Usual sign-off</label><input type="text" id="pf-sign" maxlength="60" placeholder="— ${esc(c.name)}" value="${esc(p.signoff)}"></div>
+    <div class="row"><button type="button" class="btn primary" id="pf-save" style="flex:1">Save</button><button type="button" class="btn quiet" id="pf-x">Cancel</button></div><p class="msg" id="pf-msg"></p></div></div>`);
+  const topics = [...p.topics]; const chips = $("#pf-chips", sh);
+  const drawChips = () => { chips.innerHTML = topics.map((t, i) => `<span>${esc(t)}<button type="button" data-i="${i}" aria-label="Remove ${esc(t)}">✕</button></span>`).join("") || `<span class="dim small" style="background:none;border:0">No topics yet: the paper uses the usual ones.</span>`; chips.querySelectorAll("button").forEach((b) => b.onclick = () => { topics.splice(Number(b.dataset.i), 1); drawChips(); }); };
+  const add = () => { const v = $("#pf-topic", sh).value.trim(); if (!v || topics.length >= 8) return; topics.push(v); $("#pf-topic", sh).value = ""; drawChips(); };
+  $("#pf-add", sh).onclick = add; $("#pf-topic", sh).onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); add(); } };
+  drawChips();
+  $("#pf-x", sh).onclick = () => sh.remove(); sh.onclick = (e) => { if (e.target === sh) sh.remove(); };
+  $("#pf-save", sh).onclick = async () => {
+    const profile = { emoji: $("#pf-emoji", sh).value.trim(), tagline: $("#pf-tag", sh).value.trim(), topics, signoff: $("#pf-sign", sh).value.trim() };
+    const b = $("#pf-save", sh); b.disabled = true;
+    try { const r = await api("set_profile", { contributor_id: c.id, profile }); c.profile = r.profile; const bc = S.boot.contributors.find((x) => x.id === c.id); if (bc) bc.profile = r.profile; sh.remove(); toast("Byline saved"); const bb = $("#bylinebtn"); if (bb) bb.textContent = (r.profile.emoji || "✎") + " Your byline"; }
+    catch (err) { $("#pf-msg", sh).textContent = errText(err.code); $("#pf-msg", sh).className = "msg err"; b.disabled = false; }
+  };
+  overlay.appendChild(sh);
+}
+
 // ---------- rich editor ----------
 function richField(parent, { label, key, ph, ro, short }) {
   const box = el(`<div class="field"><span class="lab">${esc(label)}</span>
     ${ro ? "" : `<div class="toolbar" role="toolbar" aria-label="Formatting">
       <button type="button" data-cmd="bold" aria-label="Bold"><b>B</b></button><button type="button" class="i" data-cmd="italic" aria-label="Italic">I</button>
-      <button type="button" data-cmd="insertUnorderedList" aria-label="Bullet list">• List</button><button type="button" data-cmd="link">Link</button><button type="button" data-cmd="pq">“ Quote</button></div>`}
-    <div class="rich" contenteditable="${ro ? "false" : "true"}" data-ph="${esc(ph)}" ${short ? 'style="min-height:120px"' : ""}></div></div>`);
+      <button type="button" class="u" data-cmd="underline" aria-label="Underline">U</button><button type="button" class="s" data-cmd="strikeThrough" aria-label="Strikethrough">S</button><button type="button" class="mk" data-cmd="mark" aria-label="Highlight">Mark</button>
+      <button type="button" data-cmd="insertUnorderedList" aria-label="Bullet list">• List</button><button type="button" data-cmd="insertOrderedList" aria-label="Numbered list">1. List</button><button type="button" data-cmd="h4" aria-label="Subhead">Subhead</button><button type="button" data-cmd="link">Link</button><button type="button" data-cmd="pq">“ Quote</button></div>`}
+    <div class="rich" contenteditable="${ro ? "false" : "true"}" data-ph="${esc(ph)}" ${short ? 'style="min-height:120px"' : ""}></div><div class="wc"></div></div>`);
   const rich = $(".rich", box); rich.innerHTML = S.content[key] || ""; rich.classList.toggle("empty", !plain(rich.innerHTML));
-  const sync = () => { S.content[key] = sanitize(rich.innerHTML); rich.classList.toggle("empty", !plain(rich.innerHTML)); touch(); };
+  const wc = $(".wc", box); const words = () => { const n = plain(rich.innerHTML).split(/\s+/).filter(Boolean).length; wc.textContent = n ? `${n} word${n === 1 ? "" : "s"} · about ${Math.max(1, Math.round(n / 200))} min read` : ""; }; words();
+  const sync = () => { S.content[key] = sanitize(rich.innerHTML); rich.classList.toggle("empty", !plain(rich.innerHTML)); words(); touch(); };
   rich.addEventListener("input", sync);
   rich.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" || e.shiftKey) return;
@@ -630,6 +669,13 @@ function richField(parent, { label, key, ph, ro, short }) {
       rich.focus(); const cmd = b.dataset.cmd;
       if (cmd === "link") { let u = prompt("Link to where? Paste the address."); if (!u) return; if (!/^https?:\/\//i.test(u)) u = "https://" + u; document.execCommand("createLink", false, u); }
       else if (cmd === "pq") { const inQ = closestBlock(rich, "BLOCKQUOTE"); document.execCommand("formatBlock", false, inQ ? "p" : "blockquote"); rich.querySelectorAll("blockquote").forEach((q) => q.classList.add("pq")); }
+      else if (cmd === "h4") { const inH = closestBlock(rich, "H4"); document.execCommand("formatBlock", false, inH ? "p" : "h4"); }
+      else if (cmd === "mark") {
+        const sel = window.getSelection(); if (!sel.rangeCount || sel.isCollapsed) { toast("Select some words first"); return; }
+        const r = sel.getRangeAt(0); let n = r.commonAncestorContainer; if (n.nodeType === 3) n = n.parentNode; const inMark = n.closest && n.closest("mark");
+        if (inMark && rich.contains(inMark)) { while (inMark.firstChild) inMark.parentNode.insertBefore(inMark.firstChild, inMark); inMark.remove(); }
+        else { const m = document.createElement("mark"); try { r.surroundContents(m); } catch (e) { m.appendChild(r.extractContents()); r.insertNode(m); } }
+      }
       else document.execCommand(cmd, false, null);
       sync();
     };
@@ -653,7 +699,8 @@ function imageField(parent, ro) {
   parent.appendChild(box);
   const draw = () => {
     const ib = $("#imgbox");
-    if (S.image_url) ib.innerHTML = `<img src="${esc(S.image_url)}" alt=""><div class="row">${ro ? "" : `<button type="button" class="btn sm" id="imgrm">Remove</button>`}</div>`;
+    if (S.image_url) ib.innerHTML = `<img src="${esc(S.image_url)}" alt=""><input type="text" id="imgcap" maxlength="140" placeholder="Caption (optional)" value="${esc(S.content.image_caption || "")}" ${ro ? "disabled" : ""} style="margin-top:6px"><div class="row">${ro ? "" : `<button type="button" class="btn sm" id="imgrm">Remove</button>`}</div>`;
+    if ($("#imgcap")) $("#imgcap").addEventListener("input", (e) => { S.content.image_caption = e.target.value; touch(); });
     else ib.innerHTML = ro ? `<span class="dim small">No image.</span>` : `<label class="btn pick">Add a picture<input type="file" accept="image/*" id="imgin"></label><span class="small dim">We shrink it for you. Nothing bigger than about 1.5 MB.</span>`;
     if ($("#imgrm")) $("#imgrm").onclick = () => { S.image_url = null; touch(); draw(); };
     if ($("#imgin")) $("#imgin").onchange = async (e) => {
@@ -691,8 +738,9 @@ function noteEditor(parent, ro) {
 }
 function columnEditor(parent, ro) {
   textField(parent, { label: "Headline", key: "headline", ph: "Give it a title", ro });
+  textField(parent, { label: "Subhead (optional)", key: "subhead", ph: "One line under the headline", ro });
   richField(parent, { label: "Column", key: "body_html", ph: "The league, football, your team, politics, life. A paragraph or two.", ro });
-  textField(parent, { label: "Sign-off (optional)", key: "signoff", ph: "— JUD", ro });
+  textField(parent, { label: "Sign-off (optional)", key: "signoff", ph: (S.me.profile && S.me.profile.signoff) || "— " + S.me.name, ro, hint: S.me.profile && S.me.profile.signoff ? "Leave empty to use your usual sign-off." : "" });
   imageField(parent, ro);
 }
 async function historyEditor(parent, ro) {
@@ -718,6 +766,7 @@ async function historyEditor(parent, ro) {
   drawCard();
   const story = el(`<div></div>`); parent.appendChild(story);
   textField(story, { label: "Headline (optional)", key: "headline", ph: "e.g. The week JUD started a kicker at flex", ro });
+  textField(story, { label: "Subhead (optional)", key: "subhead", ph: "One line under the headline", ro });
   richField(story, { label: "The story", key: "body_html", ph: "What happened, who's still mad about it, and what it meant.", ro });
   imageField(story, ro);
   try {
