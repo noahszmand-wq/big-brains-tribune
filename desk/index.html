@@ -274,6 +274,73 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
 .includes { display: grid; gap: 4px; margin: 10px 0 16px; }
 .preview .numbers .nb, .preview .topl { background: #101B2D; border-color: #22314A; }
 .preview .topl div { border-color: #22314A; }
+/* Side menu */
+.menu-btn { width: 44px; height: 44px; border: 1px solid var(--rule); background: var(--surface); border-radius: 10px; display: grid; place-items: center; gap: 4px; padding: 11px 10px; flex: none; }
+.menu-btn i { display: block; width: 20px; height: 2px; background: var(--ink); border-radius: 2px; }
+.ddrawer-bg { position: fixed; inset: 0; background: rgba(5, 10, 20, 0.55); z-index: 50; }
+.ddrawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(320px, 86vw); background: var(--surface); border-right: 1px solid var(--rule); z-index: 51; padding: calc(14px + env(safe-area-inset-top)) 16px 24px; overflow-y: auto; animation: din 0.18s ease-out; }
+@keyframes din { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.ddrawer .dh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.ddrawer .dclose { width: 40px; height: 40px; border: 1px solid var(--rule); background: var(--bg); border-radius: 10px; }
+.ddrawer .lab { display: block; margin: 14px 0 6px; }
+.dlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.dlist a, .dlist summary { display: grid; gap: 2px; text-decoration: none; background: var(--bg); border: 1px solid var(--rule); padding: 10px 14px; min-height: 56px; position: relative; cursor: pointer; color: inherit; }
+.dlist a .mono, .dlist summary .mono { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pylon); }
+.dlist a b, .dlist summary b { font-family: var(--display); font-weight: 800; font-size: 1.2rem; line-height: 1; text-transform: uppercase; }
+.dlist a em { position: absolute; right: 12px; top: 12px; font-style: normal; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; background: var(--yellow); color: var(--on-yellow); padding: 3px 6px; border-radius: 4px; }
+.dlist a[aria-current="page"] { border-color: var(--yellow); }
+.dlist details { border: 1px solid var(--rule); background: var(--bg); }
+.dlist details summary { border: 0; list-style: none; padding-left: 40px; }
+.dlist details summary::-webkit-details-marker { display: none; }
+.dlist details summary::before { content: ""; position: absolute; left: 12px; top: 18px; width: 18px; height: 14px; border: 2px solid var(--pylon); border-radius: 3px; box-shadow: inset 0 3px 0 0 var(--pylon); }
+.dlist details summary::after { content: "›"; position: absolute; right: 14px; top: 10px; font-size: 1.4rem; color: var(--ink-2); transform: rotate(90deg); transition: transform 0.15s; }
+.dlist details[open] summary::after { transform: rotate(-90deg); }
+.dlist details .dlist { padding: 0 8px 8px; }
+.dlist details .dlist a { background: var(--surface); }
+.ddrawer .dim.small { margin-top: 18px; }
+
+/* Editor board */
+.board-hd { display: grid; gap: 10px; margin: 8px 0 14px; }
+.board-hd .big { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 2.1rem; line-height: 0.95; }
+.progress { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--win); width: var(--p, 0%); transition: width 0.3s; }
+
+/* Publish flow */
+.step { display: flex; align-items: baseline; gap: 10px; margin: 26px 0 6px; }
+.step .n { font-family: var(--display); font-weight: 900; font-size: 1.1rem; background: var(--ink); color: var(--bg); width: 28px; height: 28px; border-radius: 50%; display: inline-grid; place-items: center; flex: none; }
+.step h2 { margin: 0; }
+.lineup { display: grid; gap: 8px; }
+.li { display: grid; grid-template-columns: 28px 1fr auto; gap: 4px 10px; align-items: center; background: var(--surface); border: 1px solid var(--rule); padding: 10px 10px 10px 12px; }
+.li.off { opacity: 0.72; background: var(--surface-2); }
+.li input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--pylon); margin: 0; }
+.li .t { font-weight: 700; line-height: 1.2; }
+.li .t small { display: block; font-weight: 500; color: var(--ink-2); font-size: 0.82rem; margin-top: 2px; }
+.li .ctl { display: flex; gap: 4px; }
+.li .ctl button { width: 40px; height: 40px; border: 1px solid var(--rule); background: var(--bg); border-radius: 6px; font-size: 0.95rem; padding: 0; }
+.li .ctl button:disabled { opacity: 0.3; }
+.li .ctl .pen { width: 40px; height: 40px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); }
+.li .s { grid-column: 2 / -1; color: var(--ink-2); font-size: 0.85rem; }
+.leadopts { display: grid; gap: 8px; }
+.leadopt { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 6px; padding: 12px 14px; background: var(--surface); border: 2px solid var(--rule); border-radius: 8px; }
+.leadopt:focus-visible { outline: 3px solid var(--ink); }
+.leadopt.sel { border-color: var(--pylon); background: var(--sel); }
+.leadopt .k { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.leadopt .h { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 1.3rem; line-height: 1; }
+.leadopt .d { font-size: 0.88rem; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.leadpv { background: #0A1220; color: #EAF0F7; border: 1px solid #22314A; padding: 18px 16px; margin: 10px 0 14px; }
+.leadpv .k { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: #9BA9BD; font-weight: 700; margin-bottom: 8px; }
+.leadpv h1 { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 2.2rem; line-height: 0.95; margin: 0 0 12px; color: #EAF0F7; }
+.leadpv h1 .hl { display: inline-block; background: #FFD60A; color: #0A1220; padding: 0 0.14em 0.02em; margin: 0 0.04em; transform: rotate(-1.6deg); box-shadow: 0.08em 0.08em 0 0 #FF6A1F; }
+.leadpv h1 .hl.hl-orange { background: #FF6A1F; color: #0A1220; box-shadow: 0.08em 0.08em 0 0 #FFD60A; transform: rotate(1.2deg); }
+.leadpv h1 em { font-family: var(--quote); font-style: italic; font-weight: 500; text-transform: none; color: #FFD60A; }
+.leadpv h1 s { text-decoration-color: #FF7070; opacity: 0.75; } .leadpv h1 b { color: #FF8A4C; }
+.leadpv p { margin: 0; font-size: 1rem; line-height: 1.5; color: #EAF0F7; } .leadpv p b { color: #FF8A4C; font-weight: 600; }
+.leadpv p .hl { background: #FFD60A; color: #0A1220; padding: 0 0.2em; } .leadpv p .hl-orange { background: #FF6A1F; color: #0A1220; }
+.fxbar { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.fxbar button { min-height: 40px; padding: 0 10px; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 6px; font-weight: 700; font-size: 0.88rem; }
+.shipbar { position: sticky; bottom: 0; background: linear-gradient(to top, var(--bg) 75%, transparent); padding: 14px 0 calc(10px + env(safe-area-inset-bottom)); display: grid; gap: 8px; z-index: 5; }
+.shipbar .row .btn { flex: 1; }
+
 /* Publish */
 .pubhead { display: grid; gap: 4px; margin: 6px 0 14px; }
 .pubhead .big { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 2rem; line-height: 0.95; }
@@ -302,6 +369,7 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
 </head>
 <body>
 <header class="top"><div class="in">
+  <button type="button" class="menu-btn" id="menubtn" aria-expanded="false" aria-controls="ddrawer" aria-label="Open the menu"><i></i><i></i><i></i></button>
   <a class="brand" href="#" id="brand"><span class="mark">BBT</span><span class="word">Desk</span></a>
   <div class="due" id="due" aria-live="off"></div>
   <div class="who" id="who"></div>
@@ -309,6 +377,15 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
 <div class="banner hidden" id="adminbanner">Editing as editor</div>
 <main class="wrap" id="app" aria-live="polite"></main>
 <footer><button type="button" id="editorlink">Editor</button></footer>
+<div class="ddrawer-bg" id="ddbg" hidden></div>
+<aside class="ddrawer" id="ddrawer" aria-label="Menu" hidden>
+  <div class="dh"><span class="brand"><span class="mark">BBT</span><span class="word">Tribune</span></span><button type="button" class="dclose" id="ddclose" aria-label="Close">✕</button></div>
+  <span class="lab">The paper</span>
+  <ul class="dlist" id="dissues"><li><a href="/big-brains-tribune/"><span class="mono">Latest issue</span><b>Read the Tribune</b></a></li></ul>
+  <span class="lab">The desk</span>
+  <ul class="dlist"><li><a href="#" id="dhome"><span class="mono">Contributor Desk</span><b>File your column</b></a></li><li><a href="#" id="deditor"><span class="mono">Editor</span><b>Build the issue</b></a></li></ul>
+  <p class="dim small">Big Brains Only. League word required.</p>
+</aside>
 <div id="overlay"></div>
 
 <script>
@@ -480,6 +557,7 @@ function home() {
   const c = S.me, sec = sectionOf(c), B = S.boot;
   const ro = B.locked && !S.editingAs;
   const h = el(`<div>
+    ${S.editingAs ? `<div class="row between" style="margin-top:10px"><button type="button" class="btn sm" id="backissue">‹ Back to ${S.returnTo === "publish" ? "the issue" : "the board"}</button><span class="small dim">Editing as editor</span></div>` : ""}
     <div class="ph"><div class="lab">${esc(c.name)} · Week ${B.week}</div><h1>${esc(sec.title)}</h1>
       <div class="meta"><span class="due">${esc(B.deadline_label || "Due Tue 3 PM")}</span><span id="chip">${statusChip(S.status, B.locked)}</span></div>
       <div class="savestate" id="savestate"></div></div>
@@ -489,6 +567,7 @@ function home() {
     <div class="actions" id="actions"></div>
   </div>`);
   app.appendChild(h);
+  if ($("#backissue", h)) $("#backissue", h).onclick = async () => { clearTimeout(S.saveTimer); if (S.dirty) await saveNow(); S.adminTab = S.returnTo === "publish" ? "publish" : "week"; banner.classList.add("hidden"); S.editingAs = null; render("admin"); };
   const ed = $("#editor", h);
   ({ tiers: tiersEditor, column: columnEditor, history: historyEditor, note: noteEditor }[sec.kind] || noteEditor)(ed, ro);
   renderActions(ro);
@@ -856,33 +935,40 @@ function adminGate() {
   };
 }
 async function adminWeek(root) {
-  const wk = S.adminWeek || S.boot.week;
-  root.innerHTML = `<div class="row between" style="margin:6px 0 12px"><div><span class="lab">Week ${wk}${S.adminWeek && S.adminWeek !== S.boot.week ? " · from the archive" : ""}</span><div class="small dim">${esc(S.boot.deadline_label || "")}${S.boot.locked ? " · locked" : ""}</div></div>${S.adminWeek && S.adminWeek !== S.boot.week ? `<button type="button" class="btn sm" id="backnow">Back to this week</button>` : ""}</div><p class="dim"><span class="spin"></span> Loading the board…</p>`;
-  if ($("#backnow")) $("#backnow").onclick = () => { S.adminWeek = null; render("admin"); };
+  const wk = S.adminWeek || S.boot.week, archive = S.adminWeek && S.adminWeek !== S.boot.week;
+  root.innerHTML = `<p class="dim" style="padding-top:12px"><span class="spin"></span> Loading the board…</p>`;
   try {
     const r = await api("board", { week: wk });
-    const list = el(`<div></div>`);
+    const isEd = (row) => !!(S.boot.contributors.find((c) => c.id === row.contributor_id) || {}).is_editor;
+    const onDesk = r.rows.filter((row) => row.active && !isEd(row)), filed = onDesk.filter((row) => row.piece_id && row.status === "submitted");
+    const me = r.rows.find((row) => isEd(row));
+    const v = el(`<div>
+      <div class="board-hd"><div class="row between"><div><span class="lab">${archive ? "From the archive" : "This week"}</span><div class="big">Week ${wk}</div></div>${archive ? `<button type="button" class="btn sm" id="backnow">Back to this week</button>` : `<span class="chip ${S.boot.locked ? "locked" : "draft"}">${S.boot.locked ? "Desk locked" : esc(S.boot.deadline_label || "Open")}</span>`}</div>
+        <div><div class="row between small"><span><b>${filed.length} of ${onDesk.length}</b> filed${me ? ` · your note: ${me.piece_id ? (me.status === "submitted" ? "submitted" : "draft") : "not started"}` : ""}</span><span class="dim">${esc(S.boot.deadline_label || "")}</span></div><div class="progress" style="margin-top:6px"><i style="--p:${onDesk.length ? Math.round((filed.length / onDesk.length) * 100) : 0}%"></i></div></div>
+        <button type="button" class="btn primary block" id="gopub">${archive ? "Rebuild" : "Build & publish"} Week ${wk}</button>
+        <div class="small dim" style="text-align:center">Pick the lineup, review the tea, choose a headline, preview, ship.</div></div>
+      <div id="rows"></div></div>`);
+    if ($("#backnow", v)) $("#backnow", v).onclick = () => { S.adminWeek = null; render("admin"); };
+    $("#gopub", v).onclick = () => { S.adminWeek = wk; S.adminTab = "publish"; render("admin"); };
+    const list = $("#rows", v);
     if (!r.rows.length) list.innerHTML = `<div class="card dim">Nobody's on the desk yet. Add people in the People tab.</div>`;
     r.rows.forEach((row) => {
       const st = row.piece_id ? row.status : "none";
-      const card = el(`<div class="card brow"><div><div class="t">${esc(row.name)}</div><div class="s">${esc(row.title)}${row.active ? "" : " · inactive"}</div></div>
+      const card = el(`<div class="card brow"><div><div class="t">${esc(row.name)}${isEd(row) ? ` <span class="dim small">· you</span>` : ""}</div><div class="s">${esc(row.title)}${row.active ? "" : " · inactive"}</div></div>
         <div>${statusChip(st, false)}</div><div class="s" style="grid-column:1/-1">${row.piece_id ? `Last edited ${ago(row.updated_at)}${row.edited_by_admin ? " · touched by editor" : ""}${row.image_url ? " · has image" : ""}` : "Nothing filed yet"}</div>
-        <div class="bt"><button type="button" class="btn sm" data-a="open">Open</button>${row.piece_id ? (st === "held" ? `<button type="button" class="btn sm" data-a="release">Release</button>` : `<button type="button" class="btn sm danger" data-a="hold">Hold back</button>`) : ""}</div></div>`);
+        <div class="bt"><button type="button" class="btn sm" data-a="open">${row.piece_id ? "Open & edit" : "Write it"}</button>${row.piece_id && !isEd(row) ? (st === "held" ? `<button type="button" class="btn sm" data-a="release">Release</button>` : `<button type="button" class="btn sm danger" data-a="hold">Hold back</button>`) : ""}</div></div>`);
       card.onclick = async (e) => {
         const b = e.target.closest("button"); if (!b) return;
         const c = S.boot.contributors.find((x) => x.id === row.contributor_id) || { id: row.contributor_id, name: row.name, team: row.team, section_key: row.section_key, active: row.active };
-        if (b.dataset.a === "open") { S.me = c; S.adminWeek = wk; openPiece(true); return; }
+        if (b.dataset.a === "open") { S.me = c; S.adminWeek = wk; S.returnTo = "week"; openPiece(true); return; }
         b.disabled = true;
         try { await api("set_status", { contributor_id: row.contributor_id, status: b.dataset.a === "hold" ? "held" : "submitted", week: wk }); adminWeek(root); }
         catch (err) { b.disabled = false; alert(errText(err.code)); }
       };
       list.appendChild(card);
     });
-    const filed = r.rows.filter((row) => row.piece_id && row.status === "submitted").length, onDesk = r.rows.filter((row) => row.active).length;
-    list.appendChild(el(`<div class="actions" style="position:static;background:none;padding-top:6px"><button type="button" class="btn primary block" id="gopub">Publish Week ${wk}</button><div class="small dim" style="text-align:center">${filed} of ${onDesk} filed · builds the issue, locks it with the league word, puts it on the site</div></div>`));
-    $("#gopub", list).onclick = () => { S.adminWeek = wk; S.adminTab = "publish"; render("admin"); };
-    const spinner = root.querySelector("p.dim"); if (spinner) spinner.replaceWith(list);
-  } catch (err) { root.insertAdjacentHTML("beforeend", `<div class="notice red">${esc(errText(err.code))}</div>`); }
+    root.replaceChildren(v);
+  } catch (err) { root.innerHTML = `<div class="notice red">${esc(errText(err.code))}</div>`; }
 }
 // ---------- publish ----------
 const PUB_ENDPOINT = "https://eempzkiumbnffftkqdas.supabase.co/functions/v1/tribune-publish";
@@ -892,64 +978,127 @@ async function pubApi(action, body = {}) {
   if (!j.ok) { const e = new Error(j.error || "error"); e.code = j.error || "error"; e.detail = j.detail; throw e; }
   return j;
 }
-const PUB_ERR = { no_github_token: "The publisher has no GitHub token yet. Add a GITHUB_TOKEN secret to the tribune-publish function (see the note above).", sleeper_down: "Sleeper didn't answer, so the scores and standings couldn't be pulled. Try again in a minute.",
-  not_admin: "That's not the editor word.", wrong_word: "That's not the league word.", bad_week: "That week number doesn't work." };
+const PUB_ERR = { no_github_token: "The publisher has no GitHub token yet. Add it to the project's Vault as github_token (or the GITHUB_TOKEN secret).", sleeper_down: "Sleeper didn't answer, so the scores and standings couldn't be pulled. Try again in a minute.",
+  no_template: "The paper's template couldn't be loaded from the site. Try again in a minute.", not_admin: "That's not the editor word.", wrong_word: "That's not the league word.", bad_week: "That week number doesn't work." };
 const pubErr = (err) => PUB_ERR[err.code] || (err.code && err.code.startsWith("github_") ? `GitHub said no (${err.code.slice(7)}). ${err.detail ? err.detail : "Check the token's permissions on the repo."}` : errText(err.code));
 const fmtDl = (iso) => iso ? new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(iso)) : "";
+// Headline markup, same rules as the publisher: [[yellow]] {{orange}} _italic_ ~~strike~~ **bold**.
+function markup(text) {
+  return esc(text).replace(/\[\[(.+?)\]\]/g, '<span class="hl">$1</span>').replace(/\{\{(.+?)\}\}/g, '<span class="hl hl-orange">$1</span>')
+    .replace(/~~(.+?)~~/g, "<s>$1</s>").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[^\w])_([^_]+?)_(?=[^\w]|$)/g, "$1<em>$2</em>");
+}
+// The publish screen keeps its working state across a trip to edit a piece.
+S.pub = S.pub || {};
 async function adminPublish(root) {
   const wk = S.adminWeek || S.boot.week;
   root.innerHTML = `<div class="row between" style="margin:6px 0 12px"><button type="button" class="btn sm" id="pubback">‹ Back to the board</button></div><p class="dim"><span class="spin"></span> Checking the desk, the site and Sleeper…</p>`;
   $("#pubback", root).onclick = () => { S.adminTab = "week"; render("admin"); };
   let pf;
   try { pf = await pubApi("preflight"); } catch (err) { root.querySelector("p.dim").replaceWith(el(`<div class="notice red">${esc(pubErr(err))}</div>`)); return; }
+  const P = S.pub.week === wk ? S.pub : (S.pub = { week: wk });
+  const rowsBy = Object.fromEntries(pf.rows.map((r) => [r.section_key, r]));
+  const dataBy = Object.fromEntries(pf.data_sections.map((d) => [d.id, d]));
+  // Lineup: saved order from the server unless we're mid-edit on this week already.
+  if (!P.layout) P.layout = pf.layout.map((l) => ({ id: l.id, on: l.on }));
+  else { const known = new Set([...pf.rows.map((r) => r.section_key), ...pf.data_sections.map((d) => d.id)]); P.layout = P.layout.filter((l) => known.has(l.id)); pf.layout.forEach((l) => { if (!P.layout.some((x) => x.id === l.id)) P.layout.push({ id: l.id, on: l.on }); }); }
+  if (!P.tips) P.tips = {};
+  if (!P.lead) P.lead = { pick: pf.lead_options[0]?.id || null, headline: pf.lead_options[0]?.headline || "", deck: pf.lead_options[0]?.deck || "" };
+  if (P.roll == null) P.roll = true;
+
   const v = el(`<div>
     <div class="pubhead"><span class="lab">${pf.already_published ? "Republish" : "Publish"} · Week ${pf.week}</span><div class="big">Issue No. ${pf.issue}</div>
       <div class="pubchecks">${pf.github_ok ? `<span class="chip submitted">Site connected</span>` : `<span class="chip held">Site not connected</span>`}${pf.sleeper_ok ? `<span class="chip submitted">Sleeper · ${pf.games} final${pf.games === 1 ? "" : "s"}</span>` : `<span class="chip held">Sleeper down</span>`}${pf.already_published ? `<span class="chip draft">Already live</span>` : ""}${!pf.is_current ? `<span class="chip none">Archive week</span>` : ""}</div></div>
-    ${pf.github_error === "no_github_token" ? `<div class="notice red"><b>One-time setup.</b> The publisher pushes to GitHub Pages and needs a token. On GitHub: Settings › Developer settings › Fine-grained tokens › Generate. Repository access: only <b>big-brains-tribune</b>. Permissions: <b>Contents · Read and write</b>. Then in Supabase: Edge Functions › tribune-publish › Secrets, add <b>GITHUB_TOKEN</b>. Preview works without it.</div>` : pf.github_error ? `<div class="notice red">Couldn't reach GitHub (${esc(pf.github_error)}). Preview still works; publishing won't until that clears.</div>` : ""}
+    ${pf.github_error === "no_github_token" ? `<div class="notice red"><b>One-time setup.</b> The publisher pushes to GitHub Pages and needs a token: a fine-grained GitHub token with <b>Contents · Read and write</b> on <b>big-brains-tribune</b>, stored in the Supabase project's Vault as <b>github_token</b>. Preview works without it.</div>` : pf.github_error ? `<div class="notice red">Couldn't reach GitHub (${esc(pf.github_error)}). Preview still works; publishing won't until that clears.</div>` : ""}
     ${pf.already_published ? `<div class="notice">Week ${pf.week} is already on the site as Issue No. ${pf.issue}. Publishing again replaces it with what's below; the issue number stays.</div>` : ""}
     ${!pf.sleeper_ok ? `<div class="notice red">Sleeper isn't answering right now, so scores, standings and awards can't be built. Preview will run without them; publishing waits until Sleeper is back.</div>` : pf.games === 0 ? `<div class="notice">Sleeper shows no final scores for Week ${pf.week} yet. The issue will run without the scoreboard sections.</div>` : ""}
-    <h2>What runs</h2><p class="dim small">Checked pieces run as filed. Unchecked ones run the section's roast, or the section is skipped if there isn't one. The Editor's Note runs if it has words in it.</p>
-    <div id="pubrows"></div>
-    <h2>The tea</h2><p class="dim small">Tips that came in. Give one a headline and set it to Run and it goes in this issue; Reject hides it for good; Hold keeps it for next week.</p>
+
+    <div class="step"><span class="n">1</span><h2>The lineup</h2></div>
+    <p class="dim small">Top to bottom is how the issue reads. Switch a section off to leave it out (a contributor's roast runs instead, if the section has one). Tap the pencil to make small edits to a piece.</p>
+    <div class="lineup" id="lineup"></div>
+
+    <div class="step"><span class="n">2</span><h2>The tea</h2></div>
+    <p class="dim small">Tips that came in. Give one a headline and set it to Run and it goes in this issue; Reject hides it for good; Hold keeps it for next week.</p>
     <div id="pubtips"></div>
-    <details class="card" style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700;min-height:32px;display:flex;align-items:center">Lead headline and deck (optional)</summary>
-      <p class="dim small" style="margin-top:8px">Leave empty and the paper writes a factual lead from the scoreboard.</p>
-      <div class="field"><label class="lab" for="leadh">Headline</label><input type="text" id="leadh" maxlength="160" placeholder="e.g. Babe wake up, Week ${pf.week} happened"></div>
-      <div class="field"><label class="lab" for="leadd">Deck</label><textarea id="leadd" maxlength="1200" placeholder="Two or three sentences under the headline."></textarea></div></details>
-    ${pf.is_current ? `<label class="check card" style="margin-bottom:12px"><input type="checkbox" id="pubroll" checked> <span>Open Week ${pf.week + 1} after publishing <span class="dim small">· desk deadline moves to ${esc(fmtDl(pf.next_deadline))}</span></span></label>` : ""}
-    <div class="actions" style="position:static;background:none"><div class="row"><button type="button" class="btn" id="pubpv">Preview the issue</button></div>
-      <button type="button" class="btn primary block" id="pubgo" ${pf.github_ok && pf.sleeper_ok ? "" : "disabled"}>${pf.already_published ? "Republish" : "Publish"} Issue No. ${pf.issue}</button>
-      <p class="msg" id="pubmsg"></p></div></div>`);
+
+    <div class="step"><span class="n">3</span><h2>The lead</h2></div>
+    <p class="dim small">Pick an angle, then make it yours. Wrap words in [[double brackets]] for the yellow highlight, {{curly braces}} for orange, _underscores_ for italics, ~~tildes~~ to strike, **stars** for bold.</p>
+    <div class="leadopts" id="leadopts"></div>
+    <div class="leadpv" id="leadpv"><div class="k">How it reads</div><h1></h1><p></p></div>
+    <div class="field"><label class="lab" for="leadh">Headline</label><div class="fxbar" id="fxbar"><button type="button" data-fx="[[,]]">Yellow</button><button type="button" data-fx="{{,}}">Orange</button><button type="button" data-fx="_,_">Italic</button><button type="button" data-fx="~~,~~">Strike</button><button type="button" data-fx="**,**">Bold</button></div><textarea id="leadh" maxlength="200" rows="2"></textarea></div>
+    <div class="field"><label class="lab" for="leadd">Deck</label><textarea id="leadd" maxlength="1500" rows="4"></textarea></div>
+
+    <div class="step"><span class="n">4</span><h2>Ship it</h2></div>
+    ${pf.is_current ? `<label class="check card" style="margin-bottom:12px"><input type="checkbox" id="pubroll" ${P.roll ? "checked" : ""}> <span>Open Week ${pf.week + 1} after publishing <span class="dim small">· desk deadline moves to ${esc(fmtDl(pf.next_deadline))}</span></span></label>` : `<p class="dim small">This is an archive week, so the desk's current week won't change.</p>`}
+    <div class="shipbar"><div class="row"><button type="button" class="btn" id="pubpv">Preview the issue</button><button type="button" class="btn primary" id="pubgo" ${pf.github_ok && pf.sleeper_ok ? "" : "disabled"}>${pf.already_published ? "Republish" : "Publish"} No. ${pf.issue}</button></div><p class="msg" id="pubmsg"></p></div></div>`);
   root.querySelector("p.dim").replaceWith(v);
-  // Pieces
-  const rowsBox = $("#pubrows", v);
-  pf.rows.forEach((r) => {
-    const row = el(`<label class="card pubrow"><input type="checkbox" data-cid="${r.contributor_id}" ${r.default_include || (r.is_editor && r.has_content) ? "checked" : ""} ${r.status === "none" || !r.has_content ? "disabled" : ""}><span class="t">${esc(r.name)} <span class="dim" style="font-weight:500">· ${esc(r.title)}</span></span>${statusChip(r.status === "none" ? "none" : r.status, false)}<span class="s" data-s></span></label>`);
-    const cb = $("input", row), s = $("[data-s]", row);
-    const explain = () => { s.textContent = cb.checked ? (r.has_content ? `Runs as filed${r.updated_at ? ` · last edited ${ago(r.updated_at)}` : ""}` : "Nothing to run") : r.is_editor ? "No note this week; the issue skips it." : r.roast ? `Not running · roast: “${r.roast}”` : "Not running · section skipped"; };
-    cb.onchange = explain; explain(); rowsBox.appendChild(row);
-  });
-  // Tips
+
+  // ----- 1. lineup -----
+  const lineup = $("#lineup", v);
+  const drawLineup = () => {
+    lineup.innerHTML = "";
+    P.layout.forEach((l, i) => {
+      const r = rowsBy[l.id], d = dataBy[l.id];
+      const can = r ? (r.has_content && r.status !== "none") : d ? d.available : false;
+      const title = r ? `${esc(r.title)}<small>${esc(r.name)} · ${r.status === "none" ? "nothing filed" : esc(r.status)}${r.updated_at ? ` · ${ago(r.updated_at)}` : ""}</small>` : `${esc(d ? d.label : l.id)}<small>${d && !d.available ? "nothing to show this week" : "from the league data"}</small>`;
+      const note = r && !l.on ? (r.is_editor ? "Off · the issue skips the note" : r.roast ? `Off · roast runs: “${esc(r.roast)}”` : "Off · section skipped") : (!can && l.on ? "Nothing to run; it'll be left out" : "");
+      const row = el(`<div class="li ${l.on && can ? "" : "off"}"><input type="checkbox" ${l.on ? "checked" : ""} ${can ? "" : "disabled"} aria-label="Run ${esc(r ? r.title : d ? d.label : l.id)}"><div class="t">${title}</div>
+        <div class="ctl"><button type="button" data-a="up" aria-label="Move up" ${i === 0 ? "disabled" : ""}>▲</button><button type="button" data-a="down" aria-label="Move down" ${i === P.layout.length - 1 ? "disabled" : ""}>▼</button>${r ? `<button type="button" class="pen" data-a="edit" aria-label="Edit ${esc(r.title)}">${PEN}</button>` : ""}</div>${note ? `<div class="s">${note}</div>` : ""}</div>`);
+      $("input", row).onchange = (e) => { l.on = e.target.checked; drawLineup(); };
+      row.querySelectorAll("[data-a]").forEach((b) => b.onclick = async () => {
+        const a = b.dataset.a;
+        if (a === "edit") { const c = S.boot.contributors.find((x) => x.section_key === l.id && x.active) || S.boot.contributors.find((x) => x.id === r.contributor_id); if (!c) return; P.lead = readLead(); S.me = c; S.adminWeek = wk; S.returnTo = "publish"; openPiece(true); return; }
+        const j = a === "up" ? i - 1 : i + 1; [P.layout[i], P.layout[j]] = [P.layout[j], P.layout[i]]; drawLineup();
+      });
+      lineup.appendChild(row);
+    });
+  };
+  drawLineup();
+
+  // ----- 2. tea -----
   const tipsBox = $("#pubtips", v);
   if (!pf.tips.length) tipsBox.innerHTML = `<div class="card dim">No tips waiting.</div>`;
   pf.tips.forEach((t) => {
-    const def = t.status === "published" && t.issue_week === pf.week ? "run" : "hold";
+    const saved = P.tips[t.id] || { mode: t.status === "published" && t.issue_week === pf.week ? "run" : "hold", headline: t.headline || "" };
+    P.tips[t.id] = saved;
     const card = el(`<div class="card" data-tip="${t.id}"><div class="small dim" style="margin-bottom:6px">Tip #${t.id} · ${ago(t.created_at)}${t.status === "published" ? " · ran in this issue" : t.status === "approved" ? " · approved" : ""}</div><blockquote class="tipq">${esc(t.tip)}</blockquote>
-      <div class="field"><label class="lab">Headline</label><input type="text" data-h maxlength="200" value="${esc(t.headline || "")}" placeholder="Sources: …"></div>
-      <div class="seg" role="radiogroup">${["run", "hold", "reject"].map((k) => `<label><input type="radio" name="tip${t.id}" value="${k}" ${def === k ? "checked" : ""}><span>${k === "run" ? "Run" : k === "hold" ? "Hold" : "Reject"}</span></label>`).join("")}</div></div>`);
+      <div class="field"><label class="lab">Headline</label><input type="text" data-h maxlength="200" value="${esc(saved.headline)}" placeholder="Sources: …"></div>
+      <div class="seg" role="radiogroup">${["run", "hold", "reject"].map((k) => `<label><input type="radio" name="tip${t.id}" value="${k}" ${saved.mode === k ? "checked" : ""}><span>${k === "run" ? "Run" : k === "hold" ? "Hold" : "Reject"}</span></label>`).join("")}</div></div>`);
+    $("[data-h]", card).addEventListener("input", (e) => { saved.headline = e.target.value; });
+    card.querySelectorAll("input[type=radio]").forEach((rd) => rd.onchange = () => { saved.mode = rd.value; });
     tipsBox.appendChild(card);
   });
-  const gather = () => {
-    const include = [...rowsBox.querySelectorAll("input[type=checkbox]:checked")].map((c) => Number(c.dataset.cid));
-    const tips = [], reject = [];
-    tipsBox.querySelectorAll("[data-tip]").forEach((c) => {
-      const id = Number(c.dataset.tip), mode = (c.querySelector("input[type=radio]:checked") || {}).value, h = $("[data-h]", c).value.trim();
-      if (mode === "run") { if (!h) throw Object.assign(new Error("Tip #" + id + " needs a headline to run."), { code: "__ui" }); tips.push({ id, headline: h }); }
-      if (mode === "reject") reject.push(id);
+
+  // ----- 3. lead -----
+  const opts = $("#leadopts", v), hIn = $("#leadh", v), dIn = $("#leadd", v), pv = $("#leadpv", v);
+  const readLead = () => ({ pick: P.lead.pick, headline: hIn.value, deck: dIn.value });
+  const drawPv = () => { $("h1", pv).innerHTML = markup(hIn.value) || `<span class="dim">Headline goes here</span>`; $("p", pv).innerHTML = markup(dIn.value); };
+  const drawOpts = () => {
+    opts.innerHTML = "";
+    pf.lead_options.forEach((o) => {
+      const b = el(`<button type="button" class="leadopt ${P.lead.pick === o.id ? "sel" : ""}"><span class="k">${esc(o.label)}</span><span class="h">${markup(o.headline)}</span><span class="d">${markup(o.deck)}</span></button>`);
+      b.onclick = () => { P.lead = { pick: o.id, headline: o.headline, deck: o.deck }; hIn.value = o.headline; dIn.value = o.deck; drawOpts(); drawPv(); };
+      opts.appendChild(b);
     });
-    const lead = { headline: $("#leadh", v).value.trim(), deck: $("#leadd", v).value.trim() };
-    const rollEl = $("#pubroll", v);
-    return { include, tips, reject, lead, roll: rollEl ? rollEl.checked : false };
+    if (!pf.lead_options.length) opts.innerHTML = `<div class="card dim">No scoreboard yet, so no suggestions. Write your own below.</div>`;
+  };
+  hIn.value = P.lead.headline; dIn.value = P.lead.deck; drawOpts(); drawPv();
+  hIn.addEventListener("input", () => { P.lead.headline = hIn.value; P.lead.pick = null; drawPv(); opts.querySelectorAll(".leadopt").forEach((x) => x.classList.remove("sel")); });
+  dIn.addEventListener("input", () => { P.lead.deck = dIn.value; drawPv(); });
+  $("#fxbar", v).querySelectorAll("button").forEach((b) => b.onclick = () => {
+    const [open, close] = b.dataset.fx.split(","); const s = hIn.selectionStart, e = hIn.selectionEnd; const val = hIn.value;
+    const sel = val.slice(s, e) || "word"; hIn.value = val.slice(0, s) + open + sel + close + val.slice(e);
+    hIn.focus(); hIn.setSelectionRange(s + open.length, s + open.length + sel.length); hIn.dispatchEvent(new Event("input"));
+  });
+
+  // ----- 4. ship -----
+  const rollEl = $("#pubroll", v); if (rollEl) rollEl.onchange = () => { P.roll = rollEl.checked; };
+  const gather = () => {
+    const tips = [], reject = [];
+    for (const [id, t] of Object.entries(P.tips)) {
+      if (t.mode === "run") { if (!t.headline.trim()) throw Object.assign(new Error("Tip #" + id + " needs a headline to run."), { code: "__ui" }); tips.push({ id: Number(id), headline: t.headline.trim() }); }
+      if (t.mode === "reject") reject.push(Number(id));
+    }
+    return { layout: P.layout, tips, reject, lead: { headline: hIn.value.trim(), deck: dIn.value.trim() }, roll: rollEl ? rollEl.checked : false };
   };
   const msg = $("#pubmsg", v), say = (t, cls) => { msg.textContent = t; msg.className = "msg " + (cls || ""); };
   $("#pubpv", v).onclick = async () => {
@@ -964,11 +1113,12 @@ async function adminPublish(root) {
   };
   $("#pubgo", v).onclick = async () => {
     let body; try { body = gather(); } catch (e) { say(e.message, "err"); return; }
-    const running = body.include.length, roasts = pf.rows.filter((r) => !body.include.includes(r.contributor_id) && !r.is_editor && r.roast).length;
+    const running = P.layout.filter((l) => l.on && rowsBy[l.id] && rowsBy[l.id].has_content).length, roasts = P.layout.filter((l) => !l.on && rowsBy[l.id] && rowsBy[l.id].roast && !rowsBy[l.id].is_editor).length;
     if (!confirm(`${pf.already_published ? "Republish" : "Publish"} Issue No. ${pf.issue} (Week ${pf.week})?\n\n${running} piece${running === 1 ? "" : "s"} run as filed, ${roasts} roast${roasts === 1 ? "" : "s"}, ${body.tips.length} tip${body.tips.length === 1 ? "" : "s"}.${body.roll ? `\nThe desk then opens Week ${pf.week + 1}.` : ""}`)) return;
     const btn = $("#pubgo", v); btn.disabled = true; btn.innerHTML = `<span class="spin"></span> Building, locking, pushing…`; say("This takes about half a minute.");
     try {
       const r = await pubApi("publish", body);
+      S.pub = {};
       const line = `babe wake up, BBT Issue No. ${r.issue} is live: ${r.url}`;
       v.replaceWith(el(`<div class="card pubresult"><h2>Issue No. ${r.issue} is out</h2>
         <p>Week ${r.week} is on the site. GitHub Pages usually takes a minute or two to show it.</p>
@@ -979,7 +1129,7 @@ async function adminPublish(root) {
         <div class="row" style="margin-top:10px"><button type="button" class="btn sm" id="copybtn">Copy</button><button type="button" class="btn sm quiet" id="pubdone">Back to the desk</button></div></div>`));
       $("#copybtn").onclick = async () => { try { await navigator.clipboard.writeText(line); toast("Copied"); } catch (e) { toast("Select and copy it"); } };
       $("#pubdone").onclick = async () => { try { S.boot = await api("bootstrap"); } catch (e) {} S.adminWeek = null; S.adminTab = "week"; render("admin"); };
-    } catch (err) { say(pubErr(err), "err"); btn.disabled = false; btn.textContent = `${pf.already_published ? "Republish" : "Publish"} Issue No. ${pf.issue}`; }
+    } catch (err) { say(pubErr(err), "err"); btn.disabled = false; btn.textContent = `${pf.already_published ? "Republish" : "Publish"} No. ${pf.issue}`; }
   };
 }
 function adminPeople(root) {
@@ -1100,6 +1250,24 @@ async function adminArchive(root) {
 }
 
 // ---------- wiring ----------
+(() => {
+  const btn = $("#menubtn"), d = $("#ddrawer"), bg = $("#ddbg"), x = $("#ddclose");
+  const open = (on) => { d.hidden = !on; bg.hidden = !on; btn.setAttribute("aria-expanded", on ? "true" : "false"); document.body.style.overflow = on ? "hidden" : ""; if (on) loadIssues(); };
+  btn.onclick = () => open(d.hidden); x.onclick = () => open(false); bg.onclick = () => open(false);
+  d.addEventListener("keydown", (e) => { if (e.key === "Escape") open(false); });
+  $("#dhome").onclick = (e) => { e.preventDefault(); open(false); if (!S.word) { render("gate"); return; } banner.classList.add("hidden"); S.editingAs = null; S.adminWeek = null; if (S.me) openPiece(); else render("picker"); };
+  $("#deditor").onclick = (e) => { e.preventDefault(); open(false); S.adminTab = "week"; S.adminWeek = null; render(S.word ? "admin" : "gate"); };
+  let loaded = false;
+  async function loadIssues() {
+    if (loaded) return; loaded = true;
+    try {
+      const r = await fetch("/big-brains-tribune/issues.json", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); if (!j || !j.issues) return;
+      const li = (x) => `<li><a href="${x.week === j.latest ? "/big-brains-tribune/" : "/big-brains-tribune/week-" + x.week + "/"}"><span class="mono">Issue No. ${x.issue}</span><b>Week ${x.week}</b>${x.week === j.latest ? "<em>Latest</em>" : ""}</a></li>`;
+      const past = j.issues.filter((x) => x.week !== j.latest);
+      $("#dissues").innerHTML = j.issues.filter((x) => x.week === j.latest).map(li).join("") + (past.length ? `<li><details><summary><span class="mono">BBArchive</span><b>${past.length} past issue${past.length === 1 ? "" : "s"}</b></summary><ul class="dlist">${past.map(li).join("")}</ul></details></li>` : "");
+    } catch (e) { loaded = false; }
+  }
+})();
 $("#editorlink").onclick = () => { S.adminTab = "week"; S.adminWeek = null; render(S.word ? "admin" : "gate"); };
 $("#brand").onclick = (e) => { e.preventDefault(); if (!S.word) return; banner.classList.add("hidden"); S.editingAs = null; S.adminWeek = null; if (S.me && !S.me.__viaAdmin) openPiece(); else render("picker"); };
 
