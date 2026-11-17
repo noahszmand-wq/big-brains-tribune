@@ -565,13 +565,14 @@ Deno.serve(async (req) => {
       try { L = await leagueData(S.league_id, week); games = L.games.length; next_games = L.next.length; } catch { sleeper_ok = false; }
       let saved: LayoutItem[] | null = null; try { saved = S.issue_layout ? JSON.parse(S.issue_layout) : null; } catch { saved = null; }
       const layout = effectiveLayout(pieces, saved).map((l) => { const p = pieces.find((x) => x.section_key === l.id); return p ? { ...l, on: saved ? l.on && (p.status === "submitted" || (!!(p as any).is_editor && (p as any).has_content)) : p.include || (!!(p as any).is_editor && (p as any).has_content) } : l; });
-      const notesN = Number((await sql`select count(*)::int as n from tribune.changelog where audience <> 'editor' and (published_week is null or published_week = ${week})`)[0]?.n ?? 0);
+      const notesRows = await sql`select id, title, body from tribune.changelog where audience <> 'editor' and (published_week is null or published_week = ${week}) order by id`;
+      const notesN = notesRows.length;
       const lead_options = leadOptions({ week, issue, season, L, prevTiers: null, tipsRun: [], hottest: null, word: "", now, T: null as any, notes: [] }, pieces);
       return json({ ok: true, week, season, current_week: current, is_current: week === current, issue, already_published: published, latest_week: issuesKnown.latest || null,
         github_ok: !!repo, github_error, template_ok, sleeper_ok, games, next_games, deadline_at: S.deadline_at, next_deadline: nextDeadline(S.deadline_at),
         layout, data_sections: DATA_SECTIONS.map(([id, label]) => ({ id, label, available: id === "whatsnew" ? notesN > 0 : id === "tipline" ? tips.length > 0 : id === "awards" || id === "scores" ? games > 0 : id === "week" ? next_games > 0 : id === "standings" ? sleeper_ok : true })), lead_options,
         rows: pieces.map((p: any) => ({ contributor_id: p.contributor_id, name: p.name, team: p.team, section_key: p.section_key, title: p.title, kind: p.kind, status: p.status ?? "none", has_content: p.has_content, roast: p.roast, is_editor: p.is_editor, updated_at: p.updated_at, default_include: p.include })),
-        tips });
+        tips, notes: notesRows.map((n) => ({ id: Number(n.id), title: n.title, body: n.body })) });
     }
 
     if (a === "publish") {
@@ -594,7 +595,10 @@ Deno.serve(async (req) => {
       const hottest = hot[0] && hot[0].n > 0 ? { headline: hot[0].headline, n: hot[0].n } : null;
       const prev = await sql`select p.content from tribune.pieces p join tribune.sections s on s.key = p.section_key
         where s.kind = 'tiers' and (p.season < ${season} or (p.season = ${season} and p.week < ${week})) order by p.season desc, p.week desc limit 1`;
-      const notes = await sql`select id, title, body, details from tribune.changelog where audience <> 'editor' and (published_week is null or published_week = ${week}) order by id`;
+      // Release notes: everything pending (or already tied to this week), narrowed to the ids the editor kept if `notes` is sent.
+      const allNotes = await sql`select id, title, body, details from tribune.changelog where audience <> 'editor' and (published_week is null or published_week = ${week}) order by id`;
+      const keep: number[] | null = Array.isArray(b.notes) ? b.notes.map(Number).filter((n: number) => n > 0) : null;
+      const notes = keep ? allNotes.filter((n) => keep.includes(Number(n.id))) : allNotes;
       let L: League | null = null;
       try { L = await leagueData(S.league_id, week); } catch (e) { console.error("sleeper", e); if (!dry) throw new Fail("sleeper_down", 502); }
 
@@ -624,7 +628,8 @@ Deno.serve(async (req) => {
       // Only now touch the database: tips that ran, tips rejected, and the roll to next week.
       for (const t of tipsRun) await sql`update tribune.tips set status = 'published', headline = ${t.headline}, issue_week = ${week}, reviewed_at = now() where id = ${t.id}`;
       if (reject.length) await sql`update tribune.tips set status = 'rejected', reviewed_at = now() where id = any(${reject}) and status <> 'published'`;
-      if (notes.length && effectiveLayout(pieces, layout).some((l) => l.id === "whatsnew" && l.on)) await sql`update tribune.changelog set published_week = ${week}, published_issue = ${issue} where published_week is null`;
+      // Only the notes that ran are stamped with this issue; anything the editor left out stays pending for a later week.
+      if (notes.length && effectiveLayout(pieces, layout).some((l) => l.id === "whatsnew" && l.on)) await sql`update tribune.changelog set published_week = ${week}, published_issue = ${issue} where published_week is null and id = any(${notes.map((n) => Number(n.id))})`;
       if (layout) await sql`insert into tribune.settings (key, value) values ('issue_layout', ${JSON.stringify(effectiveLayout(pieces, layout))}) on conflict (key) do update set value = excluded.value`;
       let rolled = false, nextDl: string | null = null;
       if (b.roll !== false && week === current) {

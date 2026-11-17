@@ -329,6 +329,12 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
 .li .ctl button:disabled { opacity: 0.3; }
 .li .ctl .pen { width: 40px; height: 40px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); }
 .li .s { grid-column: 2 / -1; color: var(--ink-2); font-size: 0.85rem; }
+.li .wnpick { grid-column: 2 / -1; display: grid; gap: 2px; margin-top: 4px; border-top: 1px solid var(--rule); padding-top: 6px; }
+.li .wnpick label { display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: start; padding: 5px 0; font-size: 0.9rem; line-height: 1.35; cursor: pointer; }
+.li .wnpick label input { width: 18px; height: 18px; margin-top: 1px; }
+.li .wnpick label.skip { color: var(--ink-2); text-decoration: line-through; }
+.li .wnpick .all { display: flex; gap: 10px; font-size: 0.8rem; color: var(--ink-2); margin: 2px 0 2px 28px; }
+.li .wnpick .all button { background: none; border: 0; padding: 0; color: var(--pylon-ink); font-weight: 700; font-size: inherit; cursor: pointer; }
 .leadopts { display: grid; gap: 8px; }
 .leadopt { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 6px; padding: 12px 14px; background: var(--surface); border: 2px solid var(--rule); border-radius: 8px; }
 .leadopt:focus-visible { outline: 3px solid var(--ink); }
@@ -1058,6 +1064,9 @@ async function adminPublish(root) {
   if (!P.layout) P.layout = pf.layout.map((l) => ({ id: l.id, on: l.on }));
   else { const known = new Set([...pf.rows.map((r) => r.section_key), ...pf.data_sections.map((d) => d.id)]); P.layout = P.layout.filter((l) => known.has(l.id)); pf.layout.forEach((l) => { if (!P.layout.some((x) => x.id === l.id)) P.layout.push({ id: l.id, on: l.on }); }); }
   if (!P.tips) P.tips = {};
+  // Release notes: every pending update runs unless the editor unticks it (deselected ones wait for a later issue).
+  if (!P.notes) P.notes = {};
+  (pf.notes || []).forEach((n) => { if (P.notes[n.id] == null) P.notes[n.id] = true; });
   if (!P.lead) P.lead = { pick: pf.lead_options[0]?.id || null, headline: pf.lead_options[0]?.headline || "", deck: pf.lead_options[0]?.deck || "" };
   if (P.roll == null) P.roll = true;
 
@@ -1095,11 +1104,22 @@ async function adminPublish(root) {
     P.layout.forEach((l, i) => {
       const r = rowsBy[l.id], d = dataBy[l.id];
       const can = r ? (r.has_content && r.status !== "none") : d ? d.available : false;
-      const title = r ? `${esc(r.title)}<small>${esc(r.name)} · ${r.status === "none" ? "nothing filed" : esc(r.status)}${r.updated_at ? ` · ${ago(r.updated_at)}` : ""}</small>` : `${esc(d ? d.label : l.id)}<small>${d && !d.available ? "nothing to show this week" : "from the league data"}</small>`;
+      const notes = l.id === "whatsnew" ? (pf.notes || []) : [], kept = notes.filter((n) => P.notes[n.id]).length;
+      const title = r ? `${esc(r.title)}<small>${esc(r.name)} · ${r.status === "none" ? "nothing filed" : esc(r.status)}${r.updated_at ? ` · ${ago(r.updated_at)}` : ""}</small>` : `${esc(d ? d.label : l.id)}<small>${d && !d.available ? "nothing to show this week" : l.id === "whatsnew" ? `${kept} of ${notes.length} update${notes.length === 1 ? "" : "s"} run · untick any to hold it for a later issue` : "from the league data"}</small>`;
       const note = r && !l.on ? (r.is_editor ? "Off · the issue skips the note" : r.roast ? `Off · roast runs: “${esc(r.roast)}”` : "Off · section skipped") : (!can && l.on ? "Nothing to run; it'll be left out" : "");
       const row = el(`<div class="li ${l.on && can ? "" : "off"}"><input type="checkbox" ${l.on ? "checked" : ""} ${can ? "" : "disabled"} aria-label="Run ${esc(r ? r.title : d ? d.label : l.id)}"><div class="t">${title}</div>
         <div class="ctl"><button type="button" data-a="up" aria-label="Move up" ${i === 0 ? "disabled" : ""}>▲</button><button type="button" data-a="down" aria-label="Move down" ${i === P.layout.length - 1 ? "disabled" : ""}>▼</button>${r ? `<button type="button" class="pen" data-a="edit" aria-label="Edit ${esc(r.title)}">${PEN}</button>` : ""}</div>${note ? `<div class="s">${note}</div>` : ""}</div>`);
       $("input", row).onchange = (e) => { l.on = e.target.checked; drawLineup(); };
+      if (notes.length && l.on) {
+        const pick = el(`<div class="wnpick"><div class="all"><button type="button" data-all="1">All</button><button type="button" data-all="0">None</button></div></div>`);
+        notes.forEach((n) => {
+          const lab = el(`<label class="${P.notes[n.id] ? "" : "skip"}"><input type="checkbox" ${P.notes[n.id] ? "checked" : ""}><span><b>${esc(n.title)}</b>${n.body ? ` — ${esc(n.body)}` : ""}</span></label>`);
+          $("input", lab).onchange = (e) => { P.notes[n.id] = e.target.checked; drawLineup(); };
+          pick.appendChild(lab);
+        });
+        pick.querySelectorAll("[data-all]").forEach((b) => b.onclick = () => { notes.forEach((n) => { P.notes[n.id] = b.dataset.all === "1"; }); drawLineup(); });
+        row.appendChild(pick);
+      }
       row.querySelectorAll("[data-a]").forEach((b) => b.onclick = async () => {
         const a = b.dataset.a;
         if (a === "edit") { const c = S.boot.contributors.find((x) => x.section_key === l.id && x.active) || S.boot.contributors.find((x) => x.id === r.contributor_id); if (!c) return; P.lead = readLead(); S.me = c; S.adminWeek = wk; S.returnTo = "publish"; openPiece(true); return; }
@@ -1154,7 +1174,8 @@ async function adminPublish(root) {
       if (t.mode === "run") tips.push({ id: Number(id), headline: t.headline.trim() });
       if (t.mode === "reject") reject.push(Number(id));
     }
-    return { layout: P.layout, tips, reject, lead: { headline: hIn.value.trim(), deck: dIn.value.trim() }, roll: rollEl ? rollEl.checked : false };
+    const notes = (pf.notes || []).filter((n) => P.notes[n.id]).map((n) => n.id);
+    return { layout: P.layout, notes, tips, reject, lead: { headline: hIn.value.trim(), deck: dIn.value.trim() }, roll: rollEl ? rollEl.checked : false };
   };
   const msg = $("#pubmsg", v), say = (t, cls) => { msg.textContent = t; msg.className = "msg " + (cls || ""); };
   $("#pubpv", v).onclick = async () => {
