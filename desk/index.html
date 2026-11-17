@@ -14,17 +14,17 @@
 :root {
   color-scheme: light dark;
   --bg: #F6F3EC; --surface: #FFFFFF; --surface-2: #EEE9DE; --ink: #14202F; --ink-2: #5E6B7D; --rule: #DAD3C5;
-  --pylon: #E55A12; --on-pylon: #FFFFFF; --yellow: #E6BF00; --on-yellow: #14202F; --win: #1F9A5F; --loss: #D23B3B;
+  --pylon: #E55A12; --on-pylon: #FFFFFF; --yellow: #E6BF00; --on-yellow: #14202F; --win: #1F9A5F; --loss: #D23B3B; --blue: #1F4FB4;
   --sel: rgba(229, 90, 18, 0.10);
   --display: "Big Shoulders Display", "Arial Narrow", sans-serif; --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif; --quote: "Newsreader", Georgia, serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0A1220; --surface: #101B2D; --surface-2: #17243A; --ink: #EAF0F7; --ink-2: #9BA9BD; --rule: #22314A;
-  --pylon: #FF6A1F; --on-pylon: #0A1220; --yellow: #FFD60A; --on-yellow: #0A1220; --win: #3DD68C; --loss: #FF7070; --sel: rgba(255, 214, 10, 0.12);
+  --pylon: #FF6A1F; --on-pylon: #0A1220; --yellow: #FFD60A; --on-yellow: #0A1220; --win: #3DD68C; --loss: #FF7070; --blue: #2E63D6; --sel: rgba(255, 214, 10, 0.12);
 } }
 :root[data-theme="dark"] {
   --bg: #0A1220; --surface: #101B2D; --surface-2: #17243A; --ink: #EAF0F7; --ink-2: #9BA9BD; --rule: #22314A;
-  --pylon: #FF6A1F; --on-pylon: #0A1220; --yellow: #FFD60A; --on-yellow: #0A1220; --win: #3DD68C; --loss: #FF7070; --sel: rgba(255, 214, 10, 0.12);
+  --pylon: #FF6A1F; --on-pylon: #0A1220; --yellow: #FFD60A; --on-yellow: #0A1220; --win: #3DD68C; --loss: #FF7070; --blue: #2E63D6; --sel: rgba(255, 214, 10, 0.12);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -96,6 +96,21 @@ input:focus, select:focus, textarea:focus, [contenteditable]:focus { outline: 3p
 .person b { font-size: 1.15rem; font-weight: 700; }
 .person span { color: var(--ink-2); font-size: 0.9rem; grid-column: 1; }
 .person i { grid-column: 2; grid-row: 1 / span 2; font-style: normal; color: var(--ink-2); font-size: 1.4rem; }
+/* Contributors are blue; the editor is one big orange tile above them */
+.person.writer { background: var(--blue); border-color: var(--blue); color: #fff; }
+.person.writer span, .person.writer i { color: rgba(255, 255, 255, 0.82); }
+.edtile { display: grid; gap: 10px; background: var(--pylon); color: var(--on-pylon); border: 2px solid var(--pylon); border-radius: 10px; padding: 18px 16px 14px; margin: 4px 0 18px; }
+.edtile .lab { color: inherit; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
+.edtile h2 { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 2.2rem; line-height: 0.95; margin: 0; }
+.edtile .who { font-size: 0.95rem; opacity: 0.9; margin-top: -4px; }
+.edtile .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.edtile .acts button { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 2px; min-height: 64px; padding: 10px 12px; border-radius: 8px; background: rgba(0, 0, 0, 0.18); color: inherit; border: 1px solid rgba(255, 255, 255, 0.35); text-align: left; }
+.edtile .acts button:focus-visible { outline: 3px solid var(--on-pylon); outline-offset: 2px; }
+.edtile .acts button b { font-size: 1.05rem; font-weight: 800; }
+.edtile .acts button span { font-size: 0.82rem; opacity: 0.85; }
+.edtile .acts button.main { background: var(--on-pylon); color: var(--pylon); border-color: var(--on-pylon); }
+.edtile .acts button.main span { opacity: 0.75; }
+.picklab { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 8px; }
 
 /* Home header */
 .ph { padding: 18px 0 8px; }
@@ -543,16 +558,28 @@ async function boot() { S.boot = await api("bootstrap", {}, { noAdmin: !S.admin_
 
 // ---------- picker ----------
 function picker() {
-  const people = S.boot.contributors.filter((c) => c.active);
-  const v = el(`<div class="gate"><h1>Who's writing?</h1><p class="dim">Tap your name. You can switch any time.</p><div class="people"></div></div>`);
+  const active = S.boot.contributors.filter((c) => c.active);
+  const editor = active.find((c) => c.is_editor), people = active.filter((c) => !c.is_editor);
+  const v = el(`<div class="gate"><h1>Who's writing?</h1><p class="dim">Tap your name. You can switch any time.</p><div class="edslot"></div><div class="people"></div></div>`);
+  // The editor gets one big orange tile up top: the desk itself, plus the editor's own piece, all in one place.
+  if (editor) {
+    const sec = sectionOf(editor), row = pieceRowFor(editor.id);
+    const st = row ? (row.status === "submitted" ? "Filed ✓" : row.status === "held" ? "Held" : "Draft…") : "Not started";
+    const t = el(`<div class="edtile" role="group" aria-label="Editor"><div><div class="lab">Editor</div><h2>The desk</h2><div class="who">${esc(editor.name)}${editor.team ? ` · ${esc(editor.team)}` : ""}</div></div>
+      <div class="acts"><button type="button" class="main" id="edopen"><b>Open the desk</b><span>Board, publish, people, settings</span></button><button type="button" id="edpiece"><b>${esc(sec.title)}</b><span>${st}</span></button></div></div>`);
+    $("#edopen", t).onclick = () => { S.adminTab = "week"; S.adminWeek = null; render("admin"); };
+    $("#edpiece", t).onclick = () => { S.me = editor; store.set("cid", S.remember ? String(editor.id) : null); openPiece(); };
+    $(".edslot", v).appendChild(t);
+    if (people.length) $(".edslot", v).appendChild(el(`<p class="picklab">Contributors</p>`));
+  }
   const list = $(".people", v);
   people.forEach((c) => {
     const sec = sectionOf(c); const row = pieceRowFor(c.id);
-    const b = el(`<button type="button" class="btn person"><b>${esc(c.name)}</b><span>${esc(sec.title)}</span><i>${row ? (row.status === "submitted" ? "✓" : "…") : "›"}</i></button>`);
+    const b = el(`<button type="button" class="btn person writer"><b>${esc(c.name)}</b><span>${esc(sec.title)}</span><i>${row ? (row.status === "submitted" ? "✓" : "…") : "›"}</i></button>`);
     b.onclick = () => { S.me = c; store.set("cid", S.remember ? String(c.id) : null); openPiece(); };
     list.appendChild(b);
   });
-  if (!people.length) list.appendChild(el(`<div class="card dim">No contributors yet. The editor can add some.</div>`));
+  if (!active.length) list.appendChild(el(`<div class="card dim">No contributors yet. The editor can add some.</div>`));
   app.appendChild(v);
 }
 
