@@ -53,6 +53,15 @@ function markup(text: string): string {
     .replace(/~~(.+?)~~/g, "<s>$1</s>").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[^\w])_([^_]+?)_(?=[^\w]|$)/g, "$1<em>$2</em>");
 }
 
+// A tip with no headline gets one from its first sentence ("Sources: …"), same rule as the desk's placeholder.
+function autoHeadline(tip: string): string {
+  const t = String(tip ?? "").replace(/\s+/g, " ").trim();
+  let first = (t.match(/^(.+?[.!?])(\s|$)/)?.[1] ?? t).trim().replace(/[.]+$/, "");
+  if (first.length > 96) first = first.slice(0, 93).replace(/\s+\S*$/, "") + "…";
+  if (/^(sources?|source says|per sources|report)/i.test(first)) return first;
+  return "Sources: " + (first ? first[0].toLowerCase() + first.slice(1) : "a tip came in");
+}
+
 // Same allow-list the desk applies on save; applied again here so nothing odd reaches the page.
 function sanitize(html: string): string {
   let s = String(html ?? "");
@@ -565,10 +574,10 @@ Deno.serve(async (req) => {
         if (p.kind === "note" && !l && !include) p.include = !!p.status;
       }
       // Tips: the editor sends the ones to run with their headlines; anything in `reject` is marked rejected.
-      const run: { id: number; headline: string }[] = Array.isArray(b.tips) ? b.tips.map((t: any) => ({ id: Number(t.id), headline: String(t.headline ?? "").trim().slice(0, 200) })).filter((t: any) => t.id > 0 && t.headline) : [];
+      const run: { id: number; headline: string }[] = Array.isArray(b.tips) ? b.tips.map((t: any) => ({ id: Number(t.id), headline: String(t.headline ?? "").trim().slice(0, 200) })).filter((t: any) => t.id > 0) : [];
       const reject: number[] = Array.isArray(b.reject) ? b.reject.map(Number).filter((n: number) => n > 0) : [];
       const tipRows = run.length ? await sql`select id, tip from tribune.tips where id = any(${run.map((t) => t.id)}) and status <> 'rejected'` : [];
-      const tipsRun = run.map((t) => { const r = tipRows.find((x) => Number(x.id) === t.id); return r ? { id: t.id, headline: t.headline, tip: r.tip } : null; }).filter(Boolean) as Ctx["tipsRun"];
+      const tipsRun = run.map((t) => { const r = tipRows.find((x) => Number(x.id) === t.id); return r ? { id: t.id, headline: t.headline || autoHeadline(r.tip), tip: r.tip } : null; }).filter(Boolean) as Ctx["tipsRun"];
       const hot = await sql`select t.headline, count(v.id)::int as n from tribune.tips t left join tribune.tip_votes v on v.tip_id = t.id
         where t.status = 'published' and t.issue_week = ${week - 1} group by t.id order by n desc, t.id limit 1`;
       const hottest = hot[0] && hot[0].n > 0 ? { headline: hot[0].headline, n: hot[0].n } : null;

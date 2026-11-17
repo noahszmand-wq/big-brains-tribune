@@ -1036,6 +1036,13 @@ function markup(text) {
   return esc(text).replace(/\[\[(.+?)\]\]/g, '<span class="hl">$1</span>').replace(/\{\{(.+?)\}\}/g, '<span class="hl hl-orange">$1</span>')
     .replace(/~~(.+?)~~/g, "<s>$1</s>").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[^\w])_([^_]+?)_(?=[^\w]|$)/g, "$1<em>$2</em>");
 }
+function autoHeadline(tip) {
+  const t = String(tip || "").replace(/\s+/g, " ").trim();
+  let first = ((t.match(/^(.+?[.!?])(\s|$)/) || [])[1] || t).trim().replace(/[.]+$/, "");
+  if (first.length > 96) first = first.slice(0, 93).replace(/\s+\S*$/, "") + "…";
+  if (/^(sources?|source says|per sources|report)/i.test(first)) return first;
+  return "Sources: " + (first ? first[0].toLowerCase() + first.slice(1) : "a tip came in");
+}
 // The publish screen keeps its working state across a trip to edit a piece.
 S.pub = S.pub || {};
 async function adminPublish(root) {
@@ -1066,7 +1073,7 @@ async function adminPublish(root) {
     <div class="lineup" id="lineup"></div>
 
     <div class="step"><span class="n">2</span><h2>The tea</h2></div>
-    <p class="dim small">Tips that came in. Give one a headline and set it to Run and it goes in this issue; Reject hides it for good; Hold keeps it for next week.</p>
+    <p class="dim small">Tips that came in. Every tip runs unless you say otherwise; the headline is optional (leave it blank and the paper writes a "Sources: …" line from the tip). Hold keeps one for next week; Reject hides it for good.</p>
     <div id="pubtips"></div>
 
     <div class="step"><span class="n">3</span><h2>The lead</h2></div>
@@ -1107,10 +1114,10 @@ async function adminPublish(root) {
   const tipsBox = $("#pubtips", v);
   if (!pf.tips.length) tipsBox.innerHTML = `<div class="card dim">No tips waiting.</div>`;
   pf.tips.forEach((t) => {
-    const saved = P.tips[t.id] || { mode: t.status === "published" && t.issue_week === pf.week ? "run" : "hold", headline: t.headline || "" };
+    const saved = P.tips[t.id] || { mode: "run", headline: t.headline || "" };
     P.tips[t.id] = saved;
     const card = el(`<div class="card" data-tip="${t.id}"><div class="small dim" style="margin-bottom:6px">Tip #${t.id} · ${ago(t.created_at)}${t.status === "published" ? " · ran in this issue" : t.status === "approved" ? " · approved" : ""}</div><blockquote class="tipq">${esc(t.tip)}</blockquote>
-      <div class="field"><label class="lab">Headline</label><input type="text" data-h maxlength="200" value="${esc(saved.headline)}" placeholder="Sources: …"></div>
+      <div class="field"><label class="lab">Headline <span class="dim" style="text-transform:none;letter-spacing:0;font-weight:500">· optional, we'll write one if you don't</span></label><input type="text" data-h maxlength="200" value="${esc(saved.headline)}" placeholder="${esc(autoHeadline(t.tip))}"></div>
       <div class="seg" role="radiogroup">${["run", "hold", "reject"].map((k) => `<label><input type="radio" name="tip${t.id}" value="${k}" ${saved.mode === k ? "checked" : ""}><span>${k === "run" ? "Run" : k === "hold" ? "Hold" : "Reject"}</span></label>`).join("")}</div></div>`);
     $("[data-h]", card).addEventListener("input", (e) => { saved.headline = e.target.value; });
     card.querySelectorAll("input[type=radio]").forEach((rd) => rd.onchange = () => { saved.mode = rd.value; });
@@ -1144,7 +1151,7 @@ async function adminPublish(root) {
   const gather = () => {
     const tips = [], reject = [];
     for (const [id, t] of Object.entries(P.tips)) {
-      if (t.mode === "run") { if (!t.headline.trim()) throw Object.assign(new Error("Tip #" + id + " needs a headline to run."), { code: "__ui" }); tips.push({ id: Number(id), headline: t.headline.trim() }); }
+      if (t.mode === "run") tips.push({ id: Number(id), headline: t.headline.trim() });
       if (t.mode === "reject") reject.push(Number(id));
     }
     return { layout: P.layout, tips, reject, lead: { headline: hIn.value.trim(), deck: dIn.value.trim() }, roll: rollEl ? rollEl.checked : false };
