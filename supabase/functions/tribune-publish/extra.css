@@ -34,3 +34,13 @@ h1 b { color: var(--pylon-ink); }
 .wnlist details[open] summary::after { transform: rotate(-90deg); }
 .wnlist summary b { color: var(--pylon-ink); }
 .wnlist p { margin: 0 0 12px; color: var(--ink-2); font-size: 0.98rem; line-height: 1.55; max-width: 62ch; }
+/* Section bands: every other section sits on a full-width surface stripe with a rule between, so the issue scans in blocks */
+main.gut { overflow-x: clip; }
+main > .wrap > section { position: relative; padding-block: 36px 30px; }
+main > .wrap > section::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%); z-index: -1; pointer-events: none; border-top: 1px solid var(--rule); }
+main > .wrap > section:nth-of-type(even)::before { background: var(--surface); }
+main > .wrap > section .sh { border-bottom: 0; padding-bottom: 0; }
+main > .wrap > section .sh h2 { position: relative; padding-left: 14px; }
+main > .wrap > section .sh h2::before { content: ""; position: absolute; left: 0; top: 0.1em; bottom: 0.05em; width: 5px; background: var(--pylon); }
+main > .wrap > section:nth-of-type(even) .sh h2::before { background: var(--firstdown); }
+.fold { margin-top: 0; }
