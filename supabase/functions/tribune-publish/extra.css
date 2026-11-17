@@ -23,3 +23,14 @@ h1 b { color: var(--pylon-ink); }
 .subhead { font-size: 1.15rem; color: var(--ink-2); margin: -6px 0 16px; max-width: 62ch; line-height: 1.45; }
 .pieceimg figcaption { margin-top: 6px; color: var(--ink-2); }
 .byline .emoji, .host .nm .emoji { font-size: 1.1em; }
+/* What's new: one line each, details on tap */
+.wnlist { display: grid; gap: 2px; }
+.wnlist .wn { border-top: 1px solid var(--rule); }
+.wnlist .wn:first-child { border-top: 0; }
+.wnlist summary, .wnlist .plain { list-style: none; cursor: pointer; padding: 10px 28px 10px 0; position: relative; line-height: 1.45; }
+.wnlist .plain { cursor: default; }
+.wnlist summary::-webkit-details-marker { display: none; }
+.wnlist summary::after { content: "›"; position: absolute; right: 6px; top: 8px; font-size: 1.3rem; color: var(--ink-2); transform: rotate(90deg); transition: transform 0.15s; }
+.wnlist details[open] summary::after { transform: rotate(-90deg); }
+.wnlist summary b { color: var(--pylon-ink); }
+.wnlist p { margin: 0 0 12px; color: var(--ink-2); font-size: 0.98rem; line-height: 1.55; max-width: 62ch; }

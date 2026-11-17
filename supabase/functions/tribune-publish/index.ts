@@ -211,7 +211,7 @@ type Profile = { tagline?: string; topics?: string[]; emoji?: string; signoff?: 
 type Piece = { contributor_id: number; name: string; team: string | null; section_key: string; title: string; kind: string; status: string | null; content: any; image_url: string | null; roast: string | null; include: boolean; profile: Profile };
 const figure = (p: Piece) => p.image_url ? `<figure class="pieceimg"><img src="${esc(p.image_url)}" alt="${esc(p.content?.image_caption || "")}" loading="lazy">${p.content?.image_caption ? `<figcaption class="mono">${esc(p.content.image_caption)}</figcaption>` : ""}</figure>` : "";
 const who = (p: Piece) => `${p.profile.emoji ? `<span class="emoji" aria-hidden="true">${esc(p.profile.emoji)}</span> ` : ""}${esc(p.name)}`;
-type Ctx = { week: number; issue: number; season: number; L: League | null; prevTiers: any | null; tipsRun: { id: number; headline: string; tip: string }[]; hottest: { headline: string; n: number } | null; word: string; now: Date; T: Template; notes: { id: number; title: string; body: string | null }[] };
+type Ctx = { week: number; issue: number; season: number; L: League | null; prevTiers: any | null; tipsRun: { id: number; headline: string; tip: string }[]; hottest: { headline: string; n: number } | null; word: string; now: Date; T: Template; notes: { id: number; title: string; body: string | null; details: string | null }[] };
 
 function sectionTiers(p: Piece, ctx: Ctx) {
   const c = p.content ?? {}, tiers: any[] = Array.isArray(c.tiers) ? c.tiers : [], extra: any[] = Array.isArray(c.extra) ? c.extra : [];
@@ -295,9 +295,12 @@ function sectionRoast(key: string, title: string, roast: string) {
 }
 
 function sectionWhatsNew(ctx: Ctx) {
-  const items = ctx.notes.map((n) => `<li><b>${esc(n.title)}</b>${n.body ? ` — ${esc(n.body)}` : ""}</li>`).join("");
-  return `<section id="whatsnew" aria-labelledby="h-whatsnew">${sh("whatsnew", "What's new in the BBT", `<span class="mono">Release notes · Issue No. ${ctx.issue}</span>`)}
-<div class="ednote-box"><div><div class="prose"><ul>${items}</ul></div></div></div></section>`;
+  // One sentence per update; the longer version sits behind a tap.
+  const items = ctx.notes.map((n) => n.details
+    ? `<details class="wn"><summary><b>${esc(n.title)}</b>${n.body ? ` — ${esc(n.body)}` : ""}</summary><p>${esc(n.details)}</p></details>`
+    : `<div class="wn plain"><b>${esc(n.title)}</b>${n.body ? ` — ${esc(n.body)}` : ""}</div>`).join("");
+  return `<section id="whatsnew" aria-labelledby="h-whatsnew">${sh("whatsnew", "What's new in the BBT", `<span class="mono">Release notes · Issue No. ${ctx.issue} · tap a line for more</span>`)}
+<div class="ednote-box"><div><div class="wnlist">${items}</div></div></div></section>`;
 }
 
 function sectionTea(ctx: Ctx) {
@@ -583,7 +586,7 @@ Deno.serve(async (req) => {
       const hottest = hot[0] && hot[0].n > 0 ? { headline: hot[0].headline, n: hot[0].n } : null;
       const prev = await sql`select p.content from tribune.pieces p join tribune.sections s on s.key = p.section_key
         where s.kind = 'tiers' and (p.season < ${season} or (p.season = ${season} and p.week < ${week})) order by p.season desc, p.week desc limit 1`;
-      const notes = await sql`select id, title, body from tribune.changelog where audience <> 'editor' and (published_week is null or published_week = ${week}) order by id`;
+      const notes = await sql`select id, title, body, details from tribune.changelog where audience <> 'editor' and (published_week is null or published_week = ${week}) order by id`;
       let L: League | null = null;
       try { L = await leagueData(S.league_id, week); } catch (e) { console.error("sleeper", e); if (!dry) throw new Fail("sleeper_down", 502); }
 
@@ -593,7 +596,7 @@ Deno.serve(async (req) => {
       const known = issuesList.find((x) => x.week === week);
       const issue = Number(b.issue) > 0 ? Number(b.issue) : (known?.issue ?? (issuesList.reduce((m, x) => Math.max(m, x.issue), 0) + 1));
       const newIssues = known ? issuesList : [...issuesList, { week, issue }];
-      const ctx: Ctx = { week, issue, season, L, prevTiers: prev[0]?.content ?? null, tipsRun, hottest, word: norm(S.league_word), now, T: await loadTemplate(), notes: notes.map((n) => ({ id: Number(n.id), title: n.title, body: n.body })) };
+      const ctx: Ctx = { week, issue, season, L, prevTiers: prev[0]?.content ?? null, tipsRun, hottest, word: norm(S.league_word), now, T: await loadTemplate(), notes: notes.map((n) => ({ id: Number(n.id), title: n.title, body: n.body, details: n.details })) };
       const lead = b.lead && typeof b.lead === "object" ? { headline: String(b.lead.headline ?? "").trim().slice(0, 200), deck: String(b.lead.deck ?? "").trim().slice(0, 1500) } : null;
       const inner = buildIssue(ctx, pieces, lead, newIssues, layout);
       if (dry) return json({ ok: true, week, issue, html: inner, sections: pieces.filter((p) => p.include).map((p) => p.section_key), tips: tipsRun.length, sleeper_ok: !!L });
