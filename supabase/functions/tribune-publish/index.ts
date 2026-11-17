@@ -13,8 +13,16 @@ import postgres from "npm:postgres@3.4.4";
 type Template = { css: string; head: string; shell: string; scripts: { tea: string; spill: string; comments: string; tail: string } };
 let TEMPLATE: { at: number; t: Template } | null = null;
 async function loadTemplate(): Promise<Template> {
-  if (TEMPLATE && Date.now() - TEMPLATE.at < 300000) return TEMPLATE.t;
-  const urls = [`${SITE}/supabase/functions/tribune-publish/template.json`, `https://raw.githubusercontent.com/${REPO}/${BRANCH}/supabase/functions/tribune-publish/template.json`];
+  if (TEMPLATE && Date.now() - TEMPLATE.at < 60000) return TEMPLATE.t;
+  const ok = (t: unknown): t is Template => !!(t && typeof t === "object" && (t as Template).css && (t as Template).shell && (t as Template).scripts);
+  // Straight from the repo via the API when a token is available (fresh the moment a change is pushed; no CDN or Pages lag).
+  try {
+    if (await githubToken()) {
+      const raw = await gh(`/repos/${REPO}/contents/supabase/functions/tribune-publish/template.json?ref=${BRANCH}`, { headers: { Accept: "application/vnd.github.raw+json" } });
+      if (ok(raw)) { TEMPLATE = { at: Date.now(), t: raw }; return raw; }
+    }
+  } catch (e) { console.error("template api", String(e).slice(0, 120)); }
+  const urls = [`https://raw.githubusercontent.com/${REPO}/${BRANCH}/supabase/functions/tribune-publish/template.json`, `${SITE}/supabase/functions/tribune-publish/template.json`];
   for (const u of urls) {
     try { const r = await fetch(u, { cache: "no-store", signal: AbortSignal.timeout(10000) }); if (r.ok) { const t = await r.json(); if (t?.css && t?.shell && t?.scripts) { TEMPLATE = { at: Date.now(), t }; return t; } } } catch (e) { console.error("template", u, String(e).slice(0, 120)); }
   }
