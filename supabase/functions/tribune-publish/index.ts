@@ -105,6 +105,11 @@ async function repoState() {
   if (ogDir) { const t = await gh(`/repos/${REPO}/git/trees/${ogDir.sha}`); og = t.tree.map((e: { path: string }) => e.path); }
   return { commitSha, treeSha: commit.tree.sha as string, weeks, issues, og };
 }
+// Without a GitHub token the issue list still comes from the live site, so the desk shows the right issue number.
+async function publicIssues(): Promise<{ latest: number; issues: { week: number; issue: number }[] }> {
+  try { const r = await fetch(`${SITE}/issues.json`, { cache: "no-store", signal: AbortSignal.timeout(8000) }); if (r.ok) { const j = await r.json(); if (Array.isArray(j?.issues)) return j; } } catch { /* fall through */ }
+  return { latest: 0, issues: [] };
+}
 async function commitFiles(base: { commitSha: string; treeSha: string }, files: { path: string; content: string }[], message: string) {
   const blobs = await Promise.all(files.map(async (f) => ({ path: f.path, mode: "100644", type: "blob", sha: (await gh(`/repos/${REPO}/git/blobs`, { method: "POST", body: JSON.stringify({ content: f.content, encoding: "utf-8" }) })).sha })));
   const tree = await gh(`/repos/${REPO}/git/trees`, { method: "POST", body: JSON.stringify({ base_tree: base.treeSha, tree: blobs }) });
@@ -136,7 +141,7 @@ async function leagueData(leagueId: string, week: number): Promise<League> {
   await Promise.all(weeks.map(async (w) => { matchups[w] = await sleeper(`/league/${leagueId}/matchups/${w}`).catch(() => []); }));
   const teams: Team[] = rosters.map((r: any, i: number) => {
     const u = users.find((u: any) => u.user_id === r.owner_id);
-    const name = u?.metadata?.team_name || u?.display_name || `Team ${r.roster_id}`;
+    const name = String(u?.metadata?.team_name || u?.display_name || `Team ${r.roster_id}`).trim();
     const known = KNOWN[name];
     const k = known?.[0] ?? (name.replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(Boolean).map((w: string) => w[0]).join("").toUpperCase().slice(0, 4) || `T${r.roster_id}`);
     const s = r.settings ?? {};
@@ -236,7 +241,7 @@ function sectionHistory(p: Piece, ctx: Ctx) {
   if (card && Array.isArray(card.games)) {
     const pick = c.pick ?? { games: card.games.map((_: any, i: number) => i), nums: ["high", "low", "avg", "closest", "blowout"], players: (card.extras?.top_players ?? []).map((_: any, i: number) => i) };
     const x = card.extras ?? {}, fr = x.final_records ?? {};
-    const side = (s: any, cls: string) => `<span class="${cls}">${esc(s.team)} <small class="dim">${esc(s.record || "")}${fr[s.team] ? ` · finished ${esc(fr[s.team])}` : ""}</small></span><span class="pts ${cls}">${f2(s.pts)}</span>`;
+    const side = (s: any, cls: string) => `<span class="${cls}">${esc(s.team)} <small class="dim">${esc(s.record || "")}${fr[s.team] && fr[s.team] !== s.record ? ` · finished ${esc(fr[s.team])}` : ""}</small></span><span class="pts ${cls}">${f2(s.pts)}</span>`;
     const games = card.games.filter((_: any, i: number) => pick.games.includes(i)).map((g: any) => `<div class="histgame ${card.high && g.w.team === card.high.team && g.w.pts === card.high.pts ? "high" : ""}">${side(g.w, "w")}${side(g.l, "l")}</div>`).join("");
     const nums: string[] = [];
     if (pick.nums.includes("high") && card.high) nums.push(`<div><span class="mono">High</span><span>${f2(card.high.pts)} · ${esc(card.high.team)}</span></div>`);
@@ -277,7 +282,7 @@ function sectionAwards(ctx: Ctx) {
   const tile = (badge: string, t: Team, stat: string, unit: string, text: string, xl = false, chips: string[] = []) =>
     `<article class="tile${xl ? " xl" : ""}"><span class="badge">${badge}</span><div class="tm">${tb(t)}<span>${esc(t.name)}</span></div><div class="stat num">${stat}<small>${unit}</small></div><p>${text}</p>${chips.length ? `<div class="chipsrow mono">${chips.map((c) => `<span>${c}</span>`).join("")}</div>` : ""}</article>`;
   const tiles = [
-    tile("Week high", high.t, f2(high.p), "pts", `Beats ${beats === sides.length - 1 ? "all " : ""}${beats} of the other ${sides.length - 1} teams this week${high.won ? ` and takes the game against ${esc(high.opp.name)} by ${f2(high.m)}` : ` and still loses to ${esc(high.opp.name)}`}.`, true, [`${beats}–${sides.length - 1 - beats} all-play`, `${rec(high.t.wins, high.t.losses, high.t.ties)} · seed ${high.t.seed}`]),
+    tile("Week high", high.t, f2(high.p), "pts", `Beats ${beats === sides.length - 1 ? `all ${beats} other teams` : `${beats} of the other ${sides.length - 1} teams`} this week${high.won ? ` and takes the game against ${esc(high.opp.name)} by ${f2(high.m)}` : ` and still loses to ${esc(high.opp.name)}`}.`, true, [`${beats}–${sides.length - 1 - beats} all-play`, `${rec(high.t.wins, high.t.losses, high.t.ties)} · seed ${high.t.seed}`]),
     hardLuck ? tile("Hard luck", hardLuck.t, f2(hardLuck.p), "pts, lost", `${ord(sides.indexOf(hardLuck) + 1)}-best score of the week, and it ran into ${esc(hardLuck.opp.name)}&#x27;s ${f2(L.games.find((g) => g.l === hardLuck.t)?.wp ?? 0)}.`) : "",
     blow ? tile("Blowout", blow.w, "by " + f2(blow.margin), "pts", `${esc(blow.w.name)} ${f2(blow.wp)}, ${esc(blow.l.name)} ${f2(blow.lp)}. The widest margin of the week.`) : "",
     tile("Low score", low.t, f2(low.p), low.won ? "pts, won anyway" : "pts", `The low for the week${low.won ? `, and it still beat ${esc(low.opp.name)}` : `, in a ${f2(low.m)}-point loss to ${esc(low.opp.name)}`}.`),
@@ -344,16 +349,17 @@ ${rows}
 function buildIssue(ctx: Ctx, pieces: Piece[], lead: { headline?: string; deck?: string } | null, issues: { week: number; issue: number }[]) {
   const L = ctx.L;
   const editorNote = pieces.find((p) => p.kind === "note" && p.include && plain(p.content?.body_html ?? ""));
-  const body: { id: string; label: string; blurb: string; html: string }[] = [];
-  if (editorNote) body.push({ id: editorNote.section_key, label: editorNote.title, blurb: editorNote.content?.headline || "From the editor's chair", html: sectionNote(editorNote, ctx, true) });
+  const body: { id: string; label: string; blurb: string; html: string; chip?: string }[] = [];
+  const chipOf = (p: Piece) => p.kind === "tiers" ? "Power Rankings" : p.kind === "history" ? "BBO History" : p.kind === "note" ? "Editor&#x27;s Note" : p.title;
+  if (editorNote) body.push({ id: editorNote.section_key, chip: "Editor&#x27;s Note", label: editorNote.title, blurb: editorNote.content?.headline || "From the editor's chair", html: sectionNote(editorNote, ctx, true) });
   for (const p of pieces) {
     if (p.kind === "note" && p === editorNote) continue;
     if (p.kind === "note") { if (p.include && plain(p.content?.body_html ?? "")) body.push({ id: p.section_key, label: p.title, blurb: p.content?.headline || `By ${p.name}`, html: sectionNote(p, ctx) }); continue; }
     if (p.include) {
       const c = p.content ?? {};
       const blurb = p.kind === "tiers" ? "Babe wake up" : c.headline || `By ${p.name}`;
-      body.push({ id: p.section_key, label: p.title, blurb, html: p.kind === "tiers" ? sectionTiers(p, ctx) : p.kind === "history" ? sectionHistory(p, ctx) : sectionColumn(p, ctx) });
-    } else if (p.roast) body.push({ id: p.section_key, label: p.title, blurb: "Did not file", html: sectionRoast(p.section_key, p.title, p.roast) });
+      body.push({ id: p.section_key, chip: chipOf(p), label: p.title, blurb, html: p.kind === "tiers" ? sectionTiers(p, ctx) : p.kind === "history" ? sectionHistory(p, ctx) : sectionColumn(p, ctx) });
+    } else if (p.roast) body.push({ id: p.section_key, chip: chipOf(p), label: p.title, blurb: "Did not file", html: sectionRoast(p.section_key, p.title, p.roast) });
   }
   if (ctx.tipsRun.length) body.push({ id: "tipline", label: "The tea", blurb: ctx.tipsRun[0].headline, html: sectionTea(ctx) });
   if (L?.games.length) {
@@ -379,7 +385,7 @@ function buildIssue(ctx: Ctx, pieces: Piece[], lead: { headline?: string; deck?:
   if (lead?.deck) deck = esc(lead.deck);
 
   const seasonTag = `${String(ctx.season).slice(2)}-${String(ctx.season + 1).slice(2)} season`;
-  const chips = body.map((b) => `<a href="#${esc(b.id)}">${esc(b.label)}</a>`).join("");
+  const chips = body.map((b) => `<a href="#${esc(b.id)}">${b.chip ?? esc(b.label)}</a>`).join("");
   const index = body.map((b) => `<a href="#${esc(b.id)}"><span class="mono">${esc(b.label)}</span><b>${esc(b.blurb)}</b></a>`).join("\n");
   const sorted = [...issues].sort((a, b) => b.week - a.week);
   const latestWeek = sorted[0]?.week ?? ctx.week;
@@ -423,7 +429,7 @@ async function loadPieces(season: number, week: number): Promise<Piece[]> {
     from tribune.contributors c join tribune.sections s on s.key = c.section_key
     left join tribune.pieces p on p.contributor_id = c.id and p.season = ${season} and p.week = ${week}
     where c.active order by s.sort, c.sort, c.id`;
-  return rows.map((r) => ({ contributor_id: r.contributor_id, name: r.name, team: r.team, section_key: r.section_key, title: r.title, kind: r.kind, status: r.status ?? null,
+  return rows.map((r) => ({ contributor_id: Number(r.contributor_id), name: r.name, team: r.team, section_key: r.section_key, title: r.title, kind: r.kind, status: r.status ?? null,
     content: r.content ?? {}, image_url: r.image_url ?? null, roast: r.section_active || r.kind === "note" ? r.roast : null, include: r.status === "submitted",
     // extra fields used by preflight only
     ...( { updated_at: r.updated_at, submitted_at: r.submitted_at, is_editor: r.is_editor, section_active: r.section_active, has_content: !!plain(r.content?.body_html ?? "") || (Array.isArray(r.content?.tiers) && r.content.tiers.some((t: any) => (t.teams ?? []).length)) } as any) }));
@@ -461,13 +467,14 @@ Deno.serve(async (req) => {
         where status in ('new', 'approved') or (status = 'published' and issue_week = ${week}) order by created_at`;
       let repo: Awaited<ReturnType<typeof repoState>> | null = null, github_error: string | null = null;
       try { repo = await repoState(); } catch (e) { github_error = e instanceof Fail ? e.code : "github_error"; }
-      const published = repo ? repo.weeks.includes(week) : false;
-      const known = repo?.issues.issues.find((x) => x.week === week);
-      const issue = known?.issue ?? ((repo?.issues.issues ?? []).reduce((m, x) => Math.max(m, x.issue), 0) + 1);
+      const issuesKnown = repo ? repo.issues : await publicIssues();
+      const published = repo ? repo.weeks.includes(week) : issuesKnown.issues.some((x) => x.week === week);
+      const known = issuesKnown.issues.find((x) => x.week === week);
+      const issue = known?.issue ?? (issuesKnown.issues.reduce((m, x) => Math.max(m, x.issue), 0) + 1);
       let template_ok = true; try { await loadTemplate(); } catch { template_ok = false; }
       let sleeper_ok = true, next_games = 0, games = 0;
       try { const L = await leagueData(S.league_id, week); games = L.games.length; next_games = L.next.length; } catch { sleeper_ok = false; }
-      return json({ ok: true, week, season, current_week: current, is_current: week === current, issue, already_published: published, latest_week: repo?.issues.latest ?? null,
+      return json({ ok: true, week, season, current_week: current, is_current: week === current, issue, already_published: published, latest_week: issuesKnown.latest || null,
         github_ok: !!repo, github_error, template_ok, sleeper_ok, games, next_games, deadline_at: S.deadline_at, next_deadline: nextDeadline(S.deadline_at),
         rows: pieces.map((p: any) => ({ contributor_id: p.contributor_id, name: p.name, team: p.team, section_key: p.section_key, title: p.title, kind: p.kind, status: p.status ?? "none", has_content: p.has_content, roast: p.roast, is_editor: p.is_editor, updated_at: p.updated_at, default_include: p.include })),
         tips });
@@ -482,7 +489,7 @@ Deno.serve(async (req) => {
       const run: { id: number; headline: string }[] = Array.isArray(b.tips) ? b.tips.map((t: any) => ({ id: Number(t.id), headline: String(t.headline ?? "").trim().slice(0, 200) })).filter((t: any) => t.id > 0 && t.headline) : [];
       const reject: number[] = Array.isArray(b.reject) ? b.reject.map(Number).filter((n: number) => n > 0) : [];
       const tipRows = run.length ? await sql`select id, tip from tribune.tips where id = any(${run.map((t) => t.id)}) and status <> 'rejected'` : [];
-      const tipsRun = run.map((t) => { const r = tipRows.find((x) => x.id === t.id); return r ? { id: t.id, headline: t.headline, tip: r.tip } : null; }).filter(Boolean) as Ctx["tipsRun"];
+      const tipsRun = run.map((t) => { const r = tipRows.find((x) => Number(x.id) === t.id); return r ? { id: t.id, headline: t.headline, tip: r.tip } : null; }).filter(Boolean) as Ctx["tipsRun"];
       const hot = await sql`select t.headline, count(v.id)::int as n from tribune.tips t left join tribune.tip_votes v on v.tip_id = t.id
         where t.status = 'published' and t.issue_week = ${week - 1} group by t.id order by n desc, t.id limit 1`;
       const hottest = hot[0] && hot[0].n > 0 ? { headline: hot[0].headline, n: hot[0].n } : null;
@@ -493,7 +500,7 @@ Deno.serve(async (req) => {
 
       let repo: Awaited<ReturnType<typeof repoState>> | null = null;
       if (!dry) repo = await repoState();
-      const issuesList = repo?.issues.issues ?? [];
+      const issuesList = repo ? repo.issues.issues : (await publicIssues()).issues;
       const known = issuesList.find((x) => x.week === week);
       const issue = Number(b.issue) > 0 ? Number(b.issue) : (known?.issue ?? (issuesList.reduce((m, x) => Math.max(m, x.issue), 0) + 1));
       const newIssues = known ? issuesList : [...issuesList, { week, issue }];

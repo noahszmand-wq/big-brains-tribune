@@ -274,6 +274,29 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
 .includes { display: grid; gap: 4px; margin: 10px 0 16px; }
 .preview .numbers .nb, .preview .topl { background: #101B2D; border-color: #22314A; }
 .preview .topl div { border-color: #22314A; }
+/* Publish */
+.pubhead { display: grid; gap: 4px; margin: 6px 0 14px; }
+.pubhead .big { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 2rem; line-height: 0.95; }
+.pubchecks { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+.pubrow { display: grid; grid-template-columns: 28px 1fr auto; gap: 6px 12px; align-items: center; }
+.pubrow input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--pylon); margin: 0; }
+.pubrow .t { font-weight: 700; }
+.pubrow .s { grid-column: 2 / -1; color: var(--ink-2); font-size: 0.88rem; }
+.tipq { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border-left: 4px solid var(--rule); padding: 8px 10px; margin: 0 0 10px; font-size: 0.95rem; }
+.seg { display: flex; gap: 0; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.seg label { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 44px; font-weight: 600; font-size: 0.92rem; cursor: pointer; border-left: 1px solid var(--rule); }
+.seg label:first-child { border-left: 0; }
+.seg input { position: absolute; opacity: 0; width: 0; height: 0; }
+.seg input:checked + span { color: var(--on-pylon); }
+.seg label:has(input:checked) { background: var(--pylon); color: var(--on-pylon); }
+.seg label:has(input:checked[value=reject]) { background: var(--loss); color: #fff; }
+.pvframe { position: fixed; inset: 0; z-index: 45; background: #0A1220; display: grid; grid-template-rows: auto 1fr; }
+.pvframe .pbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: calc(8px + env(safe-area-inset-top)) 14px 8px; background: #0A1220; color: #EAF0F7; border-bottom: 1px solid #22314A; }
+.pvframe .pbar .btn { background: #FFD60A; color: #0A1220; border-color: #FFD60A; }
+.pvframe iframe { width: 100%; height: 100%; border: 0; background: #0A1220; }
+.pubresult { border-top: 6px solid var(--win); }
+.pubresult h2 { margin-top: 0; }
+.copybox { background: var(--surface-2); border: 1px solid var(--rule); padding: 10px 12px; font-size: 0.95rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 </style>
 </head>
@@ -818,7 +841,7 @@ function admin() {
     <nav class="tabs" aria-label="Admin sections">${[["week", "This week"], ["people", "People"], ["sections", "Sections"], ["settings", "Settings"], ["comments", "Comments"], ["archive", "Archive"]].map(([k, l]) => `<button type="button" data-t="${k}" ${S.adminTab === k ? "aria-current=true" : ""}>${l}</button>`).join("")}</nav><div id="atab"></div></div>`);
   app.appendChild(v);
   v.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { S.adminTab = b.dataset.t; render("admin"); });
-  ({ week: adminWeek, people: adminPeople, sections: adminSections, settings: adminSettings, comments: adminComments, archive: adminArchive }[S.adminTab])($("#atab", v));
+  ({ week: adminWeek, people: adminPeople, sections: adminSections, settings: adminSettings, comments: adminComments, archive: adminArchive, publish: adminPublish }[S.adminTab] || adminWeek)($("#atab", v));
 }
 function adminGate() {
   const v = el(`<div class="gate"><div class="card"><h1>Editor's desk</h1><p class="dim">Type the editor word.</p>
@@ -855,8 +878,109 @@ async function adminWeek(root) {
       };
       list.appendChild(card);
     });
+    const filed = r.rows.filter((row) => row.piece_id && row.status === "submitted").length, onDesk = r.rows.filter((row) => row.active).length;
+    list.appendChild(el(`<div class="actions" style="position:static;background:none;padding-top:6px"><button type="button" class="btn primary block" id="gopub">Publish Week ${wk}</button><div class="small dim" style="text-align:center">${filed} of ${onDesk} filed · builds the issue, locks it with the league word, puts it on the site</div></div>`));
+    $("#gopub", list).onclick = () => { S.adminWeek = wk; S.adminTab = "publish"; render("admin"); };
     const spinner = root.querySelector("p.dim"); if (spinner) spinner.replaceWith(list);
   } catch (err) { root.insertAdjacentHTML("beforeend", `<div class="notice red">${esc(errText(err.code))}</div>`); }
+}
+// ---------- publish ----------
+const PUB_ENDPOINT = "https://eempzkiumbnffftkqdas.supabase.co/functions/v1/tribune-publish";
+async function pubApi(action, body = {}) {
+  const r = await fetch(PUB_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, word: S.word, admin_word: S.admin_word, week: S.adminWeek || S.boot.week, ...body }) });
+  const j = await r.json().catch(() => ({ ok: false, error: "error" }));
+  if (!j.ok) { const e = new Error(j.error || "error"); e.code = j.error || "error"; e.detail = j.detail; throw e; }
+  return j;
+}
+const PUB_ERR = { no_github_token: "The publisher has no GitHub token yet. Add a GITHUB_TOKEN secret to the tribune-publish function (see the note above).", sleeper_down: "Sleeper didn't answer, so the scores and standings couldn't be pulled. Try again in a minute.",
+  not_admin: "That's not the editor word.", wrong_word: "That's not the league word.", bad_week: "That week number doesn't work." };
+const pubErr = (err) => PUB_ERR[err.code] || (err.code && err.code.startsWith("github_") ? `GitHub said no (${err.code.slice(7)}). ${err.detail ? err.detail : "Check the token's permissions on the repo."}` : errText(err.code));
+const fmtDl = (iso) => iso ? new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(iso)) : "";
+async function adminPublish(root) {
+  const wk = S.adminWeek || S.boot.week;
+  root.innerHTML = `<div class="row between" style="margin:6px 0 12px"><button type="button" class="btn sm" id="pubback">‹ Back to the board</button></div><p class="dim"><span class="spin"></span> Checking the desk, the site and Sleeper…</p>`;
+  $("#pubback", root).onclick = () => { S.adminTab = "week"; render("admin"); };
+  let pf;
+  try { pf = await pubApi("preflight"); } catch (err) { root.querySelector("p.dim").replaceWith(el(`<div class="notice red">${esc(pubErr(err))}</div>`)); return; }
+  const v = el(`<div>
+    <div class="pubhead"><span class="lab">${pf.already_published ? "Republish" : "Publish"} · Week ${pf.week}</span><div class="big">Issue No. ${pf.issue}</div>
+      <div class="pubchecks">${pf.github_ok ? `<span class="chip submitted">Site connected</span>` : `<span class="chip held">Site not connected</span>`}${pf.sleeper_ok ? `<span class="chip submitted">Sleeper · ${pf.games} final${pf.games === 1 ? "" : "s"}</span>` : `<span class="chip held">Sleeper down</span>`}${pf.already_published ? `<span class="chip draft">Already live</span>` : ""}${!pf.is_current ? `<span class="chip none">Archive week</span>` : ""}</div></div>
+    ${pf.github_error === "no_github_token" ? `<div class="notice red"><b>One-time setup.</b> The publisher pushes to GitHub Pages and needs a token. On GitHub: Settings › Developer settings › Fine-grained tokens › Generate. Repository access: only <b>big-brains-tribune</b>. Permissions: <b>Contents · Read and write</b>. Then in Supabase: Edge Functions › tribune-publish › Secrets, add <b>GITHUB_TOKEN</b>. Preview works without it.</div>` : pf.github_error ? `<div class="notice red">Couldn't reach GitHub (${esc(pf.github_error)}). Preview still works; publishing won't until that clears.</div>` : ""}
+    ${pf.already_published ? `<div class="notice">Week ${pf.week} is already on the site as Issue No. ${pf.issue}. Publishing again replaces it with what's below; the issue number stays.</div>` : ""}
+    ${!pf.sleeper_ok ? `<div class="notice red">Sleeper isn't answering right now, so scores, standings and awards can't be built. Preview will run without them; publishing waits until Sleeper is back.</div>` : pf.games === 0 ? `<div class="notice">Sleeper shows no final scores for Week ${pf.week} yet. The issue will run without the scoreboard sections.</div>` : ""}
+    <h2>What runs</h2><p class="dim small">Checked pieces run as filed. Unchecked ones run the section's roast, or the section is skipped if there isn't one. The Editor's Note runs if it has words in it.</p>
+    <div id="pubrows"></div>
+    <h2>The tea</h2><p class="dim small">Tips that came in. Give one a headline and set it to Run and it goes in this issue; Reject hides it for good; Hold keeps it for next week.</p>
+    <div id="pubtips"></div>
+    <details class="card" style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700;min-height:32px;display:flex;align-items:center">Lead headline and deck (optional)</summary>
+      <p class="dim small" style="margin-top:8px">Leave empty and the paper writes a factual lead from the scoreboard.</p>
+      <div class="field"><label class="lab" for="leadh">Headline</label><input type="text" id="leadh" maxlength="160" placeholder="e.g. Babe wake up, Week ${pf.week} happened"></div>
+      <div class="field"><label class="lab" for="leadd">Deck</label><textarea id="leadd" maxlength="1200" placeholder="Two or three sentences under the headline."></textarea></div></details>
+    ${pf.is_current ? `<label class="check card" style="margin-bottom:12px"><input type="checkbox" id="pubroll" checked> <span>Open Week ${pf.week + 1} after publishing <span class="dim small">· desk deadline moves to ${esc(fmtDl(pf.next_deadline))}</span></span></label>` : ""}
+    <div class="actions" style="position:static;background:none"><div class="row"><button type="button" class="btn" id="pubpv">Preview the issue</button></div>
+      <button type="button" class="btn primary block" id="pubgo" ${pf.github_ok && pf.sleeper_ok ? "" : "disabled"}>${pf.already_published ? "Republish" : "Publish"} Issue No. ${pf.issue}</button>
+      <p class="msg" id="pubmsg"></p></div></div>`);
+  root.querySelector("p.dim").replaceWith(v);
+  // Pieces
+  const rowsBox = $("#pubrows", v);
+  pf.rows.forEach((r) => {
+    const row = el(`<label class="card pubrow"><input type="checkbox" data-cid="${r.contributor_id}" ${r.default_include || (r.is_editor && r.has_content) ? "checked" : ""} ${r.status === "none" || !r.has_content ? "disabled" : ""}><span class="t">${esc(r.name)} <span class="dim" style="font-weight:500">· ${esc(r.title)}</span></span>${statusChip(r.status === "none" ? "none" : r.status, false)}<span class="s" data-s></span></label>`);
+    const cb = $("input", row), s = $("[data-s]", row);
+    const explain = () => { s.textContent = cb.checked ? (r.has_content ? `Runs as filed${r.updated_at ? ` · last edited ${ago(r.updated_at)}` : ""}` : "Nothing to run") : r.is_editor ? "No note this week; the issue skips it." : r.roast ? `Not running · roast: “${r.roast}”` : "Not running · section skipped"; };
+    cb.onchange = explain; explain(); rowsBox.appendChild(row);
+  });
+  // Tips
+  const tipsBox = $("#pubtips", v);
+  if (!pf.tips.length) tipsBox.innerHTML = `<div class="card dim">No tips waiting.</div>`;
+  pf.tips.forEach((t) => {
+    const def = t.status === "published" && t.issue_week === pf.week ? "run" : "hold";
+    const card = el(`<div class="card" data-tip="${t.id}"><div class="small dim" style="margin-bottom:6px">Tip #${t.id} · ${ago(t.created_at)}${t.status === "published" ? " · ran in this issue" : t.status === "approved" ? " · approved" : ""}</div><blockquote class="tipq">${esc(t.tip)}</blockquote>
+      <div class="field"><label class="lab">Headline</label><input type="text" data-h maxlength="200" value="${esc(t.headline || "")}" placeholder="Sources: …"></div>
+      <div class="seg" role="radiogroup">${["run", "hold", "reject"].map((k) => `<label><input type="radio" name="tip${t.id}" value="${k}" ${def === k ? "checked" : ""}><span>${k === "run" ? "Run" : k === "hold" ? "Hold" : "Reject"}</span></label>`).join("")}</div></div>`);
+    tipsBox.appendChild(card);
+  });
+  const gather = () => {
+    const include = [...rowsBox.querySelectorAll("input[type=checkbox]:checked")].map((c) => Number(c.dataset.cid));
+    const tips = [], reject = [];
+    tipsBox.querySelectorAll("[data-tip]").forEach((c) => {
+      const id = Number(c.dataset.tip), mode = (c.querySelector("input[type=radio]:checked") || {}).value, h = $("[data-h]", c).value.trim();
+      if (mode === "run") { if (!h) throw Object.assign(new Error("Tip #" + id + " needs a headline to run."), { code: "__ui" }); tips.push({ id, headline: h }); }
+      if (mode === "reject") reject.push(id);
+    });
+    const lead = { headline: $("#leadh", v).value.trim(), deck: $("#leadd", v).value.trim() };
+    const rollEl = $("#pubroll", v);
+    return { include, tips, reject, lead, roll: rollEl ? rollEl.checked : false };
+  };
+  const msg = $("#pubmsg", v), say = (t, cls) => { msg.textContent = t; msg.className = "msg " + (cls || ""); };
+  $("#pubpv", v).onclick = async () => {
+    let body; try { body = gather(); } catch (e) { say(e.message, "err"); return; }
+    const btn = $("#pubpv", v); btn.disabled = true; btn.innerHTML = `<span class="spin"></span> Building…`; say("");
+    try {
+      const r = await pubApi("publish", { ...body, dry_run: true });
+      const fr = el(`<div class="pvframe" role="dialog" aria-label="Issue preview"><div class="pbar"><span class="small">Preview · Issue No. ${r.issue} as it would run${r.sleeper_ok ? "" : " (Sleeper down: no scoreboard)"}</span><button type="button" class="btn sm" id="pvx">Close</button></div><iframe title="Issue preview" sandbox="allow-scripts allow-same-origin allow-popups"></iframe></div>`);
+      overlay.appendChild(fr); $("iframe", fr).srcdoc = r.html; $("#pvx", fr).onclick = () => fr.remove();
+    } catch (err) { say(pubErr(err), "err"); }
+    btn.disabled = false; btn.textContent = "Preview the issue";
+  };
+  $("#pubgo", v).onclick = async () => {
+    let body; try { body = gather(); } catch (e) { say(e.message, "err"); return; }
+    const running = body.include.length, roasts = pf.rows.filter((r) => !body.include.includes(r.contributor_id) && !r.is_editor && r.roast).length;
+    if (!confirm(`${pf.already_published ? "Republish" : "Publish"} Issue No. ${pf.issue} (Week ${pf.week})?\n\n${running} piece${running === 1 ? "" : "s"} run as filed, ${roasts} roast${roasts === 1 ? "" : "s"}, ${body.tips.length} tip${body.tips.length === 1 ? "" : "s"}.${body.roll ? `\nThe desk then opens Week ${pf.week + 1}.` : ""}`)) return;
+    const btn = $("#pubgo", v); btn.disabled = true; btn.innerHTML = `<span class="spin"></span> Building, locking, pushing…`; say("This takes about half a minute.");
+    try {
+      const r = await pubApi("publish", body);
+      const line = `babe wake up, BBT Issue No. ${r.issue} is live: ${r.url}`;
+      v.replaceWith(el(`<div class="card pubresult"><h2>Issue No. ${r.issue} is out</h2>
+        <p>Week ${r.week} is on the site. GitHub Pages usually takes a minute or two to show it.</p>
+        <div class="row" style="margin-bottom:12px"><a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener">Open the issue</a><a class="btn" href="${esc(r.permalink)}" target="_blank" rel="noopener">Permalink</a></div>
+        ${r.rolled ? `<p>The desk is now on <b>Week ${r.next_week}</b>, locking ${esc(fmtDl(r.next_deadline))}.</p>` : `<p class="dim">The desk week wasn't changed.</p>`}
+        ${r.tips_published || r.tips_rejected ? `<p class="dim small">${r.tips_published} tip${r.tips_published === 1 ? "" : "s"} ran, ${r.tips_rejected} rejected.</p>` : ""}
+        <div class="lab" style="margin:14px 0 6px">For the group chat</div><div class="copybox" id="copyline">${esc(line)}</div>
+        <div class="row" style="margin-top:10px"><button type="button" class="btn sm" id="copybtn">Copy</button><button type="button" class="btn sm quiet" id="pubdone">Back to the desk</button></div></div>`));
+      $("#copybtn").onclick = async () => { try { await navigator.clipboard.writeText(line); toast("Copied"); } catch (e) { toast("Select and copy it"); } };
+      $("#pubdone").onclick = async () => { try { S.boot = await api("bootstrap"); } catch (e) {} S.adminWeek = null; S.adminTab = "week"; render("admin"); };
+    } catch (err) { say(pubErr(err), "err"); btn.disabled = false; btn.textContent = `${pf.already_published ? "Republish" : "Publish"} Issue No. ${pf.issue}`; }
+  };
 }
 function adminPeople(root) {
   const secs = S.boot.sections;
