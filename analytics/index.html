@@ -10,7 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23FF6A1F'/%3E%3Ctext x='32' y='42' font-family='Arial Black,Arial' font-weight='900' font-size='24' text-anchor='middle' fill='%230A1220'%3EBBT%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="../trade/core.css?v=1">
+<link rel="stylesheet" href="../trade/core.css?v=3">
 <style>
 /* League overview */
 .staff { display: grid; gap: 2px; background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--pylon); padding: 10px 12px; margin: 10px 0 12px; }
@@ -73,10 +73,10 @@ footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20
   <ul class="dlist" id="dissues"><li><a href="/big-brains-tribune/"><span class="mono">Latest issue</span><b>Read the Tribune</b></a></li></ul>
   <span class="lab">Tools</span>
   <ul class="dlist"><li><a href="/big-brains-tribune/trade/"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/" aria-current="page"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li><li><a href="/big-brains-tribune/desk/"><span class="mono">Contributor Desk</span><b>File your column</b></a></li></ul>
-  <p class="dim small">Big Brains Only. League word required.</p>
+  <p class="dim small">Big Brains Only. League password required.</p>
 </aside>
 
-<script src="../trade/core.js?v=1"></script>
+<script src="../trade/core.js?v=3"></script>
 <script>
 "use strict";
 const app = $("#app");
@@ -98,27 +98,30 @@ function render() {
   app.innerHTML = "";
   $("#toolwrap").hidden = !(S.word && S.data);
   if (!S.word || !S.data) return gate();
+  try { draw(); } catch (e) { renderError(e); }
+}
+function draw() {
   drawTweaks();
   if (S.view === "team" && S.team) teamView(); else league();
   const d = S.data, when = (iso) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
   $("#foot").innerHTML = `Values: FantasyCalc (${when(d.sources.fc.at)})${d.sources.dd.ok ? ` · Dynasty Daddy (${when(d.sources.dd.at)})` : " · Dynasty Daddy unavailable right now"} · dynasty, superflex, PPR. Rosters and the trade log from Sleeper. Nobody's bound by any of this.`;
 }
 function gate(err) {
-  const v = el(`<div class="gate"><div class="card"><h1>Big Brain Analytics</h1><p class="dim">League word, then every team in Big Brains Only, measured.</p>
-    <form id="gf"><div class="field"><label class="lab" for="gw">League word</label><input id="gw" type="password" autocapitalize="off" autocomplete="off" required></div>
+  const v = el(`<div class="gate"><div class="card"><h1>Big Brain Analytics</h1><p class="dim">League password, then every team in Big Brains Only, measured.</p>
+    <form id="gf"><div class="field"><label class="lab" for="gw">League password</label><input id="gw" type="password" autocapitalize="off" autocomplete="off" required></div>
     <button class="btn primary block" type="submit">Open</button><p class="msg err" id="gmsg">${esc(err || "")}</p></form></div></div>`);
   app.appendChild(v);
   $("#gf", v).onsubmit = async (e) => {
     e.preventDefault(); const w = norm($("#gw", v).value); if (!w) return;
     const b = $("button", v); b.disabled = true; $("#gmsg", v).textContent = "";
-    try { await start(w); } catch (err) { b.disabled = false; $("#gmsg", v).textContent = err.code === "wrong_word" ? "That's not the league word." : "Couldn't load values right now. Try again in a minute."; }
+    try { await start(w); } catch (err) { b.disabled = false; $("#gmsg", v).textContent = err.code === "wrong_word" ? "That's not the league password." : "Couldn't load values right now. Try again in a minute."; }
   };
 }
 async function start(word) {
   app.innerHTML = `<p class="dim" style="padding-top:24px"><span class="spin"></span> Pulling rosters, values and the trade log…</p>`;
   S.word = word;
-  const d = await api({}); prep(d);
-  store.set("word", word); S.data = d; S.sides = [{ rid: d.teams[0].rid, give: {} }];
+  let d; try { d = await api({}); } catch (e) { S.word = null; throw e; } // only a failed fetch is a password/network problem
+  prep(d); store.set("word", word); S.data = d; S.sides = [{ rid: d.teams[0].rid, give: {} }];
   const hash = location.hash.match(/^#team-(\d+)$/); if (hash && d.byRid[Number(hash[1])]) { S.view = "team"; S.team = Number(hash[1]); }
   render();
 }
@@ -214,7 +217,7 @@ $("#src").querySelectorAll("button").forEach((b) => b.onclick = () => { S.src = 
 $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.s === S.src)));
 $("#tune").onclick = () => tuneSheet();
 $("#brand").onclick = (e) => { e.preventDefault(); location.hash = ""; S.view = "league"; if (S.data) render(); };
-if (S.word) start(S.word).catch(() => { S.word = null; render(); }); else render();
+if (S.word) start(S.word).catch((e) => { S.word = null; if (e.code === "wrong_word") store.set("word", null); render(); const m = $("#gmsg"); if (m) m.textContent = e.code === "wrong_word" ? "The league password changed. Type the new one." : "Couldn't load values right now. Try again in a minute."; }); else render();
 </script>
 </body>
 </html>

@@ -35,7 +35,7 @@ function prep(d) {
   for (const pk of d.picks) d.assets[pk.id] = { id: pk.id, kind: "pick", name: pk.label, pos: "PICK", team: null, age: null, fc: pk.fc, dd: pk.dd, ddn: Math.round(pk.dd * scale), season: pk.season, round: pk.round, owner: pk.owner, orig: pk.orig, x: {} };
   d.byRid = Object.fromEntries(d.teams.map((t) => [t.rid, t]));
   d.holdings = {};
-  for (const t of d.teams) d.holdings[t.rid] = [...t.players, ...d.picks.filter((p) => p.owner === t.rid).map((p) => p.id)];
+  for (const t of d.teams) d.holdings[t.rid] = [...t.players.filter((id) => d.assets[id]), ...d.picks.filter((p) => p.owner === t.rid).map((p) => p.id)]; // only ids the maths knows
   d.trades = (d.trades || []).sort((a, b) => b.at - a.at);
   // FAAB as a tradable asset (one per team, amount set in the calculator). Only when the league actually runs FAAB.
   for (const t of d.teams) if (d.settings.faab_budget) d.assets[`faab:${t.rid}`] = { id: `faab:${t.rid}`, kind: "faab", name: "FAAB", pos: "FAAB", team: null, age: null, fc: 0, dd: 0, ddn: 0, amount: 0, left: t.faab ?? 0, rid: t.rid, x: {} };
@@ -69,6 +69,17 @@ const val = (a, src = S.src) => a.v ? a.v[src] : 0;
 const tuneHash = () => JSON.stringify(S.tune);
 const tweaksActive = () => Object.keys(TUNE_DEFAULT).filter((k) => S.tune[k] !== TUNE_DEFAULT[k] && k !== "faab");
 const badge = (t) => `<span class="tb" style="--c:var(${t.c})">${esc(t.k)}</span>`;
+// If drawing throws, show the error instead of a blank page. A drawing bug is never a password problem, so the stored
+// password stays put and the message says what actually happened (screenshot-able for the editor).
+function renderError(e) {
+  console.error(e);
+  const txt = (e && (e.stack || e.message)) || String(e);
+  app.innerHTML = "";
+  app.appendChild(el(`<div class="gate"><div class="card"><h1>That didn't draw</h1><p class="dim">The values loaded, but the page hit an error while drawing. Screenshot this and send it to the editor.</p>
+    <pre class="errbox">${esc(txt)}</pre><div class="row"><button type="button" class="btn primary" id="errreload">Reload</button><button type="button" class="btn" id="errreset">Reset settings &amp; reload</button></div></div></div>`));
+  $("#errreload").onclick = () => location.reload();
+  $("#errreset").onclick = () => { store.set("tune", null); store.set("tradesrc", null); location.reload(); };
+}
 const posTag = (a) => `<span class="pos ${a.pos}">${a.pos === "PICK" ? "PICK" : a.pos}</span>`;
 // ---------- lineup maths ----------
 const SLOT_OK = { QB: ["QB"], RB: ["RB"], WR: ["WR"], TE: ["TE"], FLEX: ["RB", "WR", "TE"], SUPER_FLEX: ["QB", "RB", "WR", "TE"], K: ["K"], DEF: ["DEF"] };

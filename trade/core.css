@@ -104,6 +104,8 @@ p { margin: 0 0 12px; }
 input[type=password], select { width: 100%; min-height: 48px; background: var(--bg); border: 1px solid var(--rule); padding: 10px 12px; font-size: 16px; border-radius: 6px; }
 .msg { min-height: 1.4em; font-size: 0.92rem; } .msg.err { color: var(--loss); }
 .gate { padding-top: 10vh; } .gate .card { border-top: 6px solid var(--yellow); padding: 24px 20px; }
+.errbox { font: 500 0.74rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--rule); padding: 10px; margin: 10px 0 12px; max-height: 40vh; overflow: auto; color: var(--ink); }
+.gate .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .field { display: grid; gap: 6px; margin-bottom: 14px; }
 .tabs { display: flex; gap: 6px; margin: 12px 0 10px; border-bottom: 1px solid var(--rule); }
 .tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 8px 10px; font-weight: 700; color: var(--ink-2); margin-bottom: -1px; }

@@ -416,7 +416,7 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
   <ul class="dlist"><li><a href="#" id="dhome"><span class="mono">Contributor Desk</span><b>File your column</b></a></li><li><a href="#" id="deditor"><span class="mono">Editor</span><b>Build the issue</b></a></li></ul>
   <span class="lab">Tools</span>
   <ul class="dlist"><li><a href="/big-brains-tribune/trade/"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li></ul>
-  <p class="dim small">Big Brains Only. League word required.</p>
+  <p class="dim small">Big Brains Only. League password required.</p>
 </aside>
 <div id="overlay"></div>
 
@@ -427,7 +427,7 @@ const ENDPOINT = "https://eempzkiumbnffftkqdas.supabase.co/functions/v1/tribune-
 const NFL = [["ARI","Cardinals"],["ATL","Falcons"],["BAL","Ravens"],["BUF","Bills"],["CAR","Panthers"],["CHI","Bears"],["CIN","Bengals"],["CLE","Browns"],["DAL","Cowboys"],["DEN","Broncos"],["DET","Lions"],["GB","Packers"],["HOU","Texans"],["IND","Colts"],["JAX","Jaguars"],["KC","Chiefs"],["LV","Raiders"],["LAC","Chargers"],["LAR","Rams"],["MIA","Dolphins"],["MIN","Vikings"],["NE","Patriots"],["NO","Saints"],["NYG","Giants"],["NYJ","Jets"],["PHI","Eagles"],["PIT","Steelers"],["SF","49ers"],["SEA","Seahawks"],["TB","Buccaneers"],["TEN","Titans"],["WAS","Commanders"]];
 const NAME = Object.fromEntries(NFL);
 const TIER_COLORS = ["#FF6A1F","#FFA23A","#FFD60A","#8FE3B5","#5BA4E6","#8B6B4A","#6B4C31","#4A3221"];
-const ERR = { wrong_word: "That's not the league word.", locked: "The desk is locked for this week.", not_admin: "That's not the editor word.", too_long: "That's too long for one piece.",
+const ERR = { wrong_word: "That's not the league password.", locked: "The desk is locked for this week.", not_admin: "That's not the editor word.", too_long: "That's too long for one piece.",
   image_too_big: "That image is too big. Try a smaller one.", bad_image: "That file type won't work. Use a JPG, PNG, GIF or WebP.", no_season: "Sleeper doesn't have that season.", no_games: "No games found for that week.", error: "Something went wrong. Try again." };
 
 // ---------- storage ----------
@@ -543,8 +543,8 @@ function render(view) {
 // ---------- gate ----------
 function gate(msg) {
   const v = el(`<div class="gate"><div class="card">
-    <h1>Big Brains only</h1><p class="dim">Type the league word to open the desk.</p>
-    <form id="gf"><div class="field"><label class="lab" for="gw">League word</label><input id="gw" type="password" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
+    <h1>Big Brains only</h1><p class="dim">Type the league password to open the desk.</p>
+    <form id="gf"><div class="field"><label class="lab" for="gw">League password</label><input id="gw" type="password" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
     <label class="check"><input type="checkbox" id="grem" checked> Remember me on this phone</label>
     <button class="btn primary block" type="submit">Let me in</button><p class="msg err" id="gmsg">${esc(msg || "")}</p></form></div></div>`);
   app.appendChild(v);
@@ -1063,7 +1063,7 @@ async function pubApi(action, body = {}) {
   return j;
 }
 const PUB_ERR = { no_github_token: "The publisher has no GitHub token yet. Add it to the project's Vault as github_token (or the GITHUB_TOKEN secret).", sleeper_down: "Sleeper didn't answer, so the scores and standings couldn't be pulled. Try again in a minute.",
-  no_template: "The paper's template couldn't be loaded from the site. Try again in a minute.", not_admin: "That's not the editor word.", wrong_word: "That's not the league word.", bad_week: "That week number doesn't work." };
+  no_template: "The paper's template couldn't be loaded from the site. Try again in a minute.", not_admin: "That's not the editor word.", wrong_word: "That's not the league password.", bad_week: "That week number doesn't work." };
 const pubErr = (err) => PUB_ERR[err.code] || (err.code && err.code.startsWith("github_") ? `GitHub said no (${err.code.slice(7)}). ${err.detail ? err.detail : "Check the token's permissions on the repo."}` : errText(err.code));
 const fmtDl = (iso) => iso ? new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(iso)) : "";
 // Headline markup, same rules as the publisher: [[yellow]] {{orange}} _italic_ ~~strike~~ **bold**.
@@ -1297,8 +1297,8 @@ function adminSettings(root) {
     <div class="field"><label class="lab">Deadline label contributors see</label><input type="text" name="deadline_label" value="${esc(B.deadline_label || "Due Tue 3 PM")}"></div>
     <button class="btn primary block" type="submit">Save settings</button><p class="msg"></p></form>
     <div class="card"><div class="lab" style="margin-bottom:8px">Words</div>
-    <p class="small dim">Changing the league word logs everyone out of the desk and the paper until they type the new one.</p>
-    <div class="row"><button type="button" class="btn sm" id="chw">Change league word</button><button type="button" class="btn sm" id="caw">Change editor word</button></div><p class="msg" id="wmsg"></p></div>`;
+    <p class="small dim">Changing the league password logs everyone out of the desk and the paper until they type the new one.</p>
+    <div class="row"><button type="button" class="btn sm" id="chw">Change league password</button><button type="button" class="btn sm" id="caw">Change editor word</button></div><p class="msg" id="wmsg"></p></div>`;
   $("#sf", root).onsubmit = async (e) => {
     e.preventDefault(); const fd = new FormData(e.target); const msg = $(".msg", e.target);
     const iso = chicagoToISO(fd.get("ddate"), fd.get("dtime"));
@@ -1311,7 +1311,7 @@ function adminSettings(root) {
     try { await api("set_settings", { settings: { [key]: norm(w) } }); if (key === "league_word") { S.word = norm(w); store.set("word", S.remember ? S.word : null); } else { S.admin_word = norm(w); store.set("aword", S.remember ? S.admin_word : null); }
       $("#wmsg").textContent = "Changed. Tell the group."; $("#wmsg").className = "msg ok"; } catch (err) { $("#wmsg").textContent = errText(err.code); $("#wmsg").className = "msg err"; }
   };
-  $("#chw", root).onclick = change("league_word", "league word"); $("#caw", root).onclick = change("admin_word", "editor word");
+  $("#chw", root).onclick = change("league_word", "league password"); $("#caw", root).onclick = change("admin_word", "editor word");
 }
 function chicagoToISO(date, time) {
   // Find the UTC instant whose Chicago wall-clock equals date+time (handles DST by probing both offsets).
@@ -1386,7 +1386,7 @@ $("#brand").onclick = (e) => { e.preventDefault(); if (!S.word) return; banner.c
     await boot();
     const me = cid && S.boot.contributors.find((c) => String(c.id) === cid && c.active);
     if (me) { S.me = me; openPiece(); } else render("picker");
-  } catch (err) { S.word = null; store.set("word", null); render("gate"); if (err.code === "wrong_word") $("#gmsg").textContent = "The league word changed. Type the new one."; }
+  } catch (err) { S.word = null; store.set("word", null); render("gate"); if (err.code === "wrong_word") $("#gmsg").textContent = "The league password changed. Type the new one."; }
 })();
 })();
 </script>
