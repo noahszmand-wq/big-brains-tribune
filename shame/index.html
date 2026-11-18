@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A1220" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F6F3EC" media="(prefers-color-scheme: light)">
+<title>Wall of Shame</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23FF6A1F'/%3E%3Ctext x='32' y='42' font-family='Arial Black,Arial' font-weight='900' font-size='24' text-anchor='middle' fill='%230A1220'%3EBBT%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../trade/core.css?v=3">
+<style>
+.lhead { margin: 14px 0 6px; } .lhead h1 { margin: 0; font-size: 2.4rem; line-height: 0.95; } .lhead p { color: var(--ink-2); margin: 6px 0 0; }
+.lhead h1 span { color: var(--pylon); }
+.most { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+.most .mt { background: var(--surface); border: 1px solid var(--rule); border-top: 5px solid var(--pylon); border-radius: 6px; padding: 10px 12px; display: grid; gap: 4px; }
+.most .mt .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.most .mt .v { font-family: var(--display); font-weight: 900; font-size: 1.6rem; line-height: 1; display: flex; align-items: center; gap: 8px; }
+.most .mt .s { font-size: 0.76rem; color: var(--ink-2); }
+.tally { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+.tally > span { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--rule); border-radius: 999px; padding: 3px 10px 3px 4px; font-size: 0.82rem; font-weight: 700; }
+.tally > span > b { font-family: var(--display); font-size: 1.05rem; }
+.sec { margin: 22px 0 0; } .sec h2 { margin: 0; font-size: 1.5rem; line-height: 1; } .sec .lede { color: var(--ink-2); margin: 4px 0 10px; font-size: 0.9rem; }
+.sec h2 .cat { display: inline-block; vertical-align: middle; font-family: var(--body); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: var(--pylon); color: var(--on-pylon); border-radius: 4px; padding: 3px 6px; margin-left: 8px; }
+ol.wall { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.wall li { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
+.wall li:first-child { border-color: var(--pylon); box-shadow: inset 4px 0 0 var(--pylon); }
+.wall .rk { font-family: var(--display); font-weight: 900; font-size: 1.5rem; color: var(--ink-2); line-height: 1; }
+.wall li:first-child .rk { color: var(--pylon); }
+.wall .who { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 0.95rem; }
+.wall .what { font-size: 0.86rem; line-height: 1.35; margin-top: 2px; }
+.wall .what i { font-style: normal; color: var(--ink-2); }
+.wall .when { font-size: 0.72rem; color: var(--ink-2); margin-top: 3px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+.wall .num { text-align: right; font-family: var(--display); font-weight: 900; font-size: 1.35rem; line-height: 1; }
+.wall .num small { display: block; font-family: var(--body); font-weight: 600; font-size: 0.66rem; color: var(--ink-2); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+.wall .num.dn { color: var(--loss); }
+.empty { color: var(--ink-2); font-size: 0.9rem; background: var(--surface); border: 1px dashed var(--rule); padding: 12px; border-radius: 6px; }
+.note { font-size: 0.78rem; color: var(--ink-2); margin: 18px 0 0; }
+footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20px 16px; }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <button type="button" class="menu-btn" id="menubtn" aria-expanded="false" aria-controls="ddrawer" aria-label="Open the menu"><i></i><i></i><i></i></button>
+  <a class="brand" href="#" id="brand"><span class="mark">BBT</span><span class="word">Wall of Shame</span></a>
+</div></header>
+<main class="wrap"><div id="toolwrap" hidden><div class="tool"><div class="seg" id="src" role="group" aria-label="Value model"><button type="button" data-s="fc" aria-pressed="false">FC<small>FantasyCalc</small></button><button type="button" data-s="dd" aria-pressed="false">DD<small>Dynasty Daddy</small></button><button type="button" data-s="both" aria-pressed="true">Blend<small>FC + DD</small></button></div><button type="button" class="tunebtn" id="tune" aria-haspopup="dialog">⚙ Tune<span class="n" id="tunen"></span></button></div><div class="tweaks" id="tweaks"></div></div><div id="app" aria-live="polite"></div></main>
+<footer id="foot"></footer>
+<div class="ddrawer-bg" id="ddbg" hidden></div>
+<aside class="ddrawer" id="ddrawer" aria-label="Menu" hidden>
+  <div class="dh"><span class="brand"><span class="mark">BBT</span><span class="word">Tribune</span></span><button type="button" class="dclose" id="ddclose" aria-label="Close">✕</button></div>
+  <span class="lab">The paper</span>
+  <ul class="dlist" id="dissues"><li><a href="/big-brains-tribune/"><span class="mono">Latest issue</span><b>Read the Tribune</b></a></li></ul>
+  <span class="lab">Tools</span>
+  <ul class="dlist"><li><a href="/big-brains-tribune/trade/"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li><li><a href="/big-brains-tribune/shame/" aria-current="page"><span class="mono">Wall of Shame</span><b>The worst of all time</b></a></li></ul>
+  <span class="lab">The desk</span>
+  <ul class="dlist"><li><a href="/big-brains-tribune/desk/"><span class="mono">Contributor Desk</span><b>File your column</b></a></li></ul>
+  <p class="dim small">Big Brains Only. League password required.</p>
+</aside>
+
+<script src="../trade/core.js?v=3"></script>
+<script>
+"use strict";
+const app = $("#app");
+const S = { word: store.get("word"), data: null, shame: null, src: store.get("tradesrc") || "both", sides: [{ rid: null, give: {} }], sugCache: {}, hist: {}, histReq: 0, tune: loadTune() };
+
+// ---------- side menu ----------
+const drawer = $("#ddrawer"), ddbg = $("#ddbg");
+const openMenu = (o) => { drawer.hidden = !o; ddbg.hidden = !o; $("#menubtn").setAttribute("aria-expanded", String(o)); };
+$("#menubtn").onclick = () => openMenu(true); $("#ddclose").onclick = () => openMenu(false); ddbg.onclick = () => openMenu(false);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") openMenu(false); });
+fetch("/big-brains-tribune/issues.json", { cache: "no-store" }).then((r) => r.json()).then((j) => {
+  const list = $("#dissues"), issues = [...(j.issues || [])].sort((x, y) => y.week - x.week); if (!issues.length) return;
+  const li = (x, latest) => `<li><a href="${latest ? "/big-brains-tribune/" : `/big-brains-tribune/week-${x.week}/`}"><span class="mono">Issue No. ${x.issue}</span><b>Week ${x.week}</b>${latest ? "<em>Latest</em>" : ""}</a></li>`;
+  list.innerHTML = li(issues[0], true) + (issues.length > 1 ? `<li><details><summary><span class="mono">BBArchive</span><b>${issues.length - 1} past issue${issues.length === 2 ? "" : "s"}</b></summary><ul class="dlist">${issues.slice(1).map((x) => li(x, false)).join("")}</ul></details></li>` : "");
+}).catch(() => {});
+
+// ---------- views ----------
+function render() {
+  app.innerHTML = "";
+  $("#toolwrap").hidden = !(S.word && S.data);
+  if (!S.word || !S.data) return gate();
+  try { draw(); } catch (e) { renderError(e); }
+}
+function gate(err) {
+  const v = el(`<div class="gate"><div class="card"><h1>Wall of Shame</h1><p class="dim">League password, then the worst moves in Big Brains Only history.</p>
+    <form id="gf"><div class="field"><label class="lab" for="gw">League password</label><input id="gw" type="password" autocapitalize="off" autocomplete="off" required></div>
+    <button class="btn primary block" type="submit">Open</button><p class="msg err" id="gmsg">${esc(err || "")}</p></form></div></div>`);
+  app.appendChild(v);
+  $("#gf", v).onsubmit = async (e) => {
+    e.preventDefault(); const w = norm($("#gw", v).value); if (!w) return;
+    const b = $("button", v); b.disabled = true; $("#gmsg", v).textContent = "";
+    try { await start(w); } catch (err) { b.disabled = false; $("#gmsg", v).textContent = err.code === "wrong_word" ? "That's not the league password." : "Couldn't load values right now. Try again in a minute."; }
+  };
+}
+async function start(word) {
+  app.innerHTML = `<p class="dim" style="padding-top:24px"><span class="spin"></span> Digging through three seasons of regrettable decisions…</p>`;
+  S.word = word;
+  let d, h; try { [d, h] = await Promise.all([api({}), api({ action: "shame" })]); } catch (e) { S.word = null; throw e; }
+  prep(d);
+  // Every player the history mentions gets a seat in the value engine, even if nobody rosters him any more.
+  for (const [id, p] of Object.entries(h.players || {})) if (!d.assets[id]) d.assets[id] = { id, kind: "player", name: p.n, pos: p.p, team: p.t, age: p.a, fc: p.fc || 0, dd: p.dd || 0, ddn: Math.round((p.dd || 0) * d.scale), rank: 0, posRank: 0, ddPosRank: 0, trend: 0, x: {} };
+  recompute(d);
+  store.set("word", word); S.data = d; S.shame = h; S.sides = [{ rid: d.teams[0].rid, give: {} }];
+  render();
+}
+
+// ---------- the wall ----------
+const team = (rid) => S.data.byRid[rid] || { rid, name: `Team ${rid}`, k: `T${rid}`, c: "--t1" };
+const who = (rid) => `${badge(team(rid))} ${esc(team(rid).name)}`;
+const holder = (id) => S.data.teams.find((t) => S.data.holdings[t.rid].includes(id)) || null;
+const a = (id) => S.data.assets[id] || { id, kind: "player", name: "an unknown player", pos: "?", team: null, age: null, fc: 0, dd: 0, v: { fc: 0, dd: 0, both: 0 } };
+const pname = (id) => { const x = a(id); return `${esc(x.name)}${x.pos && x.pos !== "?" ? ` <i>${esc(x.pos)}</i>` : ""}`; };
+const gone = (x) => x.kind === "player" && !x.team && !(x.v && val(x) > 0);
+const neg = (n) => `−${fmt(Math.abs(n))}`;
+const row = (i, rid, what, when, num, sub, dn = true) => `<li><span class="rk">#${i + 1}</span><div><div class="who">${who(rid)}</div><div class="what">${what}</div><div class="when">${when}</div></div><div class="num ${dn ? "dn" : ""}">${num}${sub ? `<small>${sub}</small>` : ""}</div></li>`;
+const list = (items, empty) => items.length ? `<ol class="wall">${items.join("")}</ol>` : `<p class="empty">${empty}</p>`;
+const sec = (title, cat, lede, body) => `<div class="sec"><h2>${title}<span class="cat">${cat}</span></h2><p class="lede">${lede}</p>${body}</div>`;
+
+function build() {
+  const d = S.data, H = S.shame, top = Math.max(1, ...Object.values(d.assets).map((x) => val(x) || 0));
+  const tally = {}; const shame = (rid) => { tally[rid] = (tally[rid] || 0) + 1; };
+  const out = [];
+
+  // 1. Trades: every side that is under water at today's values, worst first.
+  const trades = [];
+  for (const t of realTrades(d)) { const sides = tradeSides(t, d); for (const [rid, x] of Object.entries(sides)) { const net = x.got - x.gave; if (net < 0 && x.gave > 0) trades.push({ t, rid: Number(rid), net, x }); } }
+  trades.sort((p, q) => p.net - q.net);
+  out.push(sec("Worst trades", "all-time", "Scored at today's values: what each side gave versus what it got, every completed trade since 2024. The expansion-draft transfers don't count.", list(trades.slice(0, 8).map((e, i) => {
+    const gave = [...Object.entries(e.t.drops || {}).filter(([, r]) => r === e.rid).map(([id]) => pname(id)), ...e.t.picks.filter((p) => p.prev === e.rid).map((p) => `${p.season} ${ordinal(p.round)}`)];
+    const got = [...Object.entries(e.t.adds).filter(([, r]) => r === e.rid).map(([id]) => pname(id)), ...e.t.picks.filter((p) => p.owner === e.rid).map((p) => `${p.season} ${ordinal(p.round)}`)];
+    const partners = e.t.rids.filter((r) => r !== e.rid).map((r) => esc(team(r).k)).join(", ");
+    shame(e.rid);
+    return row(i, e.rid, `Gave ${gave.join(", ") || "nothing"} <i>for</i> ${got.join(", ") || "nothing"} <i>· with ${partners}</i>`, `${e.t.season} · Wk ${e.t.week}`, neg(e.net), "value today");
+  }), "No trade is under water yet. Suspicious.")));
+
+  // 2. Cuts: players dropped to waivers / free agency who are worth the most today (and aren't back on the same roster).
+  const seen = new Set(), cuts = [];
+  for (const m of [...H.moves].sort((p, q) => p.at - q.at)) for (const [id, rid] of Object.entries(m.drops)) {
+    const key = `${id}:${rid}`; if (seen.has(key)) continue; seen.add(key);
+    const x = a(id), v = val(x); if (!v) continue;
+    const h = holder(id); if (h && h.rid === rid) continue; // got him back
+    cuts.push({ m, id, rid, v, h });
+  }
+  cuts.sort((p, q) => q.v - p.v);
+  out.push(sec("Worst cuts", "all-time", "Players dropped to waivers or free agency, ranked by what they're worth today. A cut you later undid doesn't count.", list(cuts.slice(0, 8).map((e, i) => { shame(e.rid); const x = a(e.id); return row(i, e.rid, `Cut ${pname(e.id)}${x.posRank ? ` <i>· ${esc(x.pos)}${x.posRank} today</i>` : ""} <i>· now ${e.h ? `on ${esc(e.h.k)}` : "a free agent"}</i>`, `${e.m.season} · Wk ${e.m.week} · ${e.m.type === "waiver" ? "waiver move" : "free agency"}`, fmt(e.v), "worth today"); }), "Nobody has cut anyone who matters. Yet.")));
+
+  // 3. FAAB: the biggest bids on players who turned into nothing.
+  const bids = [];
+  for (const m of H.moves) if (m.type === "waiver" && m.bid > 0) for (const [id, rid] of Object.entries(m.adds)) {
+    const x = a(id), v = val(x), still = (d.holdings[rid] || []).includes(id);
+    const later = H.moves.find((n) => n.season === m.season && n.at > m.at && n.drops[id] === rid);
+    bids.push({ m, id, rid, v, still, later, score: m.bid * (1 - Math.min(1, v / (0.25 * top))) });
+  }
+  bids.sort((p, q) => q.score - p.score || q.m.bid - p.m.bid);
+  const burned = {}; for (const b of bids) if (!b.still) burned[b.rid] = (burned[b.rid] || 0) + b.m.bid;
+  const burnTop = Object.entries(burned).sort((p, q) => q[1] - p[1]).slice(0, 3);
+  out.push(sec("Worst FAAB bids", "all-time", `Blind bids on players who are worth next to nothing now${d.settings.faab_budget ? ` ($${d.settings.faab_budget} budget a season)` : ""}. Bigger bid, smaller player, higher on the wall.`, list(bids.filter((b) => b.m.bid >= 3).slice(0, 8).map((e, i) => { shame(e.rid); const x = a(e.id); return row(i, e.rid, `$${e.m.bid} on ${pname(e.id)} <i>· ${gone(x) ? "out of the league" : e.still ? "still on the roster" : e.later ? `cut again in Wk ${e.later.week}` : "long gone"}${e.v ? `, worth ${fmt(e.v)} today` : ""}</i>`, `${e.m.season} · Wk ${e.m.week}`, `$${e.m.bid}`, "faab"); }), "No FAAB has been wasted. Impossible, but okay.") + (burnTop.length ? `<p class="note" style="margin-top:8px">Most FAAB burned on players since cut: ${burnTop.map(([rid, n]) => `${who(Number(rid))} $${n}`).join(" · ")}.</p>` : "")));
+
+  // 4. Weeks: the lowest scores ever posted, and the worst beatdowns.
+  const lows = [...H.games].sort((p, q) => p.pts - q.pts).slice(0, 8);
+  out.push(sec("Worst weeks", "all-time", "The lowest scores anyone has put up in a real game, three seasons deep.", list(lows.map((g, i) => { shame(g.rid); return row(i, g.rid, `${g.pts.toFixed(2)} against ${who(g.opp)} <i>(${g.oppPts.toFixed(2)})</i>`, `${g.season} · Wk ${g.week}`, g.pts.toFixed(2), "points"); }), "No games on record.")));
+  const beat = [...H.games].map((g) => ({ ...g, margin: g.oppPts - g.pts })).filter((g) => g.margin > 0).sort((p, q) => q.margin - p.margin).slice(0, 5);
+  out.push(sec("Worst beatdowns", "all-time", "Largest losing margins. The loser is the one on the wall.", list(beat.map((g, i) => { shame(g.rid); return row(i, g.rid, `Lost to ${who(g.opp)} ${g.oppPts.toFixed(2)} to ${g.pts.toFixed(2)}`, `${g.season} · Wk ${g.week}`, `−${g.margin.toFixed(2)}`, "margin"); }), "No blowouts on record.")));
+
+  // 5. Seasons: the worst records.
+  const cur = d.settings.season, recs = [];
+  for (const s of H.seasons) for (const t of s.teams) { const g = t.wins + t.losses + t.ties; if (g >= 4) recs.push({ ...t, season: s.season, pct: (t.wins + 0.5 * t.ties) / g, g }); }
+  recs.sort((p, q) => p.pct - q.pct || p.pf - q.pf);
+  out.push(sec("Worst seasons", "all-time", "Records by season, worst winning percentage first. This season counts as it stands.", list(recs.slice(0, 6).map((r, i) => { shame(r.rid); return row(i, r.rid, `${r.wins}–${r.losses}${r.ties ? `–${r.ties}` : ""}${r.season === cur ? " <i>so far</i>" : ""} <i>· ${fmt(r.pf)} for, ${fmt(r.pa)} against</i>`, `${r.season} season`, `.${Math.round(r.pct * 1000).toString().padStart(3, "0")}`, "win pct"); }), "No seasons on record.")));
+
+  // 6. Drafts: first-round rookie picks (and the first two startup rounds) that are worth the least today.
+  const picks = H.draft.filter((p) => (p.type === "rookie" && p.round === 1) || (p.type === "startup" && p.round <= 2)).map((p) => ({ ...p, v: val(a(p.pid)) })).sort((p, q) => p.v - q.v);
+  out.push(sec("Worst draft picks", "all-time", "First-round rookie picks and the first two rounds of the startup draft, ranked by what the player is worth today.", list(picks.slice(0, 8).map((p, i) => { shame(p.rid); const x = a(p.pid); return row(i, p.rid, `${pname(p.pid)} <i>· ${p.type === "startup" ? "startup" : "rookie"} pick ${p.round}.${String(p.pick - (p.round - 1) * (H.draft.filter((q) => q.season === p.season && q.type === p.type && q.round === 1).length || 10)).padStart(2, "0")}${gone(x) ? " · out of the league" : x.team ? ` · ${esc(x.team)}` : ""}</i>`, `${p.season} ${p.type} draft`, fmt(p.v), "worth today"); }), "No drafts on record.")));
+
+  // 7. Right now: the thinnest rosters in the league today.
+  const tt = teamTotals(d), thin = [...d.teams].sort((p, q) => tt[p.rid].total - tt[q.rid].total).slice(0, 3);
+  out.push(sec("Worst rosters right now", "today", `Lowest total roster value on ${SRC_NAME[S.src]} with your Tune settings. Not all-time, just today's standings of sadness.`, list(thin.map((t, i) => { shame(t.rid); return row(i, t.rid, `${fmt(tt[t.rid].starters)} in the lineup, ${fmt(tt[t.rid].bench)} on the bench, ${fmt(tt[t.rid].picks)} in picks <i>· ${t.wins}–${t.losses}, seed ${t.seed}</i>`, `${cur} · ${contending(t, d) ? "contending" : "rebuilding"}`, fmt(tt[t.rid].total), `${ordinal(d.teams.length - i)} of ${d.teams.length}`); }), "")));
+
+  return { out, tally };
+}
+function draw() {
+  drawTweaks();
+  const d = S.data, H = S.shame, { out, tally } = build();
+  const ranked = Object.entries(tally).map(([rid, n]) => ({ rid: Number(rid), n })).sort((p, q) => q.n - p.n);
+  const most = ranked[0], real = realTrades(d).length;
+  const v = el(`<div>
+    <div class="lhead"><h1>Wall of <span>Shame</span></h1><p>The worst trades, cuts, bids, weeks, seasons and draft picks in Big Brains Only history, three seasons deep, scored at today's values. Nobody asked for this.</p></div>
+    <div class="most">
+      <div class="mt"><div class="k">Most shamed desk</div><div class="v">${most ? `${badge(team(most.rid))}<span>${most.n}</span>` : "–"}</div><div class="s">${most ? `appearances on this wall` : "nothing yet"}</div></div>
+      <div class="mt"><div class="k">On record</div><div class="v"><span>${H.moves.length}</span></div><div class="s">waiver &amp; FA moves · ${real} trades · ${H.games.length / 2} games · ${H.draft.length} draft picks</div></div>
+    </div>
+    <div class="tally">${ranked.map((r) => `<span>${badge(team(r.rid))}<b>${r.n}</b></span>`).join("")}</div>
+    ${out.join("")}
+    <p class="note">Values are ${SRC_NAME[S.src]} (dynasty, superflex, PPR) with your Tune settings; switch models up top and the wall re-sorts. Moves, scores, drafts and records come from Sleeper's history for this league and its two previous seasons. Players who have left the league are worth 0, which is exactly the point.</p>
+  </div>`);
+  app.appendChild(v);
+  const when = (iso) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
+  $("#foot").innerHTML = `Values: FantasyCalc (${when(d.sources.fc.at)})${d.sources.dd.ok ? ` · Dynasty Daddy (${when(d.sources.dd.at)})` : " · Dynasty Daddy unavailable right now"} · history from Sleeper (${when(H.at)}). Nobody's bound by any of this.`;
+}
+
+// ---------- toolbar + boot ----------
+$("#src").querySelectorAll("button").forEach((b) => b.onclick = () => { S.src = b.dataset.s; store.set("tradesrc", S.src); $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); S.sugCache = {}; if (S.data) render(); });
+$("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.s === S.src)));
+$("#tune").onclick = () => tuneSheet();
+$("#brand").onclick = (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+if (S.word) start(S.word).catch((e) => { S.word = null; if (e.code === "wrong_word") store.set("word", null); render(); const m = $("#gmsg"); if (m) m.textContent = e.code === "wrong_word" ? "The league password changed. Type the new one." : "Couldn't load values right now. Try again in a minute."; }); else render();
+</script>
+</body>
+</html>
