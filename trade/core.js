@@ -154,10 +154,16 @@ function gmStats(d, sinceMs) {
   const seasons = Math.max(1, new Set(trades.map((t) => t.season)).size);
   const per = Object.fromEntries(d.teams.map((t) => [t.rid, { n: 0, moved: 0, net: 0, ddNet: 0, ddGot: 0, ddGave: 0, wins: 0, bold: 0, best: null, worst: null }]));
   for (const t of trades) { const sides = tradeSides(t, d); for (const [rid, x] of Object.entries(sides)) { const p = per[rid]; if (!p) continue; const net = x.got - x.gave; p.n++; p.moved += (x.got + x.gave) / 2; p.net += net; p.ddNet += x.gotDD - x.gaveDD; p.ddGot += x.gotDD; p.ddGave += x.gaveDD; if (net > 0) p.wins++; if (x.bold) p.bold++; if (!p.best || net > p.best.net) p.best = { net, t }; if (!p.worst || net < p.worst.net) p.worst = { net, t }; } }
-  const rids = d.teams.map((t) => t.rid), pr = (key) => { const vals = rids.map((r) => key(per[r])); return Object.fromEntries(rids.map((r) => [r, rids.length > 1 ? vals.filter((v) => v < key(per[r])).length / (rids.length - 1) : 0])); };
-  const rate = pr((p) => p.n / seasons), size = pr((p) => p.n ? p.moved / p.n : 0), bold = pr((p) => p.n ? p.bold / p.n : 0);
+  // Centered on the league: each component is scaled so the league average sits at 0.50 (double the average = 1.00), then
+  // success is shifted so its league mean is exactly 0.50. A desk with no trades sits at 0 / blank.
+  const rids = d.teams.map((t) => t.rid), active = rids.filter((r) => per[r].n > 0);
+  const mean = (f) => active.length ? active.reduce((s, r) => s + f(per[r]), 0) / active.length : 0;
+  const comp = (p, f, m) => (m > 0 ? Math.min(1, f(p) / (2 * m)) : 0);
+  const mRate = mean((p) => p.n / seasons), mSize = mean((p) => p.moved / p.n), mBold = mean((p) => p.bold / p.n);
+  const rawSucc = (p) => 0.5 * (p.wins / p.n) + 0.5 * (0.5 + 0.5 * Math.max(-1, Math.min(1, p.net / (p.moved || 1))));
+  const mSucc = mean(rawSucc);
   const out = {};
-  for (const r of rids) { const p = per[r]; const aggression = p.n ? 0.5 * rate[r] + 0.3 * size[r] + 0.2 * bold[r] : 0; const success = p.n ? 0.5 * (p.wins / p.n) + 0.5 * (0.5 + 0.5 * Math.max(-1, Math.min(1, p.net / (p.moved || 1)))) : null; out[r] = { ...p, aggression, success, seasons }; }
+  for (const r of rids) { const p = per[r]; const aggression = p.n ? 0.5 * comp(p, (q) => q.n / seasons, mRate) + 0.3 * comp(p, (q) => q.moved / q.n, mSize) + 0.2 * comp(p, (q) => q.bold / q.n, mBold) : 0; const success = p.n ? Math.max(0, Math.min(1, 0.5 + (rawSucc(p) - mSucc))) : null; out[r] = { ...p, aggression, success, seasons }; }
   return out;
 }
 function gmIndex(d) {
@@ -176,9 +182,9 @@ const ddNetTxt = (g) => `${g.ddNet >= 0 ? "+" : "−"}${fmt(Math.abs(g.ddNet))} 
 // The definitions, called out at the top of each tool.
 const indexCallout = (open) => `<details class="defs" ${open ? "open" : ""}><summary><b>The indexes</b><span>Aggression · Success · how the trends work</span></summary>
   <div class="defgrid">
-    <div><b>Aggression (0–1)</b><p>How much of a dealer a GM is, as a league percentile: half how often they trade (per season), 30% how much value moves per deal, 20% how often a 1st-round pick or a top asset is involved. 1.00 is the most aggressive desk in Big Brains Only; 0 means no trades on record.</p></div>
-    <div><b>Trade success (0–1)</b><p>How a GM's deals have aged, scored at today's values: half the share of trades where what they got is now worth more than what they gave, half their net value gained as a share of everything they moved. 0.50 is break-even; above it the deals have held up.</p></div>
-    <div><b>The trend in brackets</b><p>The same index computed on the last six months only, compared with the full record (two seasons back). <i class="up">↑</i> means up by more than 0.10, <i class="dn">↓</i> down by more than 0.10, – within that band, with the exact change shown, e.g. (↑ +0.14). "No deals in 6 mo" means the desk has been quiet.</p></div>
+    <div><b>Aggression (0–1)</b><p>How much of a dealer a GM is, measured against the league: half how often they trade (per season), 30% how much value moves per deal, 20% how often a 1st-round pick or a top asset is involved. Each part is scaled so the league average is 0.50 and double the average is 1.00; 0 means no trades on record.</p></div>
+    <div><b>Trade success (0–1)</b><p>How a GM's deals have aged, scored at today's values: half the share of trades where what they got is now worth more than what they gave, half their net value gained as a share of everything they moved, then centered so the league average is exactly 0.50. Above 0.50 means better than the average desk; below it, worse.</p></div>
+    <div><b>The trend in brackets</b><p>The same index computed on the last six months only (against that window's league average), compared with the full record (two seasons back). <i class="up">↑</i> means up by more than 0.10, <i class="dn">↓</i> down by more than 0.10, – within that band, with the exact change shown, e.g. (↑ +0.14). "No deals in 6 mo" means the desk has been quiet.</p></div>
     <div><b>All-time on trades (DD pts)</b><p>Everything a GM has received in trades minus everything they have given, in raw Dynasty Daddy points (0–9,999 per asset) at today's values. Positive means their trade pieces have held more value than what they sent out.</p></div>
     <div><b>Values</b><p>Player and pick values come from FantasyCalc and Dynasty Daddy (dynasty, superflex, PPR), blended by default, with your Tune settings applied. Old trades are scored at today's prices, so a deal's success reflects how the pieces have held value since, not what they cost on the day.</p></div>
   </div></details>`;
