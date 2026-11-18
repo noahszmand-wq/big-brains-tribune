@@ -415,7 +415,9 @@ footer button { background: none; border: 0; color: var(--ink-2); text-decoratio
   <span class="lab">The desk</span>
   <ul class="dlist"><li><a href="#" id="dhome"><span class="mono">Contributor Desk</span><b>File your column</b></a></li><li><a href="#" id="deditor"><span class="mono">Editor</span><b>Build the issue</b></a></li></ul>
   <span class="lab">Tools</span>
-  <ul class="dlist"><li><a href="/big-brains-tribune/trade/"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li><li><a href="/big-brains-tribune/shame/"><span class="mono">Wall of Shame</span><b>The worst of all time</b></a></li></ul>
+  <ul class="dlist"><li><a href="/big-brains-tribune/trade/"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li></ul>
+  <span class="lab">History</span>
+  <ul class="dlist"><li><a href="/big-brains-tribune/history/#fame"><span class="mono">Hall of Fame</span><b>The best of all time</b></a></li><li><a href="/big-brains-tribune/shame/"><span class="mono">Wall of Shame</span><b>The worst of all time</b></a></li><li><a href="/big-brains-tribune/history/#rivals"><span class="mono">Rivalries</span><b>Head-to-head, every pair</b></a></li><li><a href="/big-brains-tribune/history/#drafts"><span class="mono">Draft report cards</span><b>Every pick, graded</b></a></li></ul>
   <p class="dim small">Big Brains Only. League password required.</p>
 </aside>
 <div id="overlay"></div>
@@ -1123,7 +1125,7 @@ async function adminPublish(root) {
 
     <div class="step"><span class="n">4</span><h2>Ship it</h2></div>
     ${pf.is_current ? `<label class="check card" style="margin-bottom:12px"><input type="checkbox" id="pubroll" ${P.roll ? "checked" : ""}> <span>Open Week ${pf.week + 1} after publishing <span class="dim small">· desk deadline moves to ${esc(fmtDl(pf.next_deadline))}</span></span></label>` : `<p class="dim small">This is an archive week, so the desk's current week won't change.</p>`}
-    <div class="shipbar"><div class="row"><button type="button" class="btn" id="pubpv">Preview the issue</button><button type="button" class="btn primary" id="pubgo" ${pf.github_ok && pf.sleeper_ok ? "" : "disabled"}>${pf.already_published ? "Republish" : "Publish"} No. ${pf.issue}</button></div><p class="msg" id="pubmsg"></p></div></div>`);
+    <div class="shipbar"><div class="row"><button type="button" class="btn" id="pubpv">Preview the issue</button><button type="button" class="btn" id="pubtxt">Group-chat text</button><button type="button" class="btn primary" id="pubgo" ${pf.github_ok && pf.sleeper_ok ? "" : "disabled"}>${pf.already_published ? "Republish" : "Publish"} No. ${pf.issue}</button></div><p class="msg" id="pubmsg"></p><div id="pubtxtbox" hidden><div class="lab" style="margin:12px 0 6px">For the group chat · written from this week's numbers, edit anything</div><textarea id="pubtxtarea" rows="12" style="width:100%;font:inherit;font-size:0.95rem;line-height:1.45;padding:10px;background:var(--bg);border:1px solid var(--rule);border-radius:6px;color:inherit"></textarea><div class="row" style="margin-top:8px"><button type="button" class="btn sm" id="pubtxtcopy">Copy</button><button type="button" class="btn sm quiet" id="pubtxtre">Rewrite from scratch</button></div></div></div></div>`);
   root.querySelector("p.dim").replaceWith(v);
 
   // ----- 1. lineup -----
@@ -1217,6 +1219,40 @@ async function adminPublish(root) {
     } catch (err) { say(pubErr(err), "err"); }
     btn.disabled = false; btn.textContent = "Preview the issue";
   };
+  // ----- group-chat text: the announcement, written from the lead, the lineup, the tea and the scoreboard -----
+  const chatText = (url) => {
+    const plainMark = (t) => String(t || "").replace(/\[\[(.+?)\]\]/g, "$1").replace(/\{\{(.+?)\}\}/g, "$1").replace(/~~(.+?)~~/g, "$1").replace(/\*\*(.+?)\*\*/g, "$1").replace(/(^|[^\w])_([^_]+?)_(?=[^\w]|$)/g, "$1$2").trim();
+    const running = P.layout.filter((l) => l.on && rowsBy[l.id] && rowsBy[l.id].has_content && !rowsBy[l.id].is_editor).map((l) => rowsBy[l.id]);
+    const roasts = P.layout.filter((l) => !l.on && rowsBy[l.id] && rowsBy[l.id].roast && !rowsBy[l.id].is_editor).map((l) => rowsBy[l.id]);
+    const tips = pf.tips.filter((t) => ((P.tips[t.id] || {}).mode || "run") === "run").length;
+    const notes = (pf.notes || []).filter((n) => P.notes[n.id]);
+    const byKind = (k) => running.filter((r) => r.kind === k);
+    const lines = [];
+    lines.push(`Babe wake up, BBT Issue No. ${pf.issue} (Week ${pf.week}) is live.`);
+    lines.push("");
+    const h = plainMark($("#leadh", v).value || P.lead.headline), dk = plainMark($("#leadd", v).value || P.lead.deck);
+    if (h) lines.push(h.toUpperCase());
+    if (dk) lines.push(dk.replace(/\s*In this issue:.*$/s, "").trim());
+    lines.push("");
+    const bits = [];
+    if (byKind("tiers").length) bits.push(`${byKind("tiers").map((r) => r.name.split(" ")[0]).join(" and ")}'s power rankings`);
+    const cols = running.filter((r) => r.kind !== "tiers"); if (cols.length) bits.push(cols.map((r) => `${r.title} by ${r.name.split(" ")[0]}`).join(", "));
+    if (tips) bits.push(`${tips} anonymous tip${tips === 1 ? "" : "s"} in The tea`);
+    if (bits.length) lines.push(`In this issue: ${bits.join(" · ")}.`);
+    if (roasts.length) lines.push(`Did not file: ${roasts.map((r) => r.name.split(" ")[0]).join(", ")}. The paper has words for them.`);
+    if (notes.length) lines.push(`New in the BBT: ${notes.map((n) => n.title).join(", ")}.`);
+    lines.push("");
+    lines.push("Tools in the menu: trade calculator, Big Brain Analytics (playoff odds, power index, lineup autopsy), Hall of Fame, Wall of Shame, rivalries and draft report cards.");
+    lines.push("");
+    lines.push(url);
+    return lines.join("\n").replace(/\n{3,}/g, "\n\n");
+  };
+  const siteUrl = `https://noahszmand-wq.github.io/big-brains-tribune/`;
+  const showTxt = () => { const box = $("#pubtxtbox", v); box.hidden = false; const ta = $("#pubtxtarea", v); if (!ta.value) ta.value = chatText(siteUrl); ta.style.height = "auto"; ta.style.height = ta.scrollHeight + 4 + "px"; ta.focus(); };
+  $("#pubtxt", v).onclick = showTxt;
+  $("#pubtxtre", v).onclick = () => { $("#pubtxtarea", v).value = ""; showTxt(); };
+  $("#pubtxtcopy", v).onclick = async () => { try { await navigator.clipboard.writeText($("#pubtxtarea", v).value); toast("Copied"); } catch (e) { toast("Select and copy it"); } };
+
   $("#pubgo", v).onclick = async () => {
     let body; try { body = gather(); } catch (e) { say(e.message, "err"); return; }
     const running = P.layout.filter((l) => l.on && rowsBy[l.id] && rowsBy[l.id].has_content).length, roasts = P.layout.filter((l) => !l.on && rowsBy[l.id] && rowsBy[l.id].roast && !rowsBy[l.id].is_editor).length;
@@ -1225,13 +1261,13 @@ async function adminPublish(root) {
     try {
       const r = await pubApi("publish", body);
       S.pub = {};
-      const line = `babe wake up, BBT Issue No. ${r.issue} is live: ${r.url}`;
+      const line = ($("#pubtxtarea", v) && $("#pubtxtarea", v).value.trim()) || chatText(r.url);
       v.replaceWith(el(`<div class="card pubresult"><h2>Issue No. ${r.issue} is out</h2>
         <p>Week ${r.week} is on the site. GitHub Pages usually takes a minute or two to show it.</p>
         <div class="row" style="margin-bottom:12px"><a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener">Open the issue</a><a class="btn" href="${esc(r.permalink)}" target="_blank" rel="noopener">Permalink</a></div>
         ${r.rolled ? `<p>The desk is now on <b>Week ${r.next_week}</b>, locking ${esc(fmtDl(r.next_deadline))}.</p>` : `<p class="dim">The desk week wasn't changed.</p>`}
         ${r.tips_published || r.tips_rejected ? `<p class="dim small">${r.tips_published} tip${r.tips_published === 1 ? "" : "s"} ran, ${r.tips_rejected} rejected.</p>` : ""}
-        <div class="lab" style="margin:14px 0 6px">For the group chat</div><div class="copybox" id="copyline">${esc(line)}</div>
+        <div class="lab" style="margin:14px 0 6px">For the group chat</div><div class="copybox" id="copyline" style="white-space:pre-wrap">${esc(line)}</div>
         <div class="row" style="margin-top:10px"><button type="button" class="btn sm" id="copybtn">Copy</button><button type="button" class="btn sm quiet" id="pubdone">Back to the desk</button></div></div>`));
       $("#copybtn").onclick = async () => { try { await navigator.clipboard.writeText(line); toast("Copied"); } catch (e) { toast("Select and copy it"); } };
       $("#pubdone").onclick = async () => { try { S.boot = await api("bootstrap"); } catch (e) {} S.adminWeek = null; S.adminTab = "week"; render("admin"); };

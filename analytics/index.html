@@ -17,6 +17,11 @@
 .staff .k { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pylon); }
 .staff p { margin: 0; font-size: 0.92rem; line-height: 1.45; }
 .viewpick { display: flex; align-items: center; gap: 10px; margin: 12px 0 0; } .viewpick .lab { flex: none; } .viewpick select { flex: 1; width: auto; min-height: 42px; padding: 6px 10px; font-size: 1rem; font-weight: 800; border-radius: 10px; background: var(--surface); }
+.pbar { height: 5px; background: var(--surface-2, rgba(128,128,128,0.18)); border-radius: 3px; margin-top: 4px; min-width: 56px; overflow: hidden; } .pbar i { display: block; height: 100%; background: var(--pylon); }
+.board tr.clinched td.nm::after { content: "clinched"; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--win); margin-left: 6px; } .board tr.eliminated td.nm { opacity: 0.6; }
+.sched { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; } .sched .wk { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; } .sched .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; } .sched .g { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; padding: 2px 0; } .sched .g i { color: var(--ink-2); font-style: normal; font-weight: 500; }
+ol.misses { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; } .misses li { display: grid; grid-template-columns: 58px 1fr; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; cursor: pointer; }
+.misses .g { font-family: var(--display); font-weight: 900; font-size: 1.3rem; color: var(--loss); } .misses .g.flip { color: var(--pylon); } .misses .who { font-weight: 800; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; } .misses .who small { color: var(--ink-2); font-weight: 600; } .misses .what { font-size: 0.84rem; margin-top: 2px; }
 .lhead { margin: 10px 0 6px; } .lhead h1 { margin: 0; } .lhead p { color: var(--ink-2); margin: 4px 0 0; }
 .ltiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 12px 0; }
 .lt { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; cursor: pointer; text-align: left; }
@@ -73,17 +78,20 @@ footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20
   <span class="lab">The paper</span>
   <ul class="dlist" id="dissues"><li><a href="/big-brains-tribune/"><span class="mono">Latest issue</span><b>Read the Tribune</b></a></li></ul>
   <span class="lab">Tools</span>
-  <ul class="dlist"><li><a href="/big-brains-tribune/trade/"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/" aria-current="page"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li><li><a href="/big-brains-tribune/shame/"><span class="mono">Wall of Shame</span><b>The worst of all time</b></a></li></ul>
+  <ul class="dlist"><li><a href="/big-brains-tribune/trade/"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/" aria-current="page"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li></ul>
+  <span class="lab">History</span>
+  <ul class="dlist"><li><a href="/big-brains-tribune/history/#fame"><span class="mono">Hall of Fame</span><b>The best of all time</b></a></li><li><a href="/big-brains-tribune/shame/"><span class="mono">Wall of Shame</span><b>The worst of all time</b></a></li><li><a href="/big-brains-tribune/history/#rivals"><span class="mono">Rivalries</span><b>Head-to-head, every pair</b></a></li><li><a href="/big-brains-tribune/history/#drafts"><span class="mono">Draft report cards</span><b>Every pick, graded</b></a></li></ul>
   <span class="lab">The desk</span>
   <ul class="dlist"><li><a href="/big-brains-tribune/desk/"><span class="mono">Contributor Desk</span><b>File your column</b></a></li></ul>
   <p class="dim small">Big Brains Only. League password required.</p>
 </aside>
 
 <script src="../trade/core.js?v=3"></script>
+<script src="../trade/history.js?v=1"></script>
 <script>
 "use strict";
 const app = $("#app");
-const S = { word: store.get("word"), data: null, src: store.get("tradesrc") || "both", view: "league", team: null, sort: { key: "total", dir: -1 }, sides: [{ rid: null, give: {} }], sugCache: {}, hist: {}, histReq: 0, tune: loadTune() };
+const S = { word: store.get("word"), data: null, hist: null, src: store.get("tradesrc") || "both", view: "league", team: null, sort: { key: "total", dir: -1 }, sides: [{ rid: null, give: {} }], sugCache: {}, histReq: 0, tune: loadTune() };
 
 // ---------- side menu ----------
 const drawer = $("#ddrawer"), ddbg = $("#ddbg");
@@ -105,8 +113,13 @@ function render() {
 }
 function draw() {
   drawTweaks();
-  $("#view").value = S.view === "team" && S.team ? String(S.team) : "league";
-  if (S.view === "team" && S.team) teamView(); else league();
+  $("#view").value = S.view === "team" && S.team ? String(S.team) : S.view;
+  if (S.view === "team" && S.team) return teamView();
+  if (LEAGUE_VIEWS[S.view]) {
+    if (!S.hist) { app.innerHTML = `<p class="dim" style="padding-top:24px"><span class="spin"></span> Pulling three seasons of scores and schedules…</p>`; loadHistory().then(() => render()).catch((e) => renderError(e)); return; }
+    return LEAGUE_VIEWS[S.view]();
+  }
+  league();
   const d = S.data, when = (iso) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
   $("#foot").innerHTML = `Values: FantasyCalc (${when(d.sources.fc.at)})${d.sources.dd.ok ? ` · Dynasty Daddy (${when(d.sources.dd.at)})` : " · Dynasty Daddy unavailable right now"} · dynasty, superflex, PPR. Rosters and the trade log from Sleeper. Nobody's bound by any of this.`;
 }
@@ -126,11 +139,12 @@ async function start(word) {
   S.word = word;
   let d; try { d = await api({}); } catch (e) { S.word = null; throw e; } // only a failed fetch is a password/network problem
   prep(d); store.set("word", word); S.data = d; S.sides = [{ rid: d.teams[0].rid, give: {} }];
-  $("#view").innerHTML = `<option value="league">League dashboard</option>${[...d.teams].sort((a, b) => a.seed - b.seed).map((t) => `<option value="${t.rid}">${esc(t.name)}</option>`).join("")}`;
-  const hash = location.hash.match(/^#team-(\d+)$/); if (hash && d.byRid[Number(hash[1])]) { S.view = "team"; S.team = Number(hash[1]); }
+  $("#view").innerHTML = `<optgroup label="League"><option value="league">League dashboard</option><option value="odds">Playoff odds</option><option value="power">Power index &amp; luck</option><option value="autopsy">Lineup autopsy</option></optgroup><optgroup label="Teams">${[...d.teams].sort((a, b) => a.seed - b.seed).map((t) => `<option value="${t.rid}">${esc(t.name)}</option>`).join("")}</optgroup>`;
+  route();
   render();
 }
-window.addEventListener("hashchange", () => { const m = location.hash.match(/^#team-(\d+)$/); if (S.data) { if (m && S.data.byRid[Number(m[1])]) { S.view = "team"; S.team = Number(m[1]); } else S.view = "league"; render(); } });
+function route() { const m = location.hash.match(/^#team-(\d+)$/), v = location.hash.slice(1); if (m && S.data.byRid[Number(m[1])]) { S.view = "team"; S.team = Number(m[1]); } else S.view = LEAGUE_VIEWS[v] ? v : "league"; }
+window.addEventListener("hashchange", () => { if (S.data) { route(); render(); } });
 
 // ---------- team dashboard (shared renderer, wrapped with a back link) ----------
 function teamView() {
@@ -217,11 +231,53 @@ function scatter(rows, xk, yk, o) {
   return `<svg class="scatter" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.x)} against ${esc(o.y)}"><line class="grid" x1="${P.l}" y1="${H - P.b}" x2="${W - P.r}" y2="${H - P.b}"/><line class="grid" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H - P.b}"/>${mid}${q}${dots}<text class="ax" x="${W - P.r}" y="${H - 8}" text-anchor="end">${o.x}</text><text class="ax" x="${P.l - 26}" y="${P.t + 8}" transform="rotate(-90 ${P.l - 26} ${P.t + 8})" text-anchor="end">${o.y}</text></svg>`;
 }
 
+// ---------- league views built on the history engine ----------
+const pct = (x) => `${Math.round(x * 100)}%`;
+const bar = (x, color) => `<div class="pbar"><i style="width:${(Math.max(0, Math.min(1, x)) * 100).toFixed(1)}%;${color ? `background:var(${color})` : ""}"></i></div>`;
+const head = (title, lede) => `<div class="lhead"><h1>${title}</h1><p>${lede}</p></div>`;
+function oddsView() {
+  const d = S.data, H = S.hist, st = H.settings || {}, rows = playoffOdds(d, H), left = (H.schedule || []).length ? Math.max(...H.schedule.map((g) => g.week)) - st.last_scored : 0;
+  const clinched = (r) => r.playoffs >= 0.999 ? "clinched" : r.playoffs <= 0.001 ? "eliminated" : "";
+  const v = el(`<div>${head("Playoff odds", `${st.playoff_teams || "–"} teams make it, playoffs start Week ${st.playoff_week_start || "–"}. ${left > 0 ? `${left} regular-season week${left === 1 ? "" : "s"} left after Week ${st.last_scored}.` : "Regular season complete."} 4,000 simulated seasons on the real schedule.`)}
+    <div class="boardwrap"><table class="board odds"><thead><tr><th>Team</th><th>Record</th><th>Proj. wins</th><th>Playoffs</th><th>Bye</th><th>No. 1 seed</th><th>Title</th><th>Scoring fit</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr data-team="${r.t.rid}" class="${clinched(r)}"><td class="nm">${badge(r.t)} ${esc(r.t.k)}<small>seed ${r.t.seed} · ${r.left} left</small></td><td>${r.t.wins}–${r.t.losses}</td><td>${r.projWins.toFixed(1)}</td><td><b>${pct(r.playoffs)}</b>${bar(r.playoffs, r.t.c)}</td><td>${pct(r.bye)}</td><td>${pct(r.top)}</td><td><b>${pct(r.title)}</b>${bar(r.title, r.t.c)}</td><td><small style="display:block">${r.mean.toFixed(1)} ± ${r.sd.toFixed(0)}</small></td></tr>`).join("")}</tbody></table></div>
+    <div class="sec"><h2>Remaining schedule</h2><p class="lede">Every game left before the playoffs.</p><div class="sched">${[...new Set((H.schedule || []).map((g) => g.week))].sort((a, b) => a - b).map((w) => `<div class="wk"><div class="k">Week ${w}</div>${H.schedule.filter((g) => g.week === w).map((g) => `<div class="g"><span>${badge(d.byRid[g.a])} ${esc(d.byRid[g.a]?.k)}</span><i>vs</i><span>${badge(d.byRid[g.b])} ${esc(d.byRid[g.b]?.k)}</span></div>`).join("")}</div>`).join("") || `<p class="dim small">Nothing left on the schedule.</p>`}</div></div>
+    <p class="note">Each team's weekly score is drawn from a normal distribution fitted to this season's games (last season's average anchors it early in the year). Seeds go by record, then points for. The bracket gives byes to the top seeds and reseeds every round. Odds under 0.1% show as 0%.</p></div>`);
+  app.appendChild(v); v.querySelectorAll("tr[data-team]").forEach((x) => x.addEventListener("click", () => { location.hash = `team-${x.dataset.team}`; }));
+}
+function powerView() {
+  const d = S.data, H = S.hist, rows = powerIndex(d, H), season = d.settings.season;
+  const lucky = [...rows].sort((a, b) => b.luck - a.luck)[0], unlucky = [...rows].sort((a, b) => a.luck - b.luck)[0];
+  const v = el(`<div>${head("Power index &amp; luck", `Who is actually good this season, and who has the schedule to thank. Power runs 1–99 around a league average of 50.`)}
+    <div class="ltiles"><button type="button" class="lt" data-team="${rows[0].t.rid}"><div class="k">No. 1 in power</div><div class="v">${badge(rows[0].t)}<span>${rows[0].power}</span></div><div class="s">${rows[0].t.wins}–${rows[0].t.losses} · all-play ${pct(rows[0].pct)}</div></button>
+    <button type="button" class="lt" data-team="${lucky.t.rid}"><div class="k">Luckiest</div><div class="v">${badge(lucky.t)}<span>+${lucky.luck.toFixed(1)}</span></div><div class="s">wins above all-play expectation</div></button>
+    <button type="button" class="lt" data-team="${unlucky.t.rid}"><div class="k">Unluckiest</div><div class="v">${badge(unlucky.t)}<span>${unlucky.luck.toFixed(1)}</span></div><div class="s">wins below all-play expectation</div></button></div>
+    <div class="boardwrap"><table class="board"><thead><tr><th>#</th><th>Team</th><th>Power</th><th>Record</th><th>All-play</th><th>Exp. wins</th><th>Luck</th><th>PPG</th><th>Last 3</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr data-team="${r.t.rid}"><td>${r.rank}</td><td class="nm">${badge(r.t)} ${esc(r.t.k)}</td><td><b>${r.power}</b>${bar(r.power / 100, r.t.c)}</td><td>${r.wins}–${r.losses}</td><td>${pct(r.pct)}</td><td>${r.expWins.toFixed(1)}</td><td class="${r.luck > 0.5 ? "up" : r.luck < -0.5 ? "dn" : ""}"><b>${r.luck >= 0 ? "+" : "−"}${Math.abs(r.luck).toFixed(1)}</b></td><td>${r.ppg.toFixed(1)}</td><td>${r.form.toFixed(1)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="note">All-play: each week your score is played against all ${d.teams.length - 1} other teams; the percentage is how often you'd have won. Expected wins is that rate times games played; luck is real wins minus expected. Power blends all-play (40%), points per game (25%), lineup value on ${SRC_NAME[S.src]} (20%) and the last three weeks (15%), as league z-scores. ${season} only.</p></div>`);
+  app.appendChild(v); v.querySelectorAll("[data-team]").forEach((x) => x.addEventListener("click", () => { location.hash = `team-${x.dataset.team}`; }));
+}
+function autopsyView() {
+  const d = S.data, H = S.hist, season = d.settings.season, A = autopsy(d, H, season), nm = (id) => esc(hAsset(id).name);
+  const worstTeam = [...A.rows].sort((a, b) => b.left - a.left)[0], best = A.rows[0], flips = A.rows.reduce((s, r) => s + r.flips, 0);
+  const v = el(`<div>${head("Lineup autopsy", `Points left on the bench this season: what each team scored against the best lineup it could have started from the same roster.`)}
+    <div class="ltiles">${worstTeam ? `<button type="button" class="lt" data-team="${worstTeam.t.rid}"><div class="k">Most points benched</div><div class="v">${badge(worstTeam.t)}<span>${fmt(worstTeam.left)}</span></div><div class="s">${worstTeam.perGame.toFixed(1)} a game · ${pct(worstTeam.eff)} efficient</div></button>` : ""}
+    ${best ? `<button type="button" class="lt" data-team="${best.t.rid}"><div class="k">Cleanest lineups</div><div class="v">${badge(best.t)}<span>${pct(best.eff)}</span></div><div class="s">of optimal · ${fmt(best.left)} left all season</div></button>` : ""}
+    <div class="lt" style="cursor:default"><div class="k">Games flipped by the bench</div><div class="v"><span>${flips}</span></div><div class="s">losses where the optimal lineup would have won</div></div></div>
+    <div class="boardwrap"><table class="board"><thead><tr><th>Team</th><th>Scored</th><th>Optimal</th><th>Left on bench</th><th>Per game</th><th>Efficiency</th><th>Flipped</th></tr></thead><tbody>
+    ${A.rows.map((r) => `<tr data-team="${r.t.rid}"><td class="nm">${badge(r.t)} ${esc(r.t.k)}</td><td>${fmt(r.pts)}</td><td>${fmt(r.opt)}</td><td><b>${fmt(r.left)}</b>${bar(r.left / (worstTeam.left || 1), r.t.c)}</td><td>${r.perGame.toFixed(1)}</td><td>${pct(r.eff)}</td><td class="${r.flips ? "dn" : ""}"><b>${r.flips || "–"}</b></td></tr>`).join("")}</tbody></table></div>
+    <div class="sec"><h2>Worst start/sit calls of the year</h2><p class="lede">The single swap that would have gained the most, each week. A flame means it cost the game.</p>
+    <ol class="misses">${A.misses.slice(0, 12).map((x) => `<li data-team="${x.rid}"><span class="g ${x.flipped ? "flip" : ""}">+${x.gain.toFixed(1)}</span><div><div class="who">${badge(d.byRid[x.rid])} ${esc(d.byRid[x.rid]?.k)} <small>Wk ${x.week}${x.flipped ? " · 🔥 lost by less than that" : ""}</small></div><div class="what">Benched <b>${nm(x.miss.in)}</b> (${x.miss.inPts.toFixed(1)}) behind <b>${nm(x.miss.out)}</b> (${x.miss.outPts.toFixed(1)})</div></div></li>`).join("")}</ol></div>
+    <p class="note">Optimal lineups use Sleeper's final points and the league's starting slots (QB, RB×2, WR×3, TE, FLEX, SUPER_FLEX). Taxi and IR players are excluded. "Flipped" counts losses where the optimal lineup outscores what the opponent actually posted.</p></div>`);
+  app.appendChild(v); v.querySelectorAll("[data-team]").forEach((x) => x.addEventListener("click", () => { location.hash = `team-${x.dataset.team}`; }));
+}
+const LEAGUE_VIEWS = { odds: oddsView, power: powerView, autopsy: autopsyView };
+
 // ---------- toolbar + boot ----------
 $("#src").querySelectorAll("button").forEach((b) => b.onclick = () => { S.src = b.dataset.s; store.set("tradesrc", S.src); $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); S.sugCache = {}; if (S.data) render(); });
 $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.s === S.src)));
 $("#tune").onclick = () => tuneSheet();
-$("#view").onchange = (e) => { const v = e.target.value; location.hash = v === "league" ? "" : `team-${v}`; }; // hashchange does the drawing
+$("#view").onchange = (e) => { const v = e.target.value; location.hash = v === "league" ? "" : LEAGUE_VIEWS[v] ? v : `team-${v}`; }; // hashchange does the drawing
 $("#brand").onclick = (e) => { e.preventDefault(); location.hash = ""; S.view = "league"; if (S.data) render(); };
 if (S.word) start(S.word).catch((e) => { S.word = null; if (e.code === "wrong_word") store.set("word", null); render(); const m = $("#gmsg"); if (m) m.textContent = e.code === "wrong_word" ? "The league password changed. Type the new one." : "Couldn't load values right now. Try again in a minute."; }); else render();
 </script>
