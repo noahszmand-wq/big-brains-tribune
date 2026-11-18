@@ -10,252 +10,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23FF6A1F'/%3E%3Ctext x='32' y='42' font-family='Arial Black,Arial' font-weight='900' font-size='24' text-anchor='middle' fill='%230A1220'%3EBBT%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-<style>
-:root {
-  color-scheme: light dark;
-  --bg: #F6F3EC; --surface: #FFFFFF; --surface-2: #EEE9DE; --ink: #14202F; --ink-2: #5E6B7D; --rule: #DAD3C5;
-  --pylon: #E55A12; --on-pylon: #FFFFFF; --yellow: #E6BF00; --on-yellow: #14202F; --win: #1F9A5F; --loss: #D23B3B; --blue: #1F4FB4;
-  --t1: #7C8CFF; --t2: #B07CFF; --t3: #E07A9A; --t4: #4FB3BF; --t5: #E8604C; --t6: #5BA4E6; --t7: #D2B271; --t8: #9CC24A; --t9: #B08463; --t10: #A6AFC0;
-  --display: "Big Shoulders Display", "Arial Narrow", sans-serif; --body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0A1220; --surface: #101B2D; --surface-2: #17243A; --ink: #EAF0F7; --ink-2: #9BA9BD; --rule: #22314A;
-  --pylon: #FF6A1F; --on-pylon: #0A1220; --yellow: #FFD60A; --on-yellow: #0A1220; --win: #3DD68C; --loss: #FF7070; --blue: #2E63D6;
-} }
-:root[data-theme="dark"] {
-  --bg: #0A1220; --surface: #101B2D; --surface-2: #17243A; --ink: #EAF0F7; --ink-2: #9BA9BD; --rule: #22314A;
-  --pylon: #FF6A1F; --on-pylon: #0A1220; --yellow: #FFD60A; --on-yellow: #0A1220; --win: #3DD68C; --loss: #FF7070; --blue: #2E63D6;
-}
-* { box-sizing: border-box; }
-html, body { margin: 0; }
-body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
-button, input, select { font: inherit; color: inherit; }
-button { cursor: pointer; }
-a { color: inherit; }
-.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px 64px; }
-.hidden { display: none !important; }
-.num { font-variant-numeric: tabular-nums; }
-
-/* Top bar + side menu (same as the desk) */
-.top { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--rule); padding-top: env(safe-area-inset-top); }
-.top .in { max-width: 720px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 10px; min-height: 56px; }
-.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-.brand .mark { background: var(--pylon); color: var(--on-pylon); font-family: var(--display); font-weight: 900; font-size: 0.95rem; padding: 4px 7px 3px; line-height: 1; }
-.brand .word { font-family: var(--display); font-weight: 800; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1; }
-.menu-btn { width: 44px; height: 44px; border: 1px solid var(--rule); background: var(--surface); border-radius: 10px; display: grid; place-items: center; gap: 4px; padding: 11px 10px; flex: none; }
-.menu-btn i { display: block; width: 20px; height: 2px; background: var(--ink); border-radius: 2px; }
-.tool { display: flex; gap: 8px; align-items: stretch; margin: 12px 0 0; }
-.seg { display: flex; flex: 1; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--surface); }
-.seg button { flex: 1; border: 0; background: transparent; padding: 7px 4px; font-size: 1rem; font-weight: 800; color: var(--ink-2); display: grid; gap: 0; line-height: 1.1; white-space: nowrap; }
-.seg button small { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; opacity: 0.8; }
-.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-.tunebtn { flex: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); padding: 0 12px; font-weight: 700; font-size: 0.88rem; }
-.tunebtn .n { display: none; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--pylon); color: var(--on-pylon); font-size: 0.72rem; place-items: center; }
-.tunebtn.on .n { display: grid; }
-.tunebtn.on { border-color: var(--pylon); }
-.tweaks { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
-.tweaks span { font-size: 0.72rem; font-weight: 700; border: 1px solid var(--rule); border-radius: 999px; padding: 2px 8px; color: var(--ink-2); background: var(--surface); }
-.sheet-bg { position: fixed; inset: 0; background: rgba(5, 10, 20, 0.55); z-index: 60; }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; max-height: 88dvh; overflow-y: auto; background: var(--surface); border-top: 1px solid var(--rule); border-radius: 16px 16px 0 0; z-index: 61; padding: 14px 16px calc(20px + env(safe-area-inset-bottom)); animation: up 0.18s ease-out; }
-@keyframes up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
-.sheet .in { max-width: 720px; margin: 0 auto; }
-.sheet .sh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.sheet h2 { margin: 0; }
-.sheet .dclose { width: 40px; height: 40px; border: 1px solid var(--rule); background: var(--bg); border-radius: 10px; }
-.presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px; }
-.presets button { border: 1px solid var(--rule); background: var(--bg); border-radius: 999px; padding: 6px 12px; font-size: 0.85rem; font-weight: 700; }
-.presets button[aria-pressed="true"] { background: var(--pylon); color: var(--on-pylon); border-color: var(--pylon); }
-.knob { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule); }
-.knob .l { font-weight: 700; }
-.knob .l small { display: block; font-weight: 500; color: var(--ink-2); font-size: 0.8rem; }
-.knob .v { font-variant-numeric: tabular-nums; font-weight: 800; min-width: 56px; text-align: right; }
-.knob input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--pylon); margin: 4px 0 0; }
-.knob .row4 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
-.knob .row4 label { display: grid; gap: 2px; font-size: 0.72rem; font-weight: 700; color: var(--ink-2); text-align: center; }
-.knob .row4 input { width: 100%; min-height: 40px; text-align: center; background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; font-weight: 700; }
-.sheet .acts { display: flex; gap: 8px; margin-top: 14px; }
-.sheet .acts .btn { flex: 1; }
-.faabrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; }
-.faabrow small { display: block; color: var(--ink-2); font-size: 0.74rem; }
-.faabrow .step { display: inline-flex; align-items: center; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
-.faabrow .step button { width: 36px; height: 36px; border: 0; background: var(--bg); font-weight: 800; }
-.faabrow .step input { width: 56px; min-height: 36px; border: 0; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); text-align: center; background: var(--surface); font-weight: 700; }
-.pos.FAAB { background: #8FE3B5; }
-.ddrawer-bg { position: fixed; inset: 0; background: rgba(5, 10, 20, 0.55); z-index: 50; }
-.ddrawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(320px, 86vw); background: var(--surface); border-right: 1px solid var(--rule); z-index: 51; padding: calc(14px + env(safe-area-inset-top)) 16px 24px; overflow-y: auto; animation: din 0.18s ease-out; }
-@keyframes din { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
-.ddrawer .dh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.ddrawer .dclose { width: 40px; height: 40px; border: 1px solid var(--rule); background: var(--bg); border-radius: 10px; }
-.ddrawer .lab { display: block; margin: 14px 0 6px; }
-.dlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.dlist a, .dlist summary { display: grid; gap: 2px; text-decoration: none; background: var(--bg); border: 1px solid var(--rule); padding: 10px 14px; min-height: 56px; position: relative; cursor: pointer; color: inherit; }
-.dlist a .mono, .dlist summary .mono { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pylon); }
-.dlist a b, .dlist summary b { font-family: var(--display); font-weight: 800; font-size: 1.2rem; line-height: 1; text-transform: uppercase; }
-.dlist a em { position: absolute; right: 12px; top: 12px; font-style: normal; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; background: var(--yellow); color: var(--on-yellow); padding: 3px 6px; border-radius: 4px; }
-.dlist a[aria-current="page"] { border-color: var(--yellow); }
-.dlist details { border: 1px solid var(--rule); background: var(--bg); }
-.dlist details summary { border: 0; list-style: none; padding-left: 40px; }
-.dlist details summary::-webkit-details-marker { display: none; }
-.dlist details summary::before { content: ""; position: absolute; left: 12px; top: 18px; width: 18px; height: 14px; border: 2px solid var(--pylon); border-radius: 3px; box-shadow: inset 0 3px 0 0 var(--pylon); }
-.dlist details summary::after { content: "›"; position: absolute; right: 14px; top: 10px; font-size: 1.4rem; color: var(--ink-2); transform: rotate(90deg); transition: transform 0.15s; }
-.dlist details[open] summary::after { transform: rotate(-90deg); }
-.dlist details .dlist { padding: 0 8px 8px; }
-.dlist details .dlist a { background: var(--surface); }
-
-/* Type + bits */
-h1 { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 2.4rem; line-height: 0.95; margin: 0 0 6px; }
-h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 1.5rem; line-height: 1; margin: 22px 0 10px; }
-.lab { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.dim { color: var(--ink-2); } .small { font-size: 0.88rem; }
-p { margin: 0 0 12px; }
-.card { background: var(--surface); border: 1px solid var(--rule); padding: 14px; margin-bottom: 12px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 16px; border: 1px solid var(--rule); background: var(--surface); border-radius: 6px; font-weight: 600; }
-.btn.primary { background: var(--pylon); color: var(--on-pylon); border-color: var(--pylon); }
-.btn.sm { min-height: 36px; padding: 4px 12px; font-size: 0.9rem; }
-.btn.block { width: 100%; }
-input[type=password], select { width: 100%; min-height: 48px; background: var(--bg); border: 1px solid var(--rule); padding: 10px 12px; font-size: 16px; border-radius: 6px; }
-.msg { min-height: 1.4em; font-size: 0.92rem; } .msg.err { color: var(--loss); }
-.gate { padding-top: 10vh; } .gate .card { border-top: 6px solid var(--yellow); padding: 24px 20px; }
-.field { display: grid; gap: 6px; margin-bottom: 14px; }
-.tabs { display: flex; gap: 6px; margin: 12px 0 10px; border-bottom: 1px solid var(--rule); }
-.tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 8px 10px; font-weight: 700; color: var(--ink-2); margin-bottom: -1px; }
-.tabs button[aria-current="true"] { color: var(--ink); border-color: var(--pylon); }
-.tb { display: inline-grid; place-items: center; min-width: 34px; height: 22px; padding: 0 5px; border-radius: 4px; background: var(--c, var(--ink-2)); color: #0A1220; font-family: var(--display); font-weight: 900; font-size: 0.8rem; letter-spacing: 0.02em; }
-.pos { display: inline-block; min-width: 30px; text-align: center; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em; border-radius: 3px; padding: 1px 4px; color: #0A1220; }
-.pos.QB { background: #E07A9A; } .pos.RB { background: #8FE3B5; } .pos.WR { background: #5BA4E6; } .pos.TE { background: #FFD60A; } .pos.PICK { background: #D2B271; } .pos.K, .pos.DEF { background: #A6AFC0; }
-
-/* Calculator */
-.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-@media (max-width: 520px) { .sides { grid-template-columns: 1fr; } }
-.side { background: var(--surface); border: 1px solid var(--rule); padding: 10px; min-width: 0; }
-.side .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.side .hd select { min-height: 40px; padding: 6px 8px; font-size: 0.95rem; }
-.side .rec { font-size: 0.78rem; color: var(--ink-2); margin: -4px 0 8px; }
-.gives { min-height: 44px; border: 1px dashed var(--rule); padding: 6px; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; background: var(--bg); }
-.gives .empty { color: var(--ink-2); font-size: 0.85rem; padding: 6px 4px; }
-.asset { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); background: var(--surface); border-radius: 999px; padding: 4px 10px 4px 6px; font-size: 0.88rem; font-weight: 600; line-height: 1.2; max-width: 100%; }
-.asset .v { color: var(--ink-2); font-weight: 500; font-size: 0.78rem; }
-.asset .x { color: var(--ink-2); font-weight: 700; }
-.roster { display: grid; gap: 4px; max-height: 420px; overflow-y: auto; border-top: 1px solid var(--rule); padding-top: 8px; }
-.roster .grp { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 6px 0 2px; }
-.roster button { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px; font-size: 0.92rem; min-height: 40px; }
-.roster button:hover { background: var(--surface-2); }
-.roster button.in { background: var(--surface-2); outline: 2px solid var(--pylon); }
-.roster button small { display: block; color: var(--ink-2); font-size: 0.74rem; }
-.roster button .vals { text-align: right; font-size: 0.8rem; color: var(--ink-2); line-height: 1.2; white-space: nowrap; }
-.roster button .vals b { display: block; color: var(--ink); font-size: 0.95rem; }
-.roster button:focus-visible { outline: 3px solid var(--ink); }
-.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 6px solid var(--pylon); padding: 14px; margin: 12px 0; }
-.verdict .big { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 1.8rem; line-height: 0.95; }
-.verdict .bar { height: 12px; background: var(--surface-2); border-radius: 999px; overflow: hidden; display: flex; margin: 10px 0 4px; }
-.verdict .bar i { display: block; height: 100%; }
-.verdict .bar i.a { background: var(--ca, var(--pylon)); } .verdict .bar i.b { background: var(--cb, var(--blue)); }
-.verdict .legend { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--ink-2); }
-.cmp { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 8px; }
-.cmp th, .cmp td { padding: 6px 6px; border-bottom: 1px solid var(--rule); text-align: right; vertical-align: top; }
-.cmp th:first-child, .cmp td:first-child { text-align: left; }
-.cmp th { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); font-weight: 700; }
-.cmp tr.tot td { font-weight: 800; border-top: 2px solid var(--ink); }
-.cmp td .who { display: block; font-size: 0.72rem; color: var(--ink-2); }
-.srcline { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-.srcline > div { background: var(--bg); border: 1px solid var(--rule); padding: 8px 10px; border-radius: 6px; }
-.srcline .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.srcline .r { font-weight: 800; }
-.srcline .r.win { color: var(--win); } .srcline .r.even { color: var(--ink); }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.note { font-size: 0.82rem; color: var(--ink-2); margin-top: 8px; }
-
-/* Suggested trades */
-.needs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
-.needs div { background: var(--surface); border: 1px solid var(--rule); padding: 8px 10px; border-radius: 6px; }
-.needs .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.needs .v { font-weight: 800; }
-.sug { background: var(--surface); border: 1px solid var(--rule); padding: 12px; margin-bottom: 10px; }
-.sug .tag { display: inline-block; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: var(--yellow); color: var(--on-yellow); padding: 2px 6px; border-radius: 4px; margin-bottom: 6px; }
-.sug .tag.rebuild { background: var(--blue); color: #fff; }
-.sug .row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: start; }
-.sug .row .arrow { font-family: var(--display); font-weight: 900; font-size: 1.4rem; color: var(--ink-2); padding-top: 4px; }
-.sug .row .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.sug .row ul { list-style: none; margin: 2px 0 0; padding: 0; font-weight: 600; font-size: 0.92rem; }
-.sug .row li small { color: var(--ink-2); font-weight: 500; }
-.sug .why { font-size: 0.85rem; color: var(--ink-2); margin-top: 8px; }
-.sug .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.sug .foot .vals { font-size: 0.8rem; color: var(--ink-2); }
-.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--rule); border-top-color: var(--pylon); border-radius: 50%; animation: sp 0.8s linear infinite; vertical-align: -2px; margin-right: 6px; }
-@keyframes sp { to { transform: rotate(360deg); } }
-footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20px 16px; }
-/* Trade arrows + third team */
-.sides { grid-template-columns: 1fr; }
-@media (min-width: 720px) { .sides.n2 { grid-template-columns: 1fr auto 1fr; } }
-.swap { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--ink-2); padding: 2px 0; }
-.swap .arr { font-family: var(--display); font-weight: 900; font-size: 1.8rem; color: var(--pylon); line-height: 1; }
-.swap .lbl { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-@media (min-width: 720px) { .sides.n2 .swap { flex-direction: column; } }
-.asset .to { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; background: var(--c, var(--ink-2)); color: #0A1220; border-radius: 4px; padding: 1px 5px; }
-.asset.cyc { cursor: pointer; }
-.addrow { margin: 10px 0 0; }
-.impact { display: grid; gap: 8px; margin-top: 10px; }
-.impact > div { background: var(--bg); border: 1px solid var(--rule); padding: 8px 10px; border-radius: 6px; }
-.impact .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
-.impact .r { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.88rem; margin-top: 4px; }
-.impact .r b.up, .stats b.up { color: var(--win); } .impact .r b.dn, .stats b.dn { color: var(--loss); }
-.dash .dh { display: grid; gap: 2px; margin: 6px 0 12px; } .dash .dh .big { font-family: var(--display); font-weight: 900; font-size: 1.8rem; text-transform: uppercase; line-height: 1; vertical-align: middle; }
-.dtiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-.dt { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; }
-.dt .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.dt .v { font-family: var(--display); font-weight: 900; font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.dt .s { font-size: 0.74rem; color: var(--ink-2); }
-.lbars { display: grid; gap: 4px; } .lb { display: grid; grid-template-columns: 52px 1fr 60px; gap: 8px; align-items: center; font-size: 0.82rem; }
-.lb .bar { height: 12px; background: var(--surface-2); border-radius: 999px; overflow: hidden; } .lb .bar i { display: block; height: 100%; } .lb.me { font-weight: 800; } .lb.me .bar { outline: 2px solid var(--pylon); }
-.postab { width: 100%; border-collapse: collapse; font-size: 0.9rem; } .postab th, .postab td { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; } .postab th { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.postab td i { font-style: normal; font-weight: 700; color: var(--ink-2); font-size: 0.8rem; }
-.needtag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; background: var(--loss); color: #fff; padding: 1px 5px; border-radius: 4px; } .strtag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; background: var(--win); color: #0A1220; padding: 1px 5px; border-radius: 4px; }
-.core { display: grid; gap: 4px; } .ca { display: grid; grid-template-columns: 22px 36px 1fr auto; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--rule); padding: 6px 8px; border-radius: 6px; }
-.ca .i { font-family: var(--display); font-weight: 900; color: var(--ink-2); } .ca .nm small { display: block; font-size: 0.74rem; color: var(--ink-2); } .ca .num { text-align: right; } .ca .num b { display: block; } .ca .num small { font-size: 0.72rem; color: var(--ink-2); }
-.ages { display: grid; gap: 6px; } .ages .k { font-size: 0.72rem; font-weight: 700; color: var(--ink-2); } .ages .bar { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 2px 0; } .ages .bar i { display: block; height: 100%; background: var(--blue); } .ages .s { font-size: 0.74rem; color: var(--ink-2); }
-.trs { display: grid; gap: 6px; } .tr { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 4px; }
-.tr .w { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); } .tr .gg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.88rem; } .tr .gg small { display: block; font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.tr .net { font-weight: 800; font-size: 0.85rem; } .tr .net.up { color: var(--win); } .tr .net.dn { color: var(--loss); }
-.gm { color: var(--ink-2); } .gm b { color: var(--ink); font-variant-numeric: tabular-nums; } .gm i { font-style: normal; font-weight: 700; }
-.gmgrid { display: grid; gap: 8px; }
-.gmgrid > div { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; }
-.gmgrid .idx { display: flex; gap: 16px; margin: 4px 0; }
-.gmgrid .idx span { display: grid; } .gmgrid .idx b { font-family: var(--display); font-weight: 900; font-size: 1.6rem; line-height: 1; } .gmgrid .idx small { font-size: 0.72rem; color: var(--ink-2); }
-.needsgrid { display: grid; gap: 8px; margin-top: 10px; }
-.needs2 { background: var(--bg); border: 1px solid var(--rule); border-left: 4px solid var(--yellow); padding: 8px 10px; border-radius: 6px; }
-.needs2 .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.needs2 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.needs2 li { font-size: 0.92rem; line-height: 1.3; }
-.needs2 li small { display: block; color: var(--ink-2); font-size: 0.78rem; }
-.needs2 li small i { font-style: normal; font-weight: 700; color: var(--ink); }
-.needs2 b.up { color: var(--win); } .needs2 b.dn { color: var(--loss); }
-.cmp td b { display: block; } .cmp tr.tot td small { display: block; font-weight: 500; color: var(--ink-2); font-size: 0.72rem; }
-/* Analytics */
-.anal h2 { margin-top: 18px; }
-.pcard { background: var(--surface); border: 1px solid var(--rule); padding: 12px; margin-bottom: 10px; }
-.pcard .ph { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 6px; }
-.pcard .inj { color: var(--loss); font-weight: 700; }
-.trend { display: grid; gap: 4px; margin: 4px 0 8px; }
-.trend .spark { width: 100%; max-width: 480px; height: 48px; display: block; }
-.trend .tl { display: flex; gap: 12px; font-size: 0.72rem; color: var(--ink-2); }
-.trend .tl .fcl::before, .trend .tl .ddl::before { content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 4px; vertical-align: middle; background: var(--pylon); }
-.trend .tl .ddl::before { background: var(--blue); }
-.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
-.stats > div { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px; display: grid; gap: 1px; }
-.stats .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.stats b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
-.stats small { font-size: 0.72rem; color: var(--ink-2); }
-.range { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; margin-top: 8px; font-size: 0.78rem; color: var(--ink-2); }
-.range .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-.range .rl { position: relative; height: 6px; background: var(--surface-2); border-radius: 999px; }
-.range .rl i { position: absolute; top: -4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--pylon); border: 2px solid var(--surface); }
-.vol { background: var(--surface); border: 1px solid var(--rule); border-left: 6px solid var(--blue); padding: 12px; margin-top: 12px; }
-.vol .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 8px; }
-.vol .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
-.vol .grid > div { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px; display: grid; }
-.vol .grid b { font-family: var(--display); font-weight: 900; font-size: 1.5rem; line-height: 1; }
-.vol .grid small { font-size: 0.72rem; color: var(--ink-2); }
-</style>
+<link rel="stylesheet" href="core.css?v=1">
 </head>
 <body>
 <header class="top"><div class="in">
@@ -270,34 +25,15 @@ footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20
   <span class="lab">The paper</span>
   <ul class="dlist" id="dissues"><li><a href="/big-brains-tribune/"><span class="mono">Latest issue</span><b>Read the Tribune</b></a></li></ul>
   <span class="lab">Tools</span>
-  <ul class="dlist"><li><a href="/big-brains-tribune/trade/" aria-current="page"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/desk/"><span class="mono">Contributor Desk</span><b>File your column</b></a></li></ul>
+  <ul class="dlist"><li><a href="/big-brains-tribune/trade/" aria-current="page"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li><li><a href="/big-brains-tribune/desk/"><span class="mono">Contributor Desk</span><b>File your column</b></a></li></ul>
   <p class="dim small">Big Brains Only. League word required.</p>
 </aside>
 
+<script src="core.js?v=1"></script>
 <script>
-(() => {
 "use strict";
-const ENDPOINT = "https://eempzkiumbnffftkqdas.supabase.co/functions/v1/tribune-values";
-const $ = (sel, root = document) => root.querySelector(sel);
 const app = $("#app");
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-const fmt = (n) => Math.round(n).toLocaleString("en-US");
-const store = { get(k) { try { return localStorage.getItem("bbtdesk_" + k); } catch (_) { return null; } }, set(k, v) { try { if (v == null) localStorage.removeItem("bbtdesk_" + k); else localStorage.setItem("bbtdesk_" + k, v); } catch (_) {} } };
-const TUNE_DEFAULT = { lean: 0, qb: 1, rb: 1, wr: 1, te: 1, pick: 1, age: 0, star: 0, injury: 0, faab: 12 };
-const PRESETS = {
-  default: { label: "Default", t: {} },
-  qbheavy: { label: "QB-heavy SF", t: { qb: 1.2, te: 1.05 } },
-  picks: { label: "Picks are gold", t: { pick: 1.3 } },
-  winnow: { label: "Win now", t: { lean: 60, age: 0, star: 10, injury: 15 } },
-  rebuild: { label: "Rebuild", t: { lean: 0, age: 6, pick: 1.15 } },
-  consolidate: { label: "Stars matter", t: { star: 15 } },
-};
-const loadTune = () => { try { const t = JSON.parse(store.get("tune") || "{}"); return { ...TUNE_DEFAULT, ...(t && typeof t === "object" ? t : {}) }; } catch (_) { return { ...TUNE_DEFAULT }; } };
 const S = { word: store.get("word"), data: null, src: store.get("tradesrc") || "both", tab: "calc", sides: null, sugTeam: null, sugCache: {}, hist: {}, histReq: 0, tune: loadTune() };
-const SRC_NAME = { fc: "FantasyCalc", dd: "Dynasty Daddy", both: "Both" };
-
 // ---------- side menu ----------
 const drawer = $("#ddrawer"), ddbg = $("#ddbg");
 const openMenu = (o) => { drawer.hidden = !o; ddbg.hidden = !o; $("#menubtn").setAttribute("aria-expanded", String(o)); };
@@ -309,131 +45,15 @@ fetch("/big-brains-tribune/issues.json", { cache: "no-store" }).then((r) => r.js
   list.innerHTML = li(issues[0], true) + (issues.length > 1 ? `<li><details><summary><span class="mono">BBArchive</span><b>${issues.length - 1} past issue${issues.length === 2 ? "" : "s"}</b></summary><ul class="dlist">${issues.slice(1).map((x) => li(x, false)).join("")}</ul></details></li>` : "");
 }).catch(() => {});
 
-// ---------- data ----------
-async function api(body) {
-  const r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ word: S.word, ...body }) });
-  const j = await r.json().catch(() => ({ ok: false, error: "error" }));
-  if (!j.ok) throw Object.assign(new Error(j.error || "error"), { code: j.error || "error" });
-  return j;
-}
-// One number per asset for the maths: FantasyCalc's scale, with Dynasty Daddy rescaled onto it so "Both" is a fair average.
-function prep(d) {
-  const P = d.players, ids = Object.keys(P).filter((id) => P[id].fc.value > 0 && P[id].dd.value > 0).sort((x, y) => P[y].fc.value - P[x].fc.value).slice(0, 60);
-  const scale = ids.length ? ids.reduce((s, id) => s + P[id].fc.value, 0) / ids.reduce((s, id) => s + P[id].dd.value, 0) : 1;
-  d.scale = scale;
-  d.assets = {};
-  for (const [id, p] of Object.entries(P)) d.assets[id] = { id, kind: "player", name: p.name, pos: p.pos, team: p.team, age: p.age, fc: p.fc.value, dd: p.dd.value, ddn: Math.round(p.dd.value * scale), rank: p.fc.rank, posRank: p.fc.posRank, ddPosRank: p.dd.posRank, trend: p.fc.trend, x: p.x || {} };
-  for (const pk of d.picks) d.assets[pk.id] = { id: pk.id, kind: "pick", name: pk.label, pos: "PICK", team: null, age: null, fc: pk.fc, dd: pk.dd, ddn: Math.round(pk.dd * scale), season: pk.season, round: pk.round, owner: pk.owner, orig: pk.orig, x: {} };
-  d.byRid = Object.fromEntries(d.teams.map((t) => [t.rid, t]));
-  d.holdings = {};
-  for (const t of d.teams) d.holdings[t.rid] = [...t.players, ...d.picks.filter((p) => p.owner === t.rid).map((p) => p.id)];
-  d.trades = (d.trades || []).sort((a, b) => b.at - a.at);
-  // FAAB as a tradable asset (one per team, amount set in the calculator). Only when the league actually runs FAAB.
-  for (const t of d.teams) if (d.settings.faab_budget) d.assets[`faab:${t.rid}`] = { id: `faab:${t.rid}`, kind: "faab", name: "FAAB", pos: "FAAB", team: null, age: null, fc: 0, dd: 0, ddn: 0, amount: 0, left: t.faab ?? 0, rid: t.rid, x: {} };
-  recompute(d);
-}
-// The tuning knobs turn each site's raw number into the number the calculator actually uses (a.v.fc / a.v.dd / a.v.both).
-function recompute(d) {
-  const T = S.tune, top = Math.max(...Object.values(d.assets).map((a) => a.fc || 0), 1);
-  const posMul = { QB: T.qb, RB: T.rb, WR: T.wr, TE: T.te };
-  const ageLine = { RB: 26, QB: 32, WR: 28, TE: 28 };
-  for (const a of Object.values(d.assets)) {
-    if (a.kind === "faab") { const v = (a.amount || 0) * T.faab; a.v = { fc: v, dd: v, both: v }; continue; }
-    const adj = (raw, isFc) => {
-      if (!raw) return 0;
-      let v = raw;
-      if (a.kind === "player") {
-        if (isFc && T.lean && a.x.redraft) v = raw * (1 - T.lean / 100) + a.x.redraft * (T.lean / 100); // win-now lean mixes in FantasyCalc's redraft number
-        v *= posMul[a.pos] ?? 1;
-        const over = Math.max(0, (a.age ?? 0) - (ageLine[a.pos] ?? 28)); if (T.age && over) v *= Math.pow(1 - T.age / 100, over);
-        if (T.injury && a.x.injury) v *= 1 - T.injury / 100;
-      } else v *= T.pick;
-      if (T.star) v *= 1 + (T.star / 100) * Math.pow(Math.min(raw, top) / top, 2); // the best assets get the consolidation premium
-      return v;
-    };
-    const fc = adj(a.fc, true), dd = adj(a.ddn, false);
-    a.v = { fc, dd, both: fc && dd ? (fc + dd) / 2 : fc || dd };
-  }
-  S.sugCache = {};
-}
-const val = (a, src = S.src) => a.v ? a.v[src] : 0;
-const tuneHash = () => JSON.stringify(S.tune);
-const tweaksActive = () => Object.keys(TUNE_DEFAULT).filter((k) => S.tune[k] !== TUNE_DEFAULT[k] && k !== "faab");
-const badge = (t) => `<span class="tb" style="--c:var(${t.c})">${esc(t.k)}</span>`;
-const posTag = (a) => `<span class="pos ${a.pos}">${a.pos === "PICK" ? "PICK" : a.pos}</span>`;
-
-// ---------- lineup maths ----------
-const SLOT_OK = { QB: ["QB"], RB: ["RB"], WR: ["WR"], TE: ["TE"], FLEX: ["RB", "WR", "TE"], SUPER_FLEX: ["QB", "RB", "WR", "TE"], K: ["K"], DEF: ["DEF"] };
-function lineupValue(ids, d) {
-  const A = ids.map((id) => d.assets[id]).filter((a) => a && a.kind === "player").sort((x, y) => val(y) - val(x));
-  const used = new Set(); let total = 0;
-  const fixed = d.settings.slots.filter((s) => SLOT_OK[s] && SLOT_OK[s].length === 1), flex = d.settings.slots.filter((s) => SLOT_OK[s] && SLOT_OK[s].length > 1);
-  for (const s of [...fixed, ...flex]) { const a = A.find((x) => !used.has(x.id) && SLOT_OK[s].includes(x.pos)); if (a) { used.add(a.id); total += val(a); } }
-  const bench = A.filter((x) => !used.has(x.id)).reduce((s, x) => s + val(x), 0);
-  return { starters: total, bench };
-}
-// What a team is playing for decides what "better" means: contenders want this year's lineup, rebuilders want youth and picks.
-const contending = (t, d) => t.seed <= Math.ceil(d.teams.length / 2);
-function futureValue(ids, d) {
-  return ids.reduce((s, id) => { const a = d.assets[id]; if (!a) return s; const v = val(a); if (a.kind === "pick") return s + v * 1.1; const age = a.age ?? 26; return s + v * (age <= 24 ? 1.12 : age <= 26 ? 1.04 : age <= 28 ? 0.96 : 0.82); }, 0);
-}
-function objective(t, ids, d) { if (contending(t, d)) { const l = lineupValue(ids, d); return l.starters + 0.15 * l.bench; } return futureValue(ids, d); }
-function combos(arr, k) { const out = []; if (k === 1) return arr.map((x) => [x]); for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) out.push([arr[i], arr[j]]); return out; }
-function suggest(rid, d) {
-  if (S.sugCache[S.src + ":" + rid]) return S.sugCache[S.src + ":" + rid];
-  // (recompute() empties this cache whenever a knob changes)
-  const me = d.byRid[rid], mine = d.holdings[rid];
-  const pool = (ids) => { const pl = ids.filter((id) => d.assets[id].kind === "player" && val(d.assets[id]) > 0).sort((x, y) => val(d.assets[y]) - val(d.assets[x])).slice(0, 11); const pk = ids.filter((id) => d.assets[id].kind === "pick" && val(d.assets[id]) > 0); return [...pl, ...pk]; };
-  const myPool = pool(mine), myCombos = [...combos(myPool, 1), ...combos(myPool, 2)];
-  const base = objective(me, mine, d);
-  const out = [];
-  for (const them of d.teams) {
-    if (them.rid === rid) continue;
-    const theirs = d.holdings[them.rid], theirPool = pool(theirs), theirBase = objective(them, theirs, d);
-    const theirCombos = [...combos(theirPool, 1), ...combos(theirPool, 2)];
-    for (const give of myCombos) {
-      const gv = give.reduce((s, id) => s + val(d.assets[id]), 0); if (!gv) continue;
-      for (const get of theirCombos) {
-        const rv = get.reduce((s, id) => s + val(d.assets[id]), 0); if (!rv) continue;
-        const diff = Math.abs(gv - rv) / Math.max(gv, rv); if (diff > 0.12) continue;
-        if (give.length === 2 && get.length === 2 && give.every((id) => d.assets[id].kind === "pick") && get.every((id) => d.assets[id].kind === "pick")) continue;
-        const giveSet = new Set(give), getSet = new Set(get);
-        const myAfter = [...mine.filter((id) => !giveSet.has(id)), ...get], theirAfter = [...theirs.filter((id) => !getSet.has(id)), ...give];
-        const g1 = objective(me, myAfter, d) - base; if (g1 <= 0) continue;
-        const g2 = objective(them, theirAfter, d) - theirBase; if (g2 <= 0) continue;
-        out.push({ them, give, get, gv, rv, g1, g2, score: Math.min(g1, g2) * 2 + (g1 + g2) * 0.5 - diff * 1500 });
-      }
-    }
-  }
-  out.sort((x, y) => y.score - x.score);
-  // One suggestion per partner first, then the rest, so the list isn't nine versions of the same deal.
-  const seen = new Map(), pkg = new Map(), top = [], rest = [];
-  for (const s of out) {
-    const key = s.them.rid, pk = [...s.give].sort().join("+"); if ((pkg.get(pk) || 0) >= 3) continue;
-    if (!seen.has(key)) { seen.set(key, 1); pkg.set(pk, (pkg.get(pk) || 0) + 1); top.push(s); } else if (seen.get(key) < 3) { seen.set(key, seen.get(key) + 1); pkg.set(pk, (pkg.get(pk) || 0) + 1); rest.push(s); }
-  }
-  const res = [...top, ...rest].slice(0, 12);
-  S.sugCache[S.src + ":" + rid] = res; return res;
-}
-function needs(rid, d) {
-  const t = d.byRid[rid], ids = d.holdings[rid];
-  const byPos = {}; for (const id of ids) { const a = d.assets[id]; if (a.kind !== "player") continue; (byPos[a.pos] ??= []).push(val(a)); }
-  const starters = { QB: 2, RB: 2, WR: 3, TE: 1 }; // superflex: a second QB starts
-  const rows = Object.entries(starters).map(([pos, n]) => { const v = (byPos[pos] || []).sort((x, y) => y - x); const start = v.slice(0, n).reduce((s, x) => s + x, 0) / n || 0; const depth = v.slice(n).reduce((s, x) => s + x, 0); return { pos, start, depth, count: v.length }; });
-  const weakest = [...rows].sort((x, y) => x.start - y.start)[0], deepest = [...rows].sort((x, y) => y.depth - x.depth)[0];
-  const picks = ids.filter((id) => d.assets[id].kind === "pick").length;
-  return { t, rows, weakest, deepest, picks, mode: contending(t, d) ? "contending" : "rebuilding" };
-}
-
 // ---------- views ----------
 function render() {
   app.innerHTML = "";
   $("#toolwrap").hidden = !(S.word && S.data);
   if (!S.word || !S.data) return gate();
   drawTweaks();
-  app.appendChild(el(`<div><div class="tabs" role="tablist"><button type="button" data-t="calc" ${S.tab === "calc" ? "aria-current=true" : ""}>Calculator</button><button type="button" data-t="sug" ${S.tab === "sug" ? "aria-current=true" : ""}>Suggested trades</button><button type="button" data-t="dash" ${S.tab === "dash" ? "aria-current=true" : ""}>Big Brain analytics</button></div><div id="tab"></div></div>`));
+  app.appendChild(el(`<div><div class="tabs" role="tablist"><button type="button" data-t="calc" ${S.tab === "calc" ? "aria-current=true" : ""}>Calculator</button><button type="button" data-t="sug" ${S.tab === "sug" ? "aria-current=true" : ""}>Suggested trades</button><a class="tablink" href="/big-brains-tribune/analytics/">Big Brain Analytics →</a></div><div id="tab"></div></div>`));
   app.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { S.tab = b.dataset.t; render(); });
-  ({ sug: suggestions, dash: dashboard }[S.tab] || calculator)($("#tab"));
+  (S.tab === "sug" ? suggestions : calculator)($("#tab"));
   const d = S.data, when = (iso) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
   $("#foot").innerHTML = `Values: FantasyCalc (${when(d.sources.fc.at)})${d.sources.dd.ok ? ` · Dynasty Daddy (${when(d.sources.dd.at)})` : " · Dynasty Daddy unavailable right now"} · dynasty, superflex, PPR. Rosters and trade log from Sleeper. Nobody's bound by any of this.`;
 }
@@ -462,7 +82,7 @@ const otherSides = (i) => S.sides.filter((_, j) => j !== i);
 function calculator(root) {
   const d = S.data;
   const teamOpts = (sel, taken) => d.teams.map((t) => `<option value="${t.rid}" ${t.rid === sel ? "selected" : ""} ${taken.includes(t.rid) && t.rid !== sel ? "disabled" : ""}>${esc(t.name)}</option>`).join("");
-  const v = el(`<div><p class="dim small" style="margin:4px 0 10px">Pick the teams, tap what each one gives. ${S.sides.length > 2 ? "With three teams, tap a chip in the gives box to change who receives it." : "Arrows show where each piece goes."} ${S.src === "both" ? "Numbers are FantasyCalc and Dynasty Daddy side by side; the verdict uses both." : `Numbers are ${SRC_NAME[S.src]}'s.`}</p>
+  const v = el(`<div>${indexCallout(false)}<p class="dim small" style="margin:4px 0 10px">Pick the teams, tap what each one gives. ${S.sides.length > 2 ? "With three teams, tap a chip in the gives box to change who receives it." : "Arrows show where each piece goes."} ${S.src === "both" ? "Numbers are FantasyCalc and Dynasty Daddy side by side; the verdict uses both." : `Numbers are ${SRC_NAME[S.src]}'s.`}</p>
     <div class="sides n${S.sides.length}" id="sides"></div><div class="addrow">${S.sides.length < 3 ? `<button type="button" class="btn sm" id="addteam">+ Add a third team</button>` : `<button type="button" class="btn sm" id="dropteam">Remove the third team</button>`}</div><div id="verdict"></div><div id="analytics"></div></div>`);
   root.appendChild(v);
   const sidesEl = $("#sides", v);
@@ -533,100 +153,6 @@ function calculator(root) {
   };
   drawAll();
 }
-// GM indices, from the league's own trade log scored at today's values (how each deal has aged).
-// Aggression 0–1: how often a GM trades, how much value moves per deal, and how often a 1st or a star is in it, as league percentiles.
-// Success 0–1: half win rate (deals where what you got is worth more today than what you gave), half net value as a share of what moved.
-const SIX_MO = 183 * 864e5;
-function tradeSides(t, d) {
-  const cur = d.settings.season, proxy = (round) => { const next = d.picks.filter((p) => p.round === round && p.season === cur + 1); return next.length ? next.reduce((s, p) => s + val(d.assets[p.id], "both"), 0) / next.length : 0; };
-  const pickVal = (p) => { const a = d.assets[`pick:${p.season}:${p.round}:${p.orig}`]; return a ? val(a, "both") : proxy(p.round); };
-  const out = {};
-  for (const rid of t.rids) out[rid] = { got: 0, gave: 0, bold: false, n: 0 };
-  for (const [id, to] of Object.entries(t.adds)) { const v = d.assets[id] ? val(d.assets[id], "both") : 0, from = (t.drops || {})[id]; if (out[to]) { out[to].got += v; out[to].n++; } if (out[from]) out[from].gave += v; if (v >= 0.7 * (d.top || 1)) for (const r of t.rids) out[r].bold = true; }
-  for (const p of t.picks) { const v = pickVal(p); if (out[p.owner]) { out[p.owner].got += v; out[p.owner].n++; } if (out[p.prev]) out[p.prev].gave += v; if (p.round === 1) for (const r of t.rids) out[r].bold = true; }
-  return out;
-}
-function gmStats(d, sinceMs) {
-  const trades = d.trades.filter((t) => !sinceMs || t.at >= sinceMs);
-  const seasons = Math.max(1, new Set(trades.map((t) => t.season)).size);
-  const per = Object.fromEntries(d.teams.map((t) => [t.rid, { n: 0, moved: 0, net: 0, wins: 0, bold: 0, best: null, worst: null }]));
-  for (const t of trades) { const sides = tradeSides(t, d); for (const [rid, x] of Object.entries(sides)) { const p = per[rid]; if (!p) continue; const net = x.got - x.gave; p.n++; p.moved += (x.got + x.gave) / 2; p.net += net; if (net > 0) p.wins++; if (x.bold) p.bold++; if (!p.best || net > p.best.net) p.best = { net, t }; if (!p.worst || net < p.worst.net) p.worst = { net, t }; } }
-  const rids = d.teams.map((t) => t.rid), pr = (key) => { const vals = rids.map((r) => key(per[r])); return Object.fromEntries(rids.map((r) => [r, rids.length > 1 ? vals.filter((v) => v < key(per[r])).length / (rids.length - 1) : 0])); };
-  const rate = pr((p) => p.n / seasons), size = pr((p) => p.n ? p.moved / p.n : 0), bold = pr((p) => p.n ? p.bold / p.n : 0);
-  const out = {};
-  for (const r of rids) { const p = per[r]; const aggression = p.n ? 0.5 * rate[r] + 0.3 * size[r] + 0.2 * bold[r] : 0; const success = p.n ? 0.5 * (p.wins / p.n) + 0.5 * (0.5 + 0.5 * Math.max(-1, Math.min(1, p.net / (p.moved || 1)))) : null; out[r] = { ...p, aggression, success, seasons }; }
-  return out;
-}
-function gmIndex(d) {
-  const key = S.src + tuneHash(); if (d._gm && d._gm.key === key) return d._gm.v;
-  d.top = Math.max(...Object.values(d.assets).map((a) => val(a, "both") || 0), 1);
-  const all = gmStats(d, 0), recent = gmStats(d, Date.now() - SIX_MO), v = {};
-  const arrow = (a, b) => a == null || b == null ? "–" : b - a > 0.1 ? "↑" : a - b > 0.1 ? "↓" : "–";
-  for (const t of d.teams) v[t.rid] = { ...all[t.rid], aggrTrend: arrow(all[t.rid].aggression, recent[t.rid].n ? recent[t.rid].aggression : null), succTrend: arrow(all[t.rid].success, recent[t.rid].success), recent: recent[t.rid] };
-  d._gm = { key, v }; return v;
-}
-const gmLine = (t, d) => { const g = gmIndex(d)[t.rid]; return g.n ? `<span class="gm" title="Aggression: how often and how big this GM trades, league percentile. Success: how those deals have aged at today's values."><b>${g.aggression.toFixed(2)}</b> aggr <i>(${g.aggrTrend})</i> · <b>${g.success.toFixed(2)}</b> success <i>(${g.succTrend})</i> · ${g.n} trade${g.n === 1 ? "" : "s"}</span>` : `<span class="gm">No trades on record</span>`; };
-
-// Positional needs, league-relative: each team's starters at a position ranked against the other nine, picks counted the same way.
-const STARTERS = { QB: 2, RB: 2, WR: 3, TE: 1 };
-function posStrength(ids, d) {
-  const by = { QB: [], RB: [], WR: [], TE: [] };
-  for (const id of ids) { const a = d.assets[id]; if (a && a.kind === "player" && by[a.pos]) by[a.pos].push(a); }
-  const out = {};
-  for (const [pos, n] of Object.entries(STARTERS)) { const l = by[pos].sort((x, y) => val(y) - val(x)); out[pos] = { sum: l.slice(0, n).reduce((s, a) => s + val(a), 0), top: l.slice(0, n) }; }
-  out.picks = ids.filter((id) => d.assets[id]?.kind === "pick").length;
-  out.firsts = ids.filter((id) => d.assets[id]?.kind === "pick" && d.assets[id].round === 1).length;
-  return out;
-}
-function leagueTable(d) {
-  if (d._lt && d._lt.key === S.src + tuneHash()) return d._lt.v;
-  const v = Object.fromEntries(d.teams.map((t) => [t.rid, posStrength(d.holdings[t.rid], d)])); d._lt = { key: S.src + tuneHash(), v }; return v;
-}
-const rankOf = (value, values) => values.filter((x) => x > value).length + 1;
-function teamNeeds(rid, d, afterIds) {
-  const lt = leagueTable(d), mine = lt[rid], n = d.teams.length;
-  const after = afterIds ? posStrength(afterIds, d) : null;
-  const rows = Object.keys(STARTERS).map((pos) => {
-    const others = d.teams.filter((t) => t.rid !== rid).map((t) => lt[t.rid][pos].sum);
-    const rank = rankOf(mine[pos].sum, others), rankAfter = after ? rankOf(after[pos].sum, others) : null;
-    return { pos, rank, rankAfter, top: mine[pos].top, topAfter: after ? after[pos].top : null, need: rank >= Math.ceil(n * 0.6) };
-  });
-  const othersPicks = d.teams.filter((t) => t.rid !== rid).map((t) => lt[t.rid].picks);
-  const pickRank = rankOf(mine.picks, othersPicks), pickRankAfter = after ? rankOf(after.picks, othersPicks) : null;
-  const pickNeed = !contending(d.byRid[rid], d) && (pickRank >= Math.ceil(n * 0.6) || mine.firsts === 0);
-  return { rows, needs: rows.filter((r) => r.need), picks: { count: mine.picks, countAfter: after ? after.picks : null, firsts: mine.firsts, rank: pickRank, rankAfter: pickRankAfter, need: pickNeed } };
-}
-const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th"}`;
-const prank = (a) => `${a.posRank ? `${a.pos}${a.posRank}` : "–"}${a.ddPosRank ? ` / ${a.pos}${a.ddPosRank}` : ""}`;
-function needsHtml(t, d, afterIds) {
-  const N = teamNeeds(t.rid, d, afterIds), n = d.teams.length;
-  const arrow = (r, ra) => ra != null && ra !== r ? ` → <b class="${ra < r ? "up" : "dn"}">${ordinal(ra)}</b>` : "";
-  const items = N.needs.map((r) => `<li><b>${r.pos}</b> <span class="dim">${ordinal(r.rank)} of ${n}${arrow(r.rank, r.rankAfter)}</span><small>${r.top.length ? r.top.map((a) => `${esc(a.name)} <i>${prank(a)}</i>`).join(", ") : "nobody startable"}${r.topAfter && r.rankAfter !== r.rank ? ` → ${r.topAfter.map((a) => `${esc(a.name)} <i>${prank(a)}</i>`).join(", ")}` : ""}</small></li>`);
-  if (N.picks.need) items.push(`<li><b>Picks</b> <span class="dim">${N.picks.count} owned, ${ordinal(N.picks.rank)} of ${n}${N.picks.firsts === 0 ? ", no 1sts" : ""}${N.picks.countAfter != null && N.picks.countAfter !== N.picks.count ? ` → <b class="${N.picks.countAfter > N.picks.count ? "up" : "dn"}">${N.picks.countAfter}</b>` : ""}</span><small>rebuilding without draft capital</small></li>`);
-  const strengths = N.rows.filter((r) => r.rank <= 2).map((r) => r.pos);
-  return `<div class="needs2"><div class="k">${badge(t)} needs</div>${items.length ? `<ul>${items.join("")}</ul>` : `<p class="small dim" style="margin:0">No glaring hole: every position sits in the top half of the league.</p>`}${strengths.length ? `<p class="small dim" style="margin:4px 0 0">Strength: ${strengths.join(", ")} (top 2 in the league). Ranks are FC / DD position ranks.</p>` : ""}</div>`;
-}
-const avgAge = (ids, d) => { const a = ids.map((id) => d.assets[id]).filter((x) => x && x.kind === "player" && x.age); return a.length ? a.reduce((s, x) => s + x.age, 0) / a.length : 0; };
-
-// ---------- analytics: trends, projections, trade volume ----------
-function spark(pts, w = 180, h = 44) {
-  const fc = pts.map((p) => p.fc).filter(Boolean), dd = pts.map((p) => p.dd * S.data.scale).filter(Boolean);
-  const all = [...fc, ...dd]; if (all.length < 2) return `<span class="dim small">Not enough history yet</span>`;
-  const lo = Math.min(...all), hi = Math.max(...all), span = hi - lo || 1, n = pts.length;
-  const line = (key, color) => { const q = pts.map((p, i) => [p, i]).filter(([p]) => p[key]); if (q.length < 2) return ""; return `<polyline fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" points="${q.map(([p, i]) => `${((i / (n - 1)) * (w - 4) + 2).toFixed(1)},${(h - 3 - ((key === "fc" ? p.fc : p.dd * S.data.scale) - lo) / span * (h - 6)).toFixed(1)}`).join(" ")}"/>`; };
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Value history">${line("fc", "var(--pylon)")}${line("dd", "var(--blue)")}</svg>`;
-}
-function projection(a, pts) {
-  // Rough six-month projection: the recent slope (dampened), plus an age curve by position. Clamped to ±40%.
-  const now = val(a, "both"); if (!now) return null;
-  const series = pts.map((p) => (p.fc && p.dd ? (p.fc + p.dd * S.data.scale) / 2 : p.fc || p.dd * S.data.scale)).filter(Boolean);
-  let slope = 0; if (series.length >= 7) { const k = Math.min(series.length, 90), s = series.slice(-k); slope = (s[s.length - 1] - s[0]) / k; }
-  const trendPart = slope * 180 * 0.5;
-  const age = a.age ?? 26, pos = a.pos;
-  const ageMult = pos === "RB" ? (age >= 27 ? 0.92 : age <= 24 ? 1.03 : 1) : pos === "QB" ? (age >= 34 ? 0.95 : age <= 25 ? 1.03 : 1) : (age >= 30 ? 0.95 : age <= 24 ? 1.03 : 1);
-  const raw = (now + trendPart) * ageMult;
-  return Math.max(now * 0.6, Math.min(now * 1.4, raw));
-}
 function analytics(root, moves, teams) {
   const d = S.data, players = moves.map((m) => m.a).filter((a) => a.kind === "player");
   const ids = players.map((a) => a.id), need = ids.filter((id) => !S.hist[id]);
@@ -670,7 +196,7 @@ function analytics(root, moves, teams) {
         ${busiest && busiest.n ? `<div><b>${esc(busiest.t.k)}</b><small>busiest desk (${busiest.n})</small></div>` : ""}
         ${tr[0] ? `<div><b>Wk ${tr[0].week}</b><small>last league trade</small></div>` : ""}
       </div>${moved.length ? `<p class="small" style="margin:8px 0 0"><b>Already moved this season:</b> ${moved.join("; ")}.</p>` : `<p class="small dim" style="margin:8px 0 0">None of these pieces has changed hands this season.</p>`}
-      <div class="k" style="margin-top:12px">GM track record</div><div class="gmgrid">${teams.map((t) => { const g = gmIndex(d)[t.rid]; return `<div><div class="nm">${badge(t)}</div>${g.n ? `<div class="idx"><span><b>${g.aggression.toFixed(2)}</b><small>aggression (${g.aggrTrend})</small></span><span><b>${g.success.toFixed(2)}</b><small>success (${g.succTrend})</small></span></div><div class="small dim">${g.n} trade${g.n === 1 ? "" : "s"} over ${g.seasons} season${g.seasons === 1 ? "" : "s"} · ${g.wins} aged well · net ${g.net >= 0 ? "+" : "−"}${fmt(Math.abs(g.net))} at today's values${g.recent.n ? ` · ${g.recent.n} in the last 6 months` : " · quiet lately"}</div>` : `<div class="small dim">No trades on record.</div>`}</div>`; }).join("")}</div>
+      <div class="k" style="margin-top:12px">GM track record</div><div class="gmgrid">${teams.map((t) => { const g = gmIndex(d)[t.rid]; return `<div><div class="nm">${badge(t)}</div>${g.n ? `<div class="idx"><span><b>${g.aggression.toFixed(2)}</b><small>aggression · 6 mo ${trendTxt(g.aggrTrend, g.aggrDelta)}</small></span><span><b>${g.success.toFixed(2)}</b><small>success · 6 mo ${trendTxt(g.succTrend, g.succDelta)}</small></span></div><div class="small dim">${g.n} trade${g.n === 1 ? "" : "s"} over ${g.seasons} season${g.seasons === 1 ? "" : "s"} · ${g.wins} aged well · <b class="${sign(g.ddNet)}">${ddNetTxt(g)}</b> all-time at today's values${g.recent.n ? ` · ${g.recent.n} in the last 6 months` : " · quiet lately"}</div>` : `<div class="small dim">No trades on record.</div>`}</div>`; }).join("")}</div>
       <p class="note">Aggression ranks how often a GM deals, how much value moves per deal and how often a 1st or a star is involved (league percentiles). Success scores how deals have aged: half win rate, half net value as a share of what moved, all at today's values. The arrow compares the last six months with the full record.</p></div>
       <p class="note">Projected 6 mo is a rough call: the recent slope, dampened, plus an age curve by position, capped at ±40%. Trade volume per player is FantasyCalc's share of real trades involving him; league volume is from Sleeper's transaction log.</p></div>`;
   };
@@ -680,60 +206,6 @@ function analytics(root, moves, teams) {
     api({ action: "history", ids: need }).then((r) => { Object.assign(S.hist, r.history || {}); if (r.own_since && !d.history_since) d.history_since = r.own_since; if (req === S.histReq && root.isConnected) draw(); }).catch(() => {});
   }
 }
-const sign = (n) => n > 0 ? "up" : n < 0 ? "dn" : "";
-const pm = (n) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${fmt(Math.abs(n))}`;
-
-// ---------- Big Brain analytics: a full dashboard per team ----------
-function teamTotals(d) {
-  const key = "tt" + S.src + tuneHash(); if (d._tt && d._tt.key === key) return d._tt.v;
-  const v = {};
-  for (const t of d.teams) {
-    const ids = d.holdings[t.rid], pl = ids.filter((id) => d.assets[id].kind === "player"), pk = ids.filter((id) => d.assets[id].kind === "pick");
-    const l = lineupValue(ids, d);
-    v[t.rid] = { total: ids.reduce((s, id) => s + val(d.assets[id]), 0), players: pl.reduce((s, id) => s + val(d.assets[id]), 0), picks: pk.reduce((s, id) => s + val(d.assets[id]), 0), starters: l.starters, bench: l.bench, age: avgAge(ids, d), momentum: pl.reduce((s, id) => s + (d.assets[id].trend || 0), 0), n: pl.length, nPicks: pk.length, firsts: pk.filter((id) => d.assets[id].round === 1).length };
-  }
-  d._tt = { key, v }; return v;
-}
-function dashboard(root) {
-  const d = S.data; if (!S.dashTeam) S.dashTeam = S.sides[0].rid;
-  const v = el(`<div><div class="field" style="margin-top:4px"><label class="lab" for="dashteam">Team</label><select id="dashteam">${d.teams.map((t) => `<option value="${t.rid}" ${t.rid === S.dashTeam ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select></div><div id="dashbody"></div></div>`);
-  root.appendChild(v);
-  $("#dashteam", v).onchange = (e) => { S.dashTeam = Number(e.target.value); render(); };
-  const t = d.byRid[S.dashTeam], tt = teamTotals(d), me = tt[t.rid], n = d.teams.length, g = gmIndex(d)[t.rid], N = teamNeeds(t.rid, d);
-  const rank = (key) => rankOf(me[key], d.teams.filter((x) => x.rid !== t.rid).map((x) => tt[x.rid][key]));
-  const rankLow = (key) => rankOf(-me[key], d.teams.filter((x) => x.rid !== t.rid).map((x) => -tt[x.rid][key]));
-  const tile = (k, v, sub) => `<div class="dt"><div class="k">${k}</div><div class="v">${v}</div>${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
-  const ids = d.holdings[t.rid], assets = ids.map((id) => d.assets[id]).sort((x, y) => val(y) - val(x));
-  const top5 = assets.slice(0, 5), top5share = me.total ? top5.reduce((s, a) => s + val(a), 0) / me.total : 0;
-  const maxTotal = Math.max(...d.teams.map((x) => tt[x.rid].total), 1);
-  const leagueBars = [...d.teams].sort((a, b) => tt[b.rid].total - tt[a.rid].total).map((x) => `<div class="lb ${x.rid === t.rid ? "me" : ""}"><span class="nm">${badge(x)}</span><div class="bar"><i style="width:${((tt[x.rid].total / maxTotal) * 100).toFixed(1)}%;background:var(${x.c})"></i></div><span class="num">${fmt(tt[x.rid].total)}</span></div>`).join("");
-  const posRows = N.rows.map((r) => `<tr><td><b>${r.pos}</b></td><td>${ordinal(r.rank)}${r.need ? ' <span class="needtag">need</span>' : r.rank <= 2 ? ' <span class="strtag">strength</span>' : ""}</td><td>${r.top.map((a) => `${esc(a.name)} <i>${prank(a)}</i>`).join("<br>") || "<span class=dim>—</span>"}</td></tr>`).join("");
-  const picks = ids.filter((id) => d.assets[id].kind === "pick").map((id) => d.assets[id]).sort((a, b) => a.season - b.season || a.round - b.round);
-  const ageBuckets = [["≤24", (a) => a.age <= 24], ["25–27", (a) => a.age > 24 && a.age <= 27], ["28–30", (a) => a.age > 27 && a.age <= 30], ["31+", (a) => a.age > 30]].map(([k, f]) => { const l = assets.filter((a) => a.kind === "player" && a.age && f(a)); return { k, n: l.length, v: l.reduce((s, a) => s + val(a), 0) }; });
-  const myTrades = d.trades.filter((x) => x.rids.includes(t.rid)).slice(0, 8).map((x) => { const sd = tradeSides(x, d)[t.rid]; const gave = [...Object.entries(x.drops || {}).filter(([, r]) => r === t.rid).map(([id]) => d.assets[id]?.name || "a player"), ...x.picks.filter((p) => p.prev === t.rid).map((p) => `${p.season} ${ordinal(p.round)}`)]; const got = [...Object.entries(x.adds).filter(([, r]) => r === t.rid).map(([id]) => d.assets[id]?.name || "a player"), ...x.picks.filter((p) => p.owner === t.rid).map((p) => `${p.season} ${ordinal(p.round)}`)]; const net = sd.got - sd.gave; return `<div class="tr"><div class="w">${x.season} · Wk ${x.week} · with ${x.rids.filter((r) => r !== t.rid).map((r) => esc(d.byRid[r]?.k || "?")).join(", ")}</div><div class="gg"><span><small>Gave</small>${gave.map(esc).join(", ") || "—"}</span><span><small>Got</small>${got.map(esc).join(", ") || "—"}</span></div><div class="net ${net > 0 ? "up" : net < 0 ? "dn" : ""}">${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))} today</div></div>`; }).join("");
-  $("#dashbody", v).innerHTML = `<div class="dash">
-    <div class="dh"><div>${badge(t)} <b class="big">${esc(t.name)}</b></div><div class="small dim">${t.wins}–${t.losses}${t.ties ? `–${t.ties}` : ""} · seed ${t.seed} · ${fmt(t.pf)} PF · ${contending(t, d) ? "contending" : "rebuilding"}</div><div class="small">${gmLine(t, d)}</div></div>
-    <div class="dtiles">
-      ${tile("Roster value", fmt(me.total), `${ordinal(rank("total"))} of ${n} · ${SRC_NAME[S.src]}`)}
-      ${tile("Starting lineup", fmt(me.starters), `${ordinal(rank("starters"))} of ${n}`)}
-      ${tile("Bench", fmt(me.bench), `${ordinal(rank("bench"))} of ${n}`)}
-      ${tile("Draft capital", fmt(me.picks), `${me.nPicks} picks, ${me.firsts} first${me.firsts === 1 ? "" : "s"} · ${ordinal(rank("picks"))} of ${n}`)}
-      ${tile("Average age", me.age.toFixed(1), `${ordinal(rankLow("age"))} youngest`)}
-      ${tile("30-day momentum", `${me.momentum >= 0 ? "+" : "−"}${fmt(Math.abs(me.momentum))}`, `FantasyCalc trend, summed · ${ordinal(rank("momentum"))} of ${n}`)}
-      ${tile("Top-5 share", `${Math.round(top5share * 100)}%`, top5share > 0.6 ? "top-heavy roster" : top5share < 0.4 ? "spread thin" : "balanced")}
-      ${tile("GM aggression", g.n ? g.aggression.toFixed(2) : "–", g.n ? `trend (${g.aggrTrend}) · ${g.n} trades` : "no trades on record")}
-      ${tile("Trade success", g.n && g.success != null ? g.success.toFixed(2) : "–", g.n ? `trend (${g.succTrend}) · ${g.wins} aged well` : "")}
-    </div>
-    <h2>League by roster value</h2><div class="lbars">${leagueBars}</div>
-    <h2>Positions</h2><table class="postab"><thead><tr><th>Pos</th><th>Rank</th><th>Starters · FC / DD rank</th></tr></thead><tbody>${posRows}</tbody><tbody><tr><td><b>Picks</b></td><td>${ordinal(N.picks.rank)}${N.picks.need ? ' <span class="needtag">need</span>' : ""}</td><td>${picks.length ? picks.map((a) => `${esc(a.name)} <i>${fmt(val(a))}</i>`).join("<br>") : "<span class=dim>none</span>"}</td></tr></tbody></table>
-    <h2>Core assets</h2><div class="core">${top5.map((a, i) => `<div class="ca"><span class="i">${i + 1}</span>${posTag(a)}<span class="nm">${esc(a.name)}<small>${a.kind === "pick" ? `${a.season} rookie draft` : `${esc(a.team || "FA")}${a.age ? ` · ${Math.floor(a.age)}` : ""} · ${prank(a)}${a.trend ? ` · 30d ${pm(a.trend)}` : ""}`}</small></span><span class="num"><b>${fmt(val(a))}</b><small>${Math.round((val(a) / (me.total || 1)) * 100)}%</small></span></div>`).join("")}</div>
-    <h2>Age profile</h2><div class="ages">${ageBuckets.map((b) => `<div><div class="k">${b.k}</div><div class="bar"><i style="width:${((b.v / (me.players || 1)) * 100).toFixed(1)}%"></i></div><div class="s">${b.n} player${b.n === 1 ? "" : "s"} · ${Math.round((b.v / (me.players || 1)) * 100)}% of player value</div></div>`).join("")}</div>
-    ${needsHtml(t, d)}
-    <h2>Trade history</h2>${myTrades ? `<div class="trs">${myTrades}</div>` : `<p class="dim small">No trades on record for ${esc(t.name)}.</p>`}
-    <p class="note">Ranks are against the other ${n - 1} teams on ${SRC_NAME[S.src]} values with your Tune settings applied. Trade history is scored at today's values (how each deal has aged), not what the pieces were worth on the day.</p>
-  </div>`;
-}
-
 // ---------- suggestions ----------
 function suggestions(root) {
   const d = S.data; if (!S.sugTeam) S.sugTeam = S.sides[0].rid;
@@ -757,38 +229,8 @@ function suggestions(root) {
 $("#src").querySelectorAll("button").forEach((b) => b.onclick = () => { S.src = b.dataset.s; store.set("tradesrc", S.src); $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); S.sugCache = {}; if (S.data) render(); });
 $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.s === S.src)));
 $("#tune").onclick = () => tuneSheet();
-function drawTweaks() {
-  const on = tweaksActive(); const btn = $("#tune"); btn.classList.toggle("on", on.length > 0); $("#tunen").textContent = on.length;
-  const T = S.tune, chip = (k) => ({ lean: `Win-now lean ${T.lean}%`, qb: `QB ×${T.qb}`, rb: `RB ×${T.rb}`, wr: `WR ×${T.wr}`, te: `TE ×${T.te}`, pick: `Picks ×${T.pick}`, age: `Age −${T.age}%/yr`, star: `Star premium +${T.star}%`, injury: `Injured −${T.injury}%` }[k]);
-  $("#tweaks").innerHTML = on.map((k) => `<span>${esc(chip(k))}</span>`).join("");
-}
-function tuneSheet() {
-  const T = { ...S.tune };
-  const knob = (k, label, hint, min, max, step, fmtv) => `<div class="knob"><div class="l">${label}<small>${hint}</small></div><div class="v" data-v="${k}">${fmtv(T[k])}</div><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${T[k]}"></div>`;
-  const sheet = el(`<div><div class="sheet-bg" id="tbg"></div><div class="sheet" role="dialog" aria-label="Tune the calculator"><div class="in"><div class="sh"><h2>Tune the calculator</h2><button type="button" class="dclose" id="tclose" aria-label="Close">✕</button></div>
-    <p class="dim small">Start from a preset or drag the knobs. Everything here changes the numbers across the calculator, the verdict and the suggested trades. Your settings stick on this phone.</p>
-    <div class="presets" id="presets">${Object.entries(PRESETS).map(([k, p]) => `<button type="button" data-p="${k}">${p.label}</button>`).join("")}</div>
-    ${knob("lean", "Win-now lean", "Mix FantasyCalc's redraft (this-season) value into dynasty value", 0, 100, 5, (v) => `${v}%`)}
-    <div class="knob"><div class="l">Position premiums<small>Multiply every player at a position. Superflex leagues often run QB 1.1–1.3</small></div><div class="v"></div><div class="row4">${["qb", "rb", "wr", "te"].map((k) => `<label>${k.toUpperCase()}<input type="number" data-k="${k}" min="0.5" max="2" step="0.05" value="${T[k]}"></label>`).join("")}</div></div>
-    ${knob("pick", "Pick premium", "Multiply every rookie pick. Above 1 if your league overpays for picks", 0.5, 1.6, 0.05, (v) => `×${v}`)}
-    ${knob("age", "Age discount", "Per year past the cliff (RB 26, WR/TE 28, QB 32)", 0, 15, 1, (v) => `−${v}%/yr`)}
-    ${knob("star", "Star premium", "Consolidation bonus: the best assets get up to this much extra, so 2-for-1s stop looking like a steal", 0, 30, 1, (v) => `+${v}%`)}
-    ${knob("injury", "Injury discount", "Players carrying an injury tag on Dynasty Daddy", 0, 50, 5, (v) => `−${v}%`)}
-    ${S.data.settings.faab_budget ? knob("faab", "FAAB dollar", "Value of one FAAB dollar when it's part of a deal ($${S.data.settings.faab_budget} budget)", 2, 40, 1, (v) => `${v} / $1`) : ""}
-    <div class="acts"><button type="button" class="btn" id="treset">Reset</button><button type="button" class="btn primary" id="tapply">Apply</button></div></div></div></div>`);
-  document.body.appendChild(sheet);
-  const close = () => sheet.remove();
-  const sync = () => { sheet.querySelectorAll("input[data-k]").forEach((inp) => { inp.value = T[inp.dataset.k]; }); sheet.querySelectorAll("[data-v]").forEach((x) => { const k = x.dataset.v, fv = { lean: (v) => `${v}%`, pick: (v) => `×${v}`, age: (v) => `−${v}%/yr`, star: (v) => `+${v}%`, injury: (v) => `−${v}%`, faab: (v) => `${v} / $1` }[k]; x.textContent = fv ? fv(T[k]) : T[k]; }); const match = Object.entries(PRESETS).find(([, p]) => Object.keys(TUNE_DEFAULT).every((k) => k === "faab" || String(T[k]) === String(k in p.t ? p.t[k] : TUNE_DEFAULT[k]))); sheet.querySelectorAll("#presets button").forEach((b) => b.setAttribute("aria-pressed", String(!!match && match[0] === b.dataset.p))); };
-  sheet.querySelectorAll("input[data-k]").forEach((inp) => inp.addEventListener("input", () => { T[inp.dataset.k] = Number(inp.value); sync(); }));
-  sheet.querySelectorAll("#presets button").forEach((b) => b.onclick = () => { Object.assign(T, { ...TUNE_DEFAULT, faab: T.faab }, PRESETS[b.dataset.p].t); sync(); });
-  $("#treset", sheet).onclick = () => { Object.assign(T, TUNE_DEFAULT); sync(); };
-  $("#tapply", sheet).onclick = () => { S.tune = { ...T }; store.set("tune", JSON.stringify(S.tune)); recompute(S.data); close(); render(); };
-  $("#tclose", sheet).onclick = close; $("#tbg", sheet).onclick = close;
-  sync();
-}
 $("#brand").onclick = (e) => { e.preventDefault(); S.tab = "calc"; if (S.data) render(); };
 if (S.word) start(S.word).catch(() => { S.word = null; render(); }); else render();
-})();
 </script>
 </body>
 </html>

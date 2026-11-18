@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A1220" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F6F3EC" media="(prefers-color-scheme: light)">
+<title>Big Brain Analytics</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23FF6A1F'/%3E%3Ctext x='32' y='42' font-family='Arial Black,Arial' font-weight='900' font-size='24' text-anchor='middle' fill='%230A1220'%3EBBT%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../trade/core.css?v=1">
+<style>
+/* League overview */
+.lhead { margin: 10px 0 6px; } .lhead h1 { margin: 0; } .lhead p { color: var(--ink-2); margin: 4px 0 0; }
+.ltiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 12px 0; }
+.lt { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; cursor: pointer; text-align: left; }
+.lt .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.lt .v { font-family: var(--display); font-weight: 900; font-size: 1.5rem; line-height: 1; display: flex; align-items: center; gap: 6px; }
+.lt .s { font-size: 0.74rem; color: var(--ink-2); }
+.board { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.board th, .board td { padding: 7px 6px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+.board th:first-child, .board td:first-child { text-align: left; }
+.board th { font-size: 0.64rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-2); font-weight: 700; cursor: pointer; user-select: none; }
+.board th[aria-sort="descending"], .board th[aria-sort="ascending"] { color: var(--pylon); }
+.board tbody tr { cursor: pointer; } .board tbody tr:hover { background: var(--surface-2); }
+.board td.nm { font-weight: 700; } .board td.up b { color: var(--win); } .board td.dn b { color: var(--loss); } .board td small { display: block; font-size: 0.7rem; color: var(--ink-2); font-weight: 500; }
+.board .rk { color: var(--ink-2); font-size: 0.72rem; }
+.board i.up { color: var(--win); font-style: normal; } .board i.dn { color: var(--loss); font-style: normal; }
+.boardwrap { overflow-x: auto; margin: 0 -16px; padding: 0 16px; }
+.sec h2 { margin-top: 24px; }
+.sec p.lede { color: var(--ink-2); font-size: 0.88rem; margin: -4px 0 10px; }
+.stack { display: grid; gap: 4px; }
+.stack .row { display: grid; grid-template-columns: 52px 1fr 64px; gap: 8px; align-items: center; font-size: 0.82rem; }
+.stack .bar { height: 14px; background: var(--surface-2); border-radius: 999px; overflow: hidden; display: flex; }
+.stack .bar i { display: block; height: 100%; } .stack .bar i.pk { opacity: 0.45; }
+.legend { display: flex; gap: 14px; font-size: 0.74rem; color: var(--ink-2); margin-top: 6px; }
+.legend i { display: inline-block; width: 12px; height: 8px; background: var(--ink-2); margin-right: 4px; border-radius: 2px; } .legend i.pk { opacity: 0.45; }
+.scatter { width: 100%; height: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; }
+.scatter text { font-family: var(--display); font-weight: 800; font-size: 11px; fill: #0A1220; }
+.scatter .ax { font-family: var(--body); font-weight: 600; font-size: 10px; fill: var(--ink-2); letter-spacing: 0.04em; text-transform: uppercase; }
+.scatter .quad { font-family: var(--body); font-weight: 700; font-size: 9px; fill: var(--ink-2); opacity: 0.8; text-transform: uppercase; letter-spacing: 0.06em; }
+.scatter line.grid { stroke: var(--rule); stroke-width: 1; } .scatter line.mid { stroke: var(--ink-2); stroke-dasharray: 3 3; opacity: 0.6; }
+.heat { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 0.8rem; }
+.heat th { font-size: 0.64rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-2); font-weight: 700; padding: 2px 4px; }
+.heat td { text-align: center; padding: 6px 2px; border-radius: 4px; font-weight: 800; color: #0A1220; font-variant-numeric: tabular-nums; }
+.heat td.lab { text-align: left; color: var(--ink); background: transparent; padding-left: 0; }
+.heat td.lab small { display: block; font-weight: 500; color: var(--ink-2); font-size: 0.7rem; }
+.net { width: 100%; border-collapse: separate; border-spacing: 2px; font-size: 0.72rem; }
+.net th { font-size: 0.6rem; color: var(--ink-2); font-weight: 700; padding: 2px; }
+.net td { text-align: center; padding: 5px 0; border-radius: 3px; font-weight: 800; color: #0A1220; min-width: 24px; }
+.net td.lab { text-align: left; color: var(--ink); background: transparent; }
+.net td.z { background: var(--surface-2); color: var(--ink-2); font-weight: 500; }
+.back { display: inline-flex; align-items: center; gap: 6px; margin: 10px 0 0; }
+footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20px 16px; }
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <button type="button" class="menu-btn" id="menubtn" aria-expanded="false" aria-controls="ddrawer" aria-label="Open the menu"><i></i><i></i><i></i></button>
+  <a class="brand" href="#" id="brand"><span class="mark">BBT</span><span class="word">Big Brain Analytics</span></a>
+</div></header>
+<main class="wrap"><div id="toolwrap" hidden><div class="tool"><div class="seg" id="src" role="group" aria-label="Value model"><button type="button" data-s="fc" aria-pressed="false">FC<small>FantasyCalc</small></button><button type="button" data-s="dd" aria-pressed="false">DD<small>Dynasty Daddy</small></button><button type="button" data-s="both" aria-pressed="true">Blend<small>FC + DD</small></button></div><button type="button" class="tunebtn" id="tune" aria-haspopup="dialog">⚙ Tune<span class="n" id="tunen"></span></button></div><div class="tweaks" id="tweaks"></div></div><div id="app" aria-live="polite"></div></main>
+<footer id="foot"></footer>
+<div class="ddrawer-bg" id="ddbg" hidden></div>
+<aside class="ddrawer" id="ddrawer" aria-label="Menu" hidden>
+  <div class="dh"><span class="brand"><span class="mark">BBT</span><span class="word">Tribune</span></span><button type="button" class="dclose" id="ddclose" aria-label="Close">✕</button></div>
+  <span class="lab">The paper</span>
+  <ul class="dlist" id="dissues"><li><a href="/big-brains-tribune/"><span class="mono">Latest issue</span><b>Read the Tribune</b></a></li></ul>
+  <span class="lab">Tools</span>
+  <ul class="dlist"><li><a href="/big-brains-tribune/trade/"><span class="mono">Trade calculator</span><b>Value a trade</b></a></li><li><a href="/big-brains-tribune/analytics/" aria-current="page"><span class="mono">Big Brain Analytics</span><b>League &amp; team dashboards</b></a></li><li><a href="/big-brains-tribune/desk/"><span class="mono">Contributor Desk</span><b>File your column</b></a></li></ul>
+  <p class="dim small">Big Brains Only. League word required.</p>
+</aside>
+
+<script src="../trade/core.js?v=1"></script>
+<script>
+"use strict";
+const app = $("#app");
+const S = { word: store.get("word"), data: null, src: store.get("tradesrc") || "both", view: "league", team: null, sort: { key: "total", dir: -1 }, sides: [{ rid: null, give: {} }], sugCache: {}, hist: {}, histReq: 0, tune: loadTune() };
+
+// ---------- side menu ----------
+const drawer = $("#ddrawer"), ddbg = $("#ddbg");
+const openMenu = (o) => { drawer.hidden = !o; ddbg.hidden = !o; $("#menubtn").setAttribute("aria-expanded", String(o)); };
+$("#menubtn").onclick = () => openMenu(true); $("#ddclose").onclick = () => openMenu(false); ddbg.onclick = () => openMenu(false);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") openMenu(false); });
+fetch("/big-brains-tribune/issues.json", { cache: "no-store" }).then((r) => r.json()).then((j) => {
+  const list = $("#dissues"), issues = [...(j.issues || [])].sort((x, y) => y.week - x.week); if (!issues.length) return;
+  const li = (x, latest) => `<li><a href="${latest ? "/big-brains-tribune/" : `/big-brains-tribune/week-${x.week}/`}"><span class="mono">Issue No. ${x.issue}</span><b>Week ${x.week}</b>${latest ? "<em>Latest</em>" : ""}</a></li>`;
+  list.innerHTML = li(issues[0], true) + (issues.length > 1 ? `<li><details><summary><span class="mono">BBArchive</span><b>${issues.length - 1} past issue${issues.length === 2 ? "" : "s"}</b></summary><ul class="dlist">${issues.slice(1).map((x) => li(x, false)).join("")}</ul></details></li>` : "");
+}).catch(() => {});
+
+// ---------- views ----------
+function render() {
+  app.innerHTML = "";
+  $("#toolwrap").hidden = !(S.word && S.data);
+  if (!S.word || !S.data) return gate();
+  drawTweaks();
+  if (S.view === "team" && S.team) teamView(); else league();
+  const d = S.data, when = (iso) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
+  $("#foot").innerHTML = `Values: FantasyCalc (${when(d.sources.fc.at)})${d.sources.dd.ok ? ` · Dynasty Daddy (${when(d.sources.dd.at)})` : " · Dynasty Daddy unavailable right now"} · dynasty, superflex, PPR. Rosters and the trade log from Sleeper. Nobody's bound by any of this.`;
+}
+function gate(err) {
+  const v = el(`<div class="gate"><div class="card"><h1>Big Brain Analytics</h1><p class="dim">League word, then every team in Big Brains Only, measured.</p>
+    <form id="gf"><div class="field"><label class="lab" for="gw">League word</label><input id="gw" type="password" autocapitalize="off" autocomplete="off" required></div>
+    <button class="btn primary block" type="submit">Open</button><p class="msg err" id="gmsg">${esc(err || "")}</p></form></div></div>`);
+  app.appendChild(v);
+  $("#gf", v).onsubmit = async (e) => {
+    e.preventDefault(); const w = norm($("#gw", v).value); if (!w) return;
+    const b = $("button", v); b.disabled = true; $("#gmsg", v).textContent = "";
+    try { await start(w); } catch (err) { b.disabled = false; $("#gmsg", v).textContent = err.code === "wrong_word" ? "That's not the league word." : "Couldn't load values right now. Try again in a minute."; }
+  };
+}
+async function start(word) {
+  app.innerHTML = `<p class="dim" style="padding-top:24px"><span class="spin"></span> Pulling rosters, values and the trade log…</p>`;
+  S.word = word;
+  const d = await api({}); prep(d);
+  store.set("word", word); S.data = d; S.sides = [{ rid: d.teams[0].rid, give: {} }];
+  const hash = location.hash.match(/^#team-(\d+)$/); if (hash && d.byRid[Number(hash[1])]) { S.view = "team"; S.team = Number(hash[1]); }
+  render();
+}
+window.addEventListener("hashchange", () => { const m = location.hash.match(/^#team-(\d+)$/); if (S.data) { if (m && S.data.byRid[Number(m[1])]) { S.view = "team"; S.team = Number(m[1]); } else S.view = "league"; render(); } });
+
+// ---------- team dashboard (shared renderer, wrapped with a back link) ----------
+function teamView() {
+  S.dashTeam = S.team;
+  const v = el(`<div><a class="btn sm back" href="#">‹ League overview</a><div id="dash"></div></div>`);
+  app.appendChild(v);
+  dashboard($("#dash", v));
+  const sel = $("#dashteam", v); if (sel) sel.onchange = (e) => { location.hash = `team-${e.target.value}`; };
+}
+
+// ---------- league overview: every team on one page ----------
+function metrics(d) {
+  const tt = teamTotals(d), gm = gmIndex(d), lt = leagueTable(d), n = d.teams.length;
+  const rows = d.teams.map((t) => { const m = tt[t.rid], g = gm[t.rid]; const needs = teamNeeds(t.rid, d); return { t, ...m, aggression: g.n ? g.aggression : 0, success: g.n ? g.success : null, aggrTrend: g.aggrTrend, succTrend: g.succTrend, aggrDelta: g.aggrDelta, succDelta: g.succDelta, trades: g.n, recentTrades: g.recent.n, net: g.net, ddNet: g.n ? g.ddNet : null, needs: needs.needs.map((r) => r.pos).concat(needs.picks.need ? ["Picks"] : []), posRank: Object.fromEntries(needs.rows.map((r) => [r.pos, r.rank])), mode: contending(t, d) ? "contending" : "rebuilding" }; });
+  const rank = (key, low) => { const vals = rows.map((r) => r[key] ?? -Infinity); for (const r of rows) r["rk_" + key] = vals.filter((v) => low ? v < (r[key] ?? Infinity) : v > (r[key] ?? -Infinity)).length + 1; };
+  ["total", "starters", "bench", "picks", "momentum", "aggression", "success", "trades", "ddNet"].forEach((k) => rank(k)); rank("age", true);
+  return { rows, n, lt };
+}
+function league() {
+  const d = S.data, { rows, n, lt } = metrics(d);
+  const top = (key) => [...rows].sort((a, b) => (b[key] ?? -1) - (a[key] ?? -1))[0], low = (key) => [...rows].sort((a, b) => (a[key] ?? 1e12) - (b[key] ?? 1e12))[0];
+  const season = d.settings.season, seasonTrades = d.trades.filter((x) => x.season === season).length, recent = d.trades.filter((x) => x.at >= Date.now() - SIX_MO).length;
+  const tile = (k, r, v, s) => `<button type="button" class="lt" data-team="${r.t.rid}"><div class="k">${k}</div><div class="v">${badge(r.t)}<span>${v}</span></div><div class="s">${s}</div></button>`;
+  const sortKey = S.sort.key, dir = S.sort.dir;
+  const sorted = [...rows].sort((a, b) => { const x = a[sortKey] ?? (dir < 0 ? -1e12 : 1e12), y = b[sortKey] ?? (dir < 0 ? -1e12 : 1e12); return typeof x === "string" ? x.localeCompare(y) * dir : (x - y) * dir; });
+  const th = (key, label, title) => `<th data-k="${key}" aria-sort="${sortKey === key ? (dir < 0 ? "descending" : "ascending") : "none"}" title="${title || ""}">${label}</th>`;
+  const tr = (r) => `<tr data-team="${r.t.rid}"><td class="nm">${badge(r.t)} ${esc(r.t.k)}<small>${r.t.wins}–${r.t.losses} · seed ${r.t.seed} · ${r.mode}</small></td>
+    <td><b>${fmt(r.total)}</b><span class="rk"> ${ordinal(r.rk_total)}</span></td><td>${fmt(r.starters)}<span class="rk"> ${ordinal(r.rk_starters)}</span></td><td>${fmt(r.picks)}<span class="rk"> ${ordinal(r.rk_picks)}</span><small>${r.nPicks} picks · ${r.firsts} 1st${r.firsts === 1 ? "" : "s"}</small></td>
+    <td>${r.age.toFixed(1)}<span class="rk"> ${ordinal(r.rk_age)}</span></td><td class="${sign(r.momentum)}">${pm(r.momentum)}</td>
+    <td><b>${r.trades ? r.aggression.toFixed(2) : "–"}</b><small>${r.trades ? `<i class="${r.aggrTrend === "↑" ? "up" : r.aggrTrend === "↓" ? "dn" : ""}">${trendTxt(r.aggrTrend, r.aggrDelta)}</i>` : "no trades"}</small></td>
+    <td><b>${r.success != null ? r.success.toFixed(2) : "–"}</b><small>${r.trades ? `<i class="${r.succTrend === "↑" ? "up" : r.succTrend === "↓" ? "dn" : ""}">${trendTxt(r.succTrend, r.succDelta)}</i>` : ""}</small></td>
+    <td>${r.trades}<small>${r.recentTrades} in 6 mo</small></td><td class="${r.ddNet == null ? "" : sign(r.ddNet)}"><b>${r.ddNet == null ? "–" : `${r.ddNet >= 0 ? "+" : "−"}${fmt(Math.abs(r.ddNet))}`}</b>${r.ddNet == null ? "" : `<span class="rk"> ${ordinal(r.rk_ddNet)}</span>`}</td><td>${r.needs.length ? r.needs.join(", ") : "<span class=dim>none</span>"}</td></tr>`;
+  // overlays
+  const maxTotal = Math.max(...rows.map((r) => r.total), 1);
+  const stack = [...rows].sort((a, b) => b.total - a.total).map((r) => `<div class="row" data-team="${r.t.rid}"><span>${badge(r.t)}</span><div class="bar"><i style="width:${((r.players / maxTotal) * 100).toFixed(1)}%;background:var(${r.t.c})" title="players ${fmt(r.players)}"></i><i class="pk" style="width:${((r.picks / maxTotal) * 100).toFixed(1)}%;background:var(${r.t.c})" title="picks ${fmt(r.picks)}"></i></div><span class="num">${fmt(r.total)}</span></div>`).join("");
+  const posHeat = `<table class="heat"><thead><tr><th></th>${["QB", "RB", "WR", "TE"].map((p) => `<th>${p}</th>`).join("")}<th>Picks</th></tr></thead><tbody>${[...rows].sort((a, b) => a.t.seed - b.t.seed).map((r) => { const pk = teamNeeds(r.t.rid, d).picks.rank; const cell = (rk) => `<td style="background:${heat(rk, n)}" data-team="${r.t.rid}">${ordinal(rk)}</td>`; return `<tr><td class="lab">${badge(r.t)} ${esc(r.t.k)}<small>seed ${r.t.seed}</small></td>${["QB", "RB", "WR", "TE"].map((p) => cell(r.posRank[p])).join("")}${cell(pk)}</tr>`; }).join("")}</tbody></table>`;
+  // trade network
+  const pairs = {}; for (const x of d.trades) for (const a of x.rids) for (const b of x.rids) if (a < b) pairs[`${a}:${b}`] = (pairs[`${a}:${b}`] || 0) + 1;
+  const maxPair = Math.max(1, ...Object.values(pairs));
+  const order = [...d.teams].sort((a, b) => a.seed - b.seed);
+  const netTab = `<table class="net"><thead><tr><th></th>${order.map((t) => `<th>${esc(t.k)}</th>`).join("")}</tr></thead><tbody>${order.map((a) => `<tr><td class="lab">${esc(a.k)}</td>${order.map((b) => { if (a.rid === b.rid) return `<td class="z">·</td>`; const c = pairs[`${Math.min(a.rid, b.rid)}:${Math.max(a.rid, b.rid)}`] || 0; return c ? `<td style="background:rgba(255,106,31,${(0.25 + 0.75 * c / maxPair).toFixed(2)})">${c}</td>` : `<td class="z">0</td>`; }).join("")}</tr>`).join("")}</tbody></table>`;
+  const busiestPair = Object.entries(pairs).sort((a, b) => b[1] - a[1])[0];
+  const v = el(`<div>
+    <div class="lhead"><h1>Big Brain Analytics</h1><p>Every desk in Big Brains Only on one page. Tap any team for its full dashboard.</p></div>
+    ${indexCallout(true)}
+    <div class="ltiles">
+      ${tile("Most valuable roster", top("total"), fmt(top("total").total), `${ordinal(1)} of ${n} on ${SRC_NAME[S.src]}`)}
+      ${tile("Best starting lineup", top("starters"), fmt(top("starters").starters), "lineup value")}
+      ${tile("Most draft capital", top("picks"), fmt(top("picks").picks), `${top("picks").nPicks} picks, ${top("picks").firsts} 1sts`)}
+      ${tile("Youngest roster", low("age"), low("age").age.toFixed(1), "average age")}
+      ${tile("Hottest 30 days", top("momentum"), pm(top("momentum").momentum), "FantasyCalc trend, summed")}
+      ${tile("Most aggressive GM", top("aggression"), top("aggression").trades ? top("aggression").aggression.toFixed(2) : "–", top("aggression").trades ? `${top("aggression").trades} trades · ${trendTxt(top("aggression").aggrTrend, top("aggression").aggrDelta)}` : "no trades yet")}
+      ${tile("Best trader", top("success"), top("success").success != null ? top("success").success.toFixed(2) : "–", top("success").trades ? `${trendTxt(top("success").succTrend, top("success").succDelta)} over 6 mo` : "no trades yet")}
+      ${tile("Most up on trades", top("ddNet"), top("ddNet").ddNet != null ? `${top("ddNet").ddNet >= 0 ? "+" : "−"}${fmt(Math.abs(top("ddNet").ddNet))}` : "–", "Dynasty Daddy points, all-time, today's values")}
+      ${tile("Most down on trades", low("ddNet"), low("ddNet").ddNet != null ? `${low("ddNet").ddNet >= 0 ? "+" : "−"}${fmt(Math.abs(low("ddNet").ddNet))}` : "–", "Dynasty Daddy points, all-time, today's values")}
+      <div class="lt" style="cursor:default"><div class="k">League trade volume</div><div class="v"><span>${seasonTrades}</span></div><div class="s">trades in ${season} · ${recent} in the last 6 months · ${d.trades.length} on record${busiestPair ? ` · busiest pair ${esc(d.byRid[Number(busiestPair[0].split(":")[0])]?.k)}–${esc(d.byRid[Number(busiestPair[0].split(":")[1])]?.k)} (${busiestPair[1]})` : ""}</div></div>
+    </div>
+    <div class="sec"><h2>League board</h2><p class="lede">Tap a column to sort, a row to open the team. Small numbers are league ranks.</p>
+    <div class="boardwrap"><table class="board"><thead><tr>${th("t", "Team")}${th("total", "Roster value")}${th("starters", "Lineup")}${th("picks", "Draft capital")}${th("age", "Avg age")}${th("momentum", "30-day")}${th("aggression", "Aggression", "0–1, league percentile; 6-month trend underneath")}${th("success", "Success", "0–1, how deals have aged; 6-month trend underneath")}${th("trades", "Trades")}${th("ddNet", "All-time DD", "Net Dynasty Daddy points on trades, today's values")}<th>Needs</th></tr></thead><tbody>${sorted.map(tr).join("")}</tbody></table></div></div>
+    <div class="sec"><h2>Roster value, stacked</h2><p class="lede">Players in full color, draft picks faded. ${SRC_NAME[S.src]} values with your Tune settings.</p><div class="stack">${stack}</div><div class="legend"><span><i></i>Players</span><span><i class="pk"></i>Picks</span></div></div>
+    <div class="sec"><h2>Aggression vs. success</h2><p class="lede">Up and right is the dream: deals often, and they age well. Bubble size is trades on record.</p>${scatter(rows.filter((r) => r.trades), "aggression", "success", { x: "Aggression →", y: "Success →", mid: [0.5, 0.5], quads: ["Quiet, deals aged well", "Dealer, deals aged well", "Quiet, deals aged badly", "Dealer, deals aged badly"], size: (r) => r.trades })}</div>
+    <div class="sec"><h2>Age vs. roster value</h2><p class="lede">Young and valuable is a dynasty; old and valuable is a window; the rest is a rebuild.</p>${scatter(rows, "age", "total", { x: "Average age →", y: "Roster value →", mid: [rows.reduce((s, r) => s + r.age, 0) / n, rows.reduce((s, r) => s + r.total, 0) / n], quads: ["Young &amp; loaded", "Old &amp; loaded", "Young &amp; thin", "Old &amp; thin"] })}</div>
+    <div class="sec"><h2>Positional strength</h2><p class="lede">League rank of each team's starters by position (1st is best). Dark red is a hole, green is a strength.</p>${posHeat}</div>
+    <div class="sec"><h2>Who trades with whom</h2><p class="lede">Completed trades between each pair of desks, this season and the two before.</p>${netTab}</div>
+    <p class="note">Ranks are against the other ${n - 1} teams. Lineup value fills QB, RB×2, WR×3, TE, FLEX and SUPER_FLEX with the best available. Momentum sums FantasyCalc's 30-day change across the roster. Old trades are scored at today's values.</p>
+  </div>`);
+  app.appendChild(v);
+  v.querySelectorAll("[data-team]").forEach((x) => x.addEventListener("click", () => { location.hash = `team-${x.dataset.team}`; }));
+  v.querySelectorAll(".board th[data-k]").forEach((h) => h.onclick = () => { const k = h.dataset.k; S.sort = { key: k, dir: S.sort.key === k ? -S.sort.dir : (k === "age" || k === "t" ? 1 : -1) }; render(); });
+}
+function heat(rank, n) { const t = (rank - 1) / Math.max(1, n - 1); const hue = 140 - 140 * t; return `hsl(${hue.toFixed(0)} 70% ${(72 - 12 * t).toFixed(0)}%)`; }
+function scatter(rows, xk, yk, o) {
+  const W = 360, H = 260, P = { l: 36, r: 12, t: 12, b: 30 };
+  if (!rows.length) return `<div class="card dim">Not enough data yet.</div>`;
+  const xs = rows.map((r) => r[xk]), ys = rows.map((r) => r[yk]).map((v) => v ?? 0);
+  const pad = (a, b) => { const s = (b - a) || 1; return [a - s * 0.1, b + s * 0.1]; };
+  const [x0, x1] = o.fixed ? o.fixed : pad(Math.min(...xs, o.mid ? o.mid[0] : Infinity), Math.max(...xs, o.mid ? o.mid[0] : -Infinity)), [y0, y1] = pad(Math.min(...ys, o.mid ? o.mid[1] : Infinity), Math.max(...ys, o.mid ? o.mid[1] : -Infinity));
+  const X = (v) => P.l + ((v - x0) / (x1 - x0 || 1)) * (W - P.l - P.r), Y = (v) => H - P.b - ((v - y0) / (y1 - y0 || 1)) * (H - P.t - P.b);
+  const sizes = rows.map((r) => (o.size ? o.size(r) : 1)), maxS = Math.max(...sizes, 1);
+  const dots = rows.map((r, i) => { const rad = 10 + (o.size ? 8 * Math.sqrt(sizes[i] / maxS) : 2); return `<g data-team="${r.t.rid}" style="cursor:pointer"><circle cx="${X(r[xk]).toFixed(1)}" cy="${Y(r[yk] ?? 0).toFixed(1)}" r="${rad.toFixed(1)}" fill="var(${r.t.c})" opacity="0.9"/><text x="${X(r[xk]).toFixed(1)}" y="${(Y(r[yk] ?? 0) + 4).toFixed(1)}" text-anchor="middle">${esc(r.t.k)}</text></g>`; }).join("");
+  const mid = o.mid ? `<line class="mid" x1="${X(o.mid[0]).toFixed(1)}" y1="${P.t}" x2="${X(o.mid[0]).toFixed(1)}" y2="${H - P.b}"/><line class="mid" x1="${P.l}" y1="${Y(o.mid[1]).toFixed(1)}" x2="${W - P.r}" y2="${Y(o.mid[1]).toFixed(1)}"/>` : "";
+  const q = o.quads ? `<text class="quad" x="${P.l + 4}" y="${P.t + 10}">${o.quads[0]}</text><text class="quad" x="${W - P.r - 4}" y="${P.t + 10}" text-anchor="end">${o.quads[1]}</text><text class="quad" x="${P.l + 4}" y="${H - P.b - 4}">${o.quads[2]}</text><text class="quad" x="${W - P.r - 4}" y="${H - P.b - 4}" text-anchor="end">${o.quads[3]}</text>` : "";
+  return `<svg class="scatter" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.x)} against ${esc(o.y)}"><line class="grid" x1="${P.l}" y1="${H - P.b}" x2="${W - P.r}" y2="${H - P.b}"/><line class="grid" x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H - P.b}"/>${mid}${q}${dots}<text class="ax" x="${W - P.r}" y="${H - 8}" text-anchor="end">${o.x}</text><text class="ax" x="${P.l - 26}" y="${P.t + 8}" transform="rotate(-90 ${P.l - 26} ${P.t + 8})" text-anchor="end">${o.y}</text></svg>`;
+}
+
+// ---------- toolbar + boot ----------
+$("#src").querySelectorAll("button").forEach((b) => b.onclick = () => { S.src = b.dataset.s; store.set("tradesrc", S.src); $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); S.sugCache = {}; if (S.data) render(); });
+$("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.s === S.src)));
+$("#tune").onclick = () => tuneSheet();
+$("#brand").onclick = (e) => { e.preventDefault(); location.hash = ""; S.view = "league"; if (S.data) render(); };
+if (S.word) start(S.word).catch(() => { S.word = null; render(); }); else render();
+</script>
+</body>
+</html>
