@@ -13,6 +13,9 @@
 <link rel="stylesheet" href="../trade/core.css?v=1">
 <style>
 /* League overview */
+.staff { display: grid; gap: 2px; background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--pylon); padding: 10px 12px; margin: 10px 0 12px; }
+.staff .k { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pylon); }
+.staff p { margin: 0; font-size: 0.92rem; line-height: 1.45; }
 .lhead { margin: 10px 0 6px; } .lhead h1 { margin: 0; } .lhead p { color: var(--ink-2); margin: 4px 0 0; }
 .ltiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 12px 0; }
 .lt { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; cursor: pointer; text-align: left; }
@@ -164,6 +167,7 @@ function league() {
   const busiestPair = Object.entries(pairs).sort((a, b) => b[1] - a[1])[0];
   const v = el(`<div>
     <div class="lhead"><h1>Big Brain Analytics</h1><p>Every desk in Big Brains Only on one page. Tap any team for its full dashboard.</p></div>
+    <div class="staff"><span class="k">Staff note</span><p>Big Brain Analytics may soon have a resident data scientist: <b>Beefy Slow Burn #BigUce</b> is joining the team. Methodology complaints go to him from here on.</p></div>
     ${indexCallout(false)}
     <div class="ltiles">
       ${tile("Most valuable roster", top("total"), fmt(top("total").total), `${ordinal(1)} of ${n} on ${SRC_NAME[S.src]}`)}
