@@ -16,6 +16,7 @@
 .staff { display: grid; gap: 2px; background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--pylon); padding: 10px 12px; margin: 10px 0 12px; }
 .staff .k { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pylon); }
 .staff p { margin: 0; font-size: 0.92rem; line-height: 1.45; }
+.viewpick { display: flex; align-items: center; gap: 10px; margin: 12px 0 0; } .viewpick .lab { flex: none; } .viewpick select { flex: 1; width: auto; min-height: 42px; padding: 6px 10px; font-size: 1rem; font-weight: 800; border-radius: 10px; background: var(--surface); }
 .lhead { margin: 10px 0 6px; } .lhead h1 { margin: 0; } .lhead p { color: var(--ink-2); margin: 4px 0 0; }
 .ltiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 12px 0; }
 .lt { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; cursor: pointer; text-align: left; }
@@ -64,7 +65,7 @@ footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20
   <button type="button" class="menu-btn" id="menubtn" aria-expanded="false" aria-controls="ddrawer" aria-label="Open the menu"><i></i><i></i><i></i></button>
   <a class="brand" href="#" id="brand"><span class="mark">BBT</span><span class="word">Big Brain Analytics</span></a>
 </div></header>
-<main class="wrap"><div id="toolwrap" hidden><div class="tool"><div class="seg" id="src" role="group" aria-label="Value model"><button type="button" data-s="fc" aria-pressed="false">FC<small>FantasyCalc</small></button><button type="button" data-s="dd" aria-pressed="false">DD<small>Dynasty Daddy</small></button><button type="button" data-s="both" aria-pressed="true">Blend<small>FC + DD</small></button></div><button type="button" class="tunebtn" id="tune" aria-haspopup="dialog">⚙ Tune<span class="n" id="tunen"></span></button></div><div class="tweaks" id="tweaks"></div></div><div id="app" aria-live="polite"></div></main>
+<main class="wrap"><div id="toolwrap" hidden><div class="viewpick"><label class="lab" for="view">Dashboard</label><select id="view" aria-label="Dashboard"><option value="league">League dashboard</option></select></div><div class="tool"><div class="seg" id="src" role="group" aria-label="Value model"><button type="button" data-s="fc" aria-pressed="false">FC<small>FantasyCalc</small></button><button type="button" data-s="dd" aria-pressed="false">DD<small>Dynasty Daddy</small></button><button type="button" data-s="both" aria-pressed="true">Blend<small>FC + DD</small></button></div><button type="button" class="tunebtn" id="tune" aria-haspopup="dialog">⚙ Tune<span class="n" id="tunen"></span></button></div><div class="tweaks" id="tweaks"></div></div><div id="app" aria-live="polite"></div></main>
 <footer id="foot"></footer>
 <div class="ddrawer-bg" id="ddbg" hidden></div>
 <aside class="ddrawer" id="ddrawer" aria-label="Menu" hidden>
@@ -104,6 +105,7 @@ function render() {
 }
 function draw() {
   drawTweaks();
+  $("#view").value = S.view === "team" && S.team ? String(S.team) : "league";
   if (S.view === "team" && S.team) teamView(); else league();
   const d = S.data, when = (iso) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
   $("#foot").innerHTML = `Values: FantasyCalc (${when(d.sources.fc.at)})${d.sources.dd.ok ? ` · Dynasty Daddy (${when(d.sources.dd.at)})` : " · Dynasty Daddy unavailable right now"} · dynasty, superflex, PPR. Rosters and the trade log from Sleeper. Nobody's bound by any of this.`;
@@ -124,6 +126,7 @@ async function start(word) {
   S.word = word;
   let d; try { d = await api({}); } catch (e) { S.word = null; throw e; } // only a failed fetch is a password/network problem
   prep(d); store.set("word", word); S.data = d; S.sides = [{ rid: d.teams[0].rid, give: {} }];
+  $("#view").innerHTML = `<option value="league">League dashboard</option>${[...d.teams].sort((a, b) => a.seed - b.seed).map((t) => `<option value="${t.rid}">${esc(t.name)}</option>`).join("")}`;
   const hash = location.hash.match(/^#team-(\d+)$/); if (hash && d.byRid[Number(hash[1])]) { S.view = "team"; S.team = Number(hash[1]); }
   render();
 }
@@ -135,7 +138,7 @@ function teamView() {
   const v = el(`<div><a class="btn sm back" href="#">‹ League overview</a><div id="dash"></div></div>`);
   app.appendChild(v);
   dashboard($("#dash", v));
-  const sel = $("#dashteam", v); if (sel) sel.onchange = (e) => { location.hash = `team-${e.target.value}`; };
+  const sel = $("#dashteam", v); if (sel) sel.closest(".field").remove(); // the picker in the toolbar does this job here
 }
 
 // ---------- league overview: every team on one page ----------
@@ -218,6 +221,7 @@ function scatter(rows, xk, yk, o) {
 $("#src").querySelectorAll("button").forEach((b) => b.onclick = () => { S.src = b.dataset.s; store.set("tradesrc", S.src); $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); S.sugCache = {}; if (S.data) render(); });
 $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.s === S.src)));
 $("#tune").onclick = () => tuneSheet();
+$("#view").onchange = (e) => { const v = e.target.value; location.hash = v === "league" ? "" : `team-${v}`; }; // hashchange does the drawing
 $("#brand").onclick = (e) => { e.preventDefault(); location.hash = ""; S.view = "league"; if (S.data) render(); };
 if (S.word) start(S.word).catch((e) => { S.word = null; if (e.code === "wrong_word") store.set("word", null); render(); const m = $("#gmsg"); if (m) m.textContent = e.code === "wrong_word" ? "The league password changed. Type the new one." : "Couldn't load values right now. Try again in a minute."; }); else render();
 </script>
