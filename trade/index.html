@@ -146,13 +146,86 @@ function calculator(root) {
       <table class="cmp"><thead><tr><th>Asset</th><th>FantasyCalc</th><th>Dynasty Daddy</th><th>Blend</th></tr></thead><tbody>${rows}
       ${teams.map((t) => `<tr class="tot"><td>${esc(t.k)} net</td>${tot(t)}</tr>`).join("")}</tbody></table>
       <p class="note">Dynasty Daddy runs 0–9,999 and FantasyCalc tops out higher, so the Blend column puts Dynasty Daddy on FantasyCalc's scale (×${d.scale.toFixed(2)}) before averaging. Lineup is the change in starting-lineup value; Future weights youth and picks.</p>
-      <div class="actions"><button type="button" class="btn sm" id="copy">Copy for the group chat</button><button type="button" class="btn sm" id="clear">Clear</button></div></div>`;
+      <div class="actions"><button type="button" class="btn sm" id="copy">Copy for the group chat</button><button type="button" class="btn sm" id="shot">Save as image</button><button type="button" class="btn sm" id="clear">Clear</button></div></div>`;
     $("#copy", box).onclick = async () => { const txt = `${teams.map((t) => `${t.name} gives ${moves.filter((m) => m.from === t.rid).map((m) => `${nm(m.a)}${teams.length > 2 ? ` (to ${d.byRid[m.to].k})` : ""}`).join(", ") || "nothing"}`).join(" · ")} → ${main.text} (FantasyCalc ${L[0].text}${L[1] ? `, Dynasty Daddy ${L[1].text}` : ""}). BBT trade calc: https://noahszmand-wq.github.io/big-brains-tribune/trade/`; try { await navigator.clipboard.writeText(txt); $("#copy", box).textContent = "Copied"; } catch (_) { prompt("Copy this:", txt); } };
     $("#clear", box).onclick = () => { S.sides.forEach((s) => { s.give = {}; }); drawAll(); };
+    $("#shot", box).onclick = async () => { const btn = $("#shot", box); btn.disabled = true; btn.textContent = "Rendering…"; try { await summaryImage({ moves, teams, main, L, nm }); btn.textContent = "Saved"; } catch (e) { console.error(e); btn.textContent = "Couldn't render"; } setTimeout(() => { btn.textContent = "Save as image"; btn.disabled = false; }, 2000); };
     analytics($("#analytics", v), moves, teams);
   };
   drawAll();
 }
+// ---------- a shareable PNG of the deal: sides, values, verdict, settings, time ----------
+async function summaryImage({ moves, teams, main, L, nm }) {
+  const d = S.data, W = 1080, pad = 56, dark = { bg: "#0A1220", surface: "#101B2D", rule: "#22314A", ink: "#EAF0F7", ink2: "#9BA9BD", pylon: "#FF6A1F", yellow: "#FFD60A", win: "#3DD68C", loss: "#FF7070" };
+  const TEAMC = { "--t1": "#7C8CFF", "--t2": "#B07CFF", "--t3": "#E07A9A", "--t4": "#4FB3BF", "--t5": "#E8604C", "--t6": "#5BA4E6", "--t7": "#D2B271", "--t8": "#9CC24A", "--t9": "#B08463", "--t10": "#A6AFC0" };
+  try { await document.fonts.load('900 40px "Big Shoulders Display"'); await document.fonts.load('600 20px "Barlow"'); } catch (_) {}
+  const disp = (px, w = 900) => `${w} ${px}px "Big Shoulders Display", "Arial Narrow", Impact, sans-serif`, body = (px, w = 500) => `${w} ${px}px "Barlow", system-ui, -apple-system, sans-serif`;
+  const T = S.tune, tw = tweaksActive(), when = new Date();
+  const chipLabel = { lean: `Win-now lean ${T.lean}%`, qb: `QB ×${T.qb}`, rb: `RB ×${T.rb}`, wr: `WR ×${T.wr}`, te: `TE ×${T.te}`, pick: `Picks ×${T.pick}`, age: `Age −${T.age}%/yr`, star: `Star +${T.star}%`, injury: `Injured −${T.injury}%` };
+  const settings = [`Values: ${S.src === "both" ? "Blend of FantasyCalc + Dynasty Daddy" : SRC_NAME[S.src]}`, ...(tw.length ? tw.map((k) => chipLabel[k]) : ["Default settings"]), ...(moves.some((m) => m.a.kind === "faab") ? [`FAAB $1 = ${T.faab}`] : [])];
+  const perTeam = teams.map((t) => ({ t, gives: moves.filter((m) => m.from === t.rid), f: main.f.find((x) => x.t === t) }));
+  const rowH = 44, colW = (W - pad * 2 - 24 * (teams.length - 1)) / teams.length;
+  const listH = Math.max(...perTeam.map((x) => x.gives.length || 1)) * rowH;
+  // settings chips wrap, so measure them before sizing the canvas
+  const mg = document.createElement("canvas").getContext("2d"); mg.font = body(16, 600);
+  let rowsUsed = 1, cursor = pad; for (const t of settings) { const w = mg.measureText(t).width + 24; if (cursor + w > W - pad) { cursor = pad; rowsUsed++; } cursor += w + 8; }
+  const H = 230 + listH + 132 + 24 + 60 + (S.src === "both" ? 84 : 0) + 50 + rowsUsed * 36 + 56;
+  const c = document.createElement("canvas"); c.width = W * 2; c.height = H * 2; const g = c.getContext("2d"); g.scale(2, 2);
+  g.fillStyle = dark.bg; g.fillRect(0, 0, W, H);
+  // masthead
+  g.fillStyle = dark.pylon; g.fillRect(pad, 48, 74, 40); g.fillStyle = dark.bg; g.font = disp(28); g.textBaseline = "middle"; g.fillText("BBT", pad + 10, 69);
+  g.fillStyle = dark.ink; g.font = disp(34, 800); g.fillText("TRADE CALCULATOR", pad + 90, 68);
+  g.fillStyle = dark.ink2; g.font = body(18, 600); g.textAlign = "right"; g.fillText(when.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }), W - pad, 68); g.textAlign = "left";
+  g.fillStyle = dark.rule; g.fillRect(pad, 104, W - pad * 2, 2);
+  // verdict
+  const headline = main.even ? "CALL IT EVEN" : `${main.best.t.name.toUpperCase()} WINS THIS ONE`;
+  g.fillStyle = dark.yellow; g.font = disp(52); g.fillText(fit(g, headline, W - pad * 2), pad, 150);
+  const agree = L.length === 2 && ((L[0].even && L[1].even) || (!L[0].even && !L[1].even && L[0].best.t === L[1].best.t));
+  g.fillStyle = dark.ink2; g.font = body(20, 500); g.fillText(fit(g, main.even ? `Every side lands within ${Math.round(main.spread * 100)}% of what it gives up.` : `${main.best.t.k} nets ${fmt(main.best.net)} in value (${Math.round(main.spread * 100)}% edge)${S.src === "both" ? agree ? ", and both sites agree." : "; the two sites disagree." : "."}`, W - pad * 2), pad, 190);
+  // columns
+  let y = 230;
+  perTeam.forEach((x, i) => {
+    const cx = pad + i * (colW + 24), col = TEAMC[x.t.c] || dark.ink2;
+    g.fillStyle = dark.surface; g.fillRect(cx, y, colW, listH + 132);
+    g.fillStyle = col; g.fillRect(cx, y, colW, 6);
+    g.fillStyle = col; g.fillRect(cx + 16, y + 20, 64, 28); g.fillStyle = dark.bg; g.font = disp(20); g.textAlign = "center"; g.fillText(x.t.k, cx + 48, y + 35); g.textAlign = "left";
+    g.fillStyle = dark.ink; g.font = disp(24, 800); g.fillText(fit(g, x.t.name.toUpperCase(), colW - 110), cx + 92, y + 34);
+    g.fillStyle = dark.ink2; g.font = body(15, 600); g.fillText(`${x.t.k.toUpperCase()} GIVES`, cx + 16, y + 70);
+    if (!x.gives.length) { g.fillStyle = dark.ink2; g.font = body(18, 500); g.fillText("Nothing", cx + 16, y + 88 + rowH / 2); }
+    x.gives.forEach((m, j) => {
+      const ry = y + 88 + j * rowH + rowH / 2, a = m.a;
+      g.fillStyle = { QB: "#E07A9A", RB: "#8FE3B5", WR: "#5BA4E6", TE: "#FFD60A", PICK: "#D2B271", FAAB: "#8FE3B5" }[a.pos] || dark.ink2; g.fillRect(cx + 16, ry - 10, 44, 20); g.fillStyle = dark.bg; g.font = body(11, 800); g.textAlign = "center"; g.fillText(a.pos === "PICK" ? "PICK" : a.pos, cx + 38, ry + 1); g.textAlign = "left";
+      g.fillStyle = dark.ink; g.font = body(19, 600); g.fillText(fit(g, nm(a) + (teams.length > 2 ? ` → ${d.byRid[m.to].k}` : ""), colW - 170), cx + 70, ry);
+      g.fillStyle = dark.ink; g.font = body(19, 700); g.textAlign = "right"; g.fillText(fmt(val(a)), cx + colW - 16, ry); g.textAlign = "left";
+    });
+    g.fillStyle = dark.rule; g.fillRect(cx + 16, y + 88 + listH + 8, colW - 32, 1);
+    g.fillStyle = dark.ink2; g.font = body(15, 600); g.fillText(`gives ${fmt(x.f.out)} · gets ${fmt(x.f.inn)}`, cx + 16, y + 88 + listH + 32);
+    g.fillStyle = x.f.net > 0 ? dark.win : x.f.net < 0 ? dark.loss : dark.ink; g.font = disp(28); g.textAlign = "right"; g.fillText(`${x.f.net >= 0 ? "+" : "−"}${fmt(Math.abs(x.f.net))}`, cx + colW - 16, y + 88 + listH + 32); g.textAlign = "left";
+  });
+  y += listH + 132 + 24;
+  // value bar
+  const tot = main.f.reduce((s, x) => s + x.inn, 0) || 1; let bx = pad;
+  main.f.forEach((x) => { const w = (x.inn / tot) * (W - pad * 2); g.fillStyle = TEAMC[x.t.c] || dark.ink2; g.fillRect(bx, y, w, 16); bx += w; });
+  y += 26; g.fillStyle = dark.ink2; g.font = body(15, 600); g.fillText("Share of value received", pad, y + 8); y += 34;
+  if (S.src === "both") {
+    L.forEach((l, i) => { const cx = pad + i * ((W - pad * 2) / 2 + 12); g.fillStyle = dark.ink2; g.font = body(14, 700); g.fillText(SRC_NAME[l.src].toUpperCase(), cx, y + 8); g.fillStyle = l.even ? dark.ink : dark.win; g.font = disp(26); g.fillText(l.text.toUpperCase(), cx, y + 36); g.fillStyle = dark.ink2; g.font = body(15, 500); g.fillText(l.f.map((x) => `${x.t.k} ${x.net >= 0 ? "+" : "−"}${fmt(Math.abs(x.net))}`).join(" · "), cx, y + 60); });
+    y += 84;
+  }
+  // settings
+  g.fillStyle = dark.rule; g.fillRect(pad, y, W - pad * 2, 1); y += 20;
+  g.fillStyle = dark.ink2; g.font = body(14, 700); g.fillText("SETTINGS USED", pad, y + 8); y += 30;
+  let sx = pad; g.font = body(16, 600);
+  for (const t of settings) { const w = g.measureText(t).width + 24; if (sx + w > W - pad) { sx = pad; y += 36; } g.fillStyle = dark.surface; g.fillRect(sx, y - 12, w, 28); g.fillStyle = dark.ink; g.fillText(t, sx + 12, y + 2); sx += w + 8; }
+  y += 44;
+  g.fillStyle = dark.ink2; g.font = body(14, 500); g.fillText(`Values as of ${new Date(d.sources.fc.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" })} · dynasty, superflex, PPR · rosters from Sleeper · noahszmand-wq.github.io/big-brains-tribune/trade`, pad, y + 8);
+  g.fillStyle = dark.pylon; g.font = disp(16, 800); g.textAlign = "right"; g.fillText("THE BIG BRAINS TRIBUNE", W - pad, y + 8); g.textAlign = "left";
+  const blob = await new Promise((res) => c.toBlob(res, "image/png"));
+  const file = new File([blob], `bbt-trade-${when.toISOString().slice(0, 16).replace(/[:T]/g, "-")}.png`, { type: "image/png" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: "BBT trade" }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function fit(g, text, max) { if (g.measureText(text).width <= max) return text; let t = text; while (t.length > 1 && g.measureText(t + "…").width > max) t = t.slice(0, -1); return t + "…"; }
+
 function analytics(root, moves, teams) {
   const d = S.data, players = moves.map((m) => m.a).filter((a) => a.kind === "player");
   const ids = players.map((a) => a.id), need = ids.filter((id) => !S.hist[id]);
