@@ -254,3 +254,4 @@ footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20
 .defgrid { display: grid; gap: 10px; padding: 0 12px 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .defgrid b { display: block; margin-bottom: 2px; } .defgrid p { margin: 0; font-size: 0.88rem; color: var(--ink-2); line-height: 1.45; }
 .defgrid i.up { color: var(--win); font-style: normal; font-weight: 800; } .defgrid i.dn { color: var(--loss); font-style: normal; font-weight: 800; }
+.tr.dimmed { opacity: 0.6; }

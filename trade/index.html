@@ -253,7 +253,7 @@ function analytics(root, moves, teams) {
         </div>${range}</div>`;
     }).join("");
     // League trade volume
-    const tr = d.trades.filter((x) => x.season === d.settings.season).sort((a, b) => b.at - a.at), rids = teams.map((t) => t.rid), byTeam = (rid) => tr.filter((x) => x.rids.includes(rid)).length;
+    const tr = realTrades(d).filter((x) => x.season === d.settings.season).sort((a, b) => b.at - a.at), rids = teams.map((t) => t.rid), byTeam = (rid) => tr.filter((x) => x.rids.includes(rid)).length;
     const between = tr.filter((x) => rids.every((r) => x.rids.includes(r))).length;
     const pair = teams.length === 2 ? between : tr.filter((x) => rids.filter((r) => x.rids.includes(r)).length >= 2).length;
     const moved = moves.map((m) => { const a = m.a; const hit = a.kind === "player" ? tr.find((x) => x.adds[a.id] != null) : tr.find((x) => x.picks.some((p) => p.season === a.season && p.round === a.round && p.orig === a.orig)); return hit ? `${a.name} (Week ${hit.week}${a.kind === "player" ? `, to ${esc(d.byRid[hit.adds[a.id]]?.k || "?")}` : ""})` : null; }).filter(Boolean);
