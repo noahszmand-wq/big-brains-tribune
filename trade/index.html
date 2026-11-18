@@ -151,6 +151,47 @@ input[type=password], select { width: 100%; min-height: 48px; background: var(--
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--rule); border-top-color: var(--pylon); border-radius: 50%; animation: sp 0.8s linear infinite; vertical-align: -2px; margin-right: 6px; }
 @keyframes sp { to { transform: rotate(360deg); } }
 footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20px 16px; }
+/* Trade arrows + third team */
+.sides { grid-template-columns: 1fr; }
+@media (min-width: 720px) { .sides.n2 { grid-template-columns: 1fr auto 1fr; } }
+.swap { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--ink-2); padding: 2px 0; }
+.swap .arr { font-family: var(--display); font-weight: 900; font-size: 1.8rem; color: var(--pylon); line-height: 1; }
+.swap .lbl { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+@media (min-width: 720px) { .sides.n2 .swap { flex-direction: column; } }
+.asset .to { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.04em; background: var(--c, var(--ink-2)); color: #0A1220; border-radius: 4px; padding: 1px 5px; }
+.asset.cyc { cursor: pointer; }
+.addrow { margin: 10px 0 0; }
+.impact { display: grid; gap: 8px; margin-top: 10px; }
+.impact > div { background: var(--bg); border: 1px solid var(--rule); padding: 8px 10px; border-radius: 6px; }
+.impact .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+.impact .r { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.88rem; margin-top: 4px; }
+.impact .r b.up, .stats b.up { color: var(--win); } .impact .r b.dn, .stats b.dn { color: var(--loss); }
+.cmp td b { display: block; } .cmp tr.tot td small { display: block; font-weight: 500; color: var(--ink-2); font-size: 0.72rem; }
+/* Analytics */
+.anal h2 { margin-top: 18px; }
+.pcard { background: var(--surface); border: 1px solid var(--rule); padding: 12px; margin-bottom: 10px; }
+.pcard .ph { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 6px; }
+.pcard .inj { color: var(--loss); font-weight: 700; }
+.trend { display: grid; gap: 4px; margin: 4px 0 8px; }
+.trend .spark { width: 100%; max-width: 480px; height: 48px; display: block; }
+.trend .tl { display: flex; gap: 12px; font-size: 0.72rem; color: var(--ink-2); }
+.trend .tl .fcl::before, .trend .tl .ddl::before { content: ""; display: inline-block; width: 14px; height: 3px; margin-right: 4px; vertical-align: middle; background: var(--pylon); }
+.trend .tl .ddl::before { background: var(--blue); }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.stats > div { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px; display: grid; gap: 1px; }
+.stats .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.stats b { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.stats small { font-size: 0.72rem; color: var(--ink-2); }
+.range { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; margin-top: 8px; font-size: 0.78rem; color: var(--ink-2); }
+.range .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.range .rl { position: relative; height: 6px; background: var(--surface-2); border-radius: 999px; }
+.range .rl i { position: absolute; top: -4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--pylon); border: 2px solid var(--surface); }
+.vol { background: var(--surface); border: 1px solid var(--rule); border-left: 6px solid var(--blue); padding: 12px; margin-top: 12px; }
+.vol .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 8px; }
+.vol .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+.vol .grid > div { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px; display: grid; }
+.vol .grid b { font-family: var(--display); font-weight: 900; font-size: 1.5rem; line-height: 1; }
+.vol .grid small { font-size: 0.72rem; color: var(--ink-2); }
 </style>
 </head>
 <body>
@@ -181,7 +222,7 @@ const el = (html) => { const t = document.createElement("template"); t.innerHTML
 const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const fmt = (n) => Math.round(n).toLocaleString("en-US");
 const store = { get(k) { try { return localStorage.getItem("bbtdesk_" + k); } catch (_) { return null; } }, set(k, v) { try { if (v == null) localStorage.removeItem("bbtdesk_" + k); else localStorage.setItem("bbtdesk_" + k, v); } catch (_) {} } };
-const S = { word: store.get("word"), data: null, src: store.get("tradesrc") || "both", tab: "calc", a: null, b: null, give: { a: new Set(), b: new Set() }, sugTeam: null, sugCache: {} };
+const S = { word: store.get("word"), data: null, src: store.get("tradesrc") || "both", tab: "calc", sides: null, sugTeam: null, sugCache: {}, hist: {}, histReq: 0 };
 const SRC_NAME = { fc: "FantasyCalc", dd: "Dynasty Daddy", both: "Both" };
 
 // ---------- side menu ----------
@@ -196,8 +237,8 @@ fetch("/big-brains-tribune/issues.json", { cache: "no-store" }).then((r) => r.js
 }).catch(() => {});
 
 // ---------- data ----------
-async function load(word) {
-  const r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ word }) });
+async function api(body) {
+  const r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ word: S.word, ...body }) });
   const j = await r.json().catch(() => ({ ok: false, error: "error" }));
   if (!j.ok) throw Object.assign(new Error(j.error || "error"), { code: j.error || "error" });
   return j;
@@ -208,17 +249,18 @@ function prep(d) {
   const scale = ids.length ? ids.reduce((s, id) => s + P[id].fc.value, 0) / ids.reduce((s, id) => s + P[id].dd.value, 0) : 1;
   d.scale = scale;
   d.assets = {};
-  for (const [id, p] of Object.entries(P)) d.assets[id] = { id, kind: "player", name: p.name, pos: p.pos, team: p.team, age: p.age, fc: p.fc.value, dd: p.dd.value, ddn: Math.round(p.dd.value * scale), rank: p.fc.rank, posRank: p.fc.posRank, trend: p.fc.trend };
-  for (const pk of d.picks) d.assets[pk.id] = { id: pk.id, kind: "pick", name: pk.label, pos: "PICK", team: null, age: null, fc: pk.fc, dd: pk.dd, ddn: Math.round(pk.dd * scale), season: pk.season, round: pk.round, owner: pk.owner };
+  for (const [id, p] of Object.entries(P)) d.assets[id] = { id, kind: "player", name: p.name, pos: p.pos, team: p.team, age: p.age, fc: p.fc.value, dd: p.dd.value, ddn: Math.round(p.dd.value * scale), rank: p.fc.rank, posRank: p.fc.posRank, ddPosRank: p.dd.posRank, trend: p.fc.trend, x: p.x || {} };
+  for (const pk of d.picks) d.assets[pk.id] = { id: pk.id, kind: "pick", name: pk.label, pos: "PICK", team: null, age: null, fc: pk.fc, dd: pk.dd, ddn: Math.round(pk.dd * scale), season: pk.season, round: pk.round, owner: pk.owner, orig: pk.orig, x: {} };
   d.byRid = Object.fromEntries(d.teams.map((t) => [t.rid, t]));
   d.holdings = {};
   for (const t of d.teams) d.holdings[t.rid] = [...t.players, ...d.picks.filter((p) => p.owner === t.rid).map((p) => p.id)];
+  d.trades = d.trades || [];
 }
 const val = (a, src = S.src) => src === "fc" ? a.fc : src === "dd" ? a.ddn : (a.fc && a.ddn ? (a.fc + a.ddn) / 2 : a.fc || a.ddn);
-const teamColor = (t) => `var(${t.c})`;
 const badge = (t) => `<span class="tb" style="--c:var(${t.c})">${esc(t.k)}</span>`;
+const posTag = (a) => `<span class="pos ${a.pos}">${a.pos === "PICK" ? "PICK" : a.pos}</span>`;
 
-// ---------- lineup maths for suggestions ----------
+// ---------- lineup maths ----------
 const SLOT_OK = { QB: ["QB"], RB: ["RB"], WR: ["WR"], TE: ["TE"], FLEX: ["RB", "WR", "TE"], SUPER_FLEX: ["QB", "RB", "WR", "TE"], K: ["K"], DEF: ["DEF"] };
 function lineupValue(ids, d) {
   const A = ids.map((id) => d.assets[id]).filter((a) => a && a.kind === "player").sort((x, y) => val(y) - val(x));
@@ -264,7 +306,7 @@ function suggest(rid, d) {
   // One suggestion per partner first, then the rest, so the list isn't nine versions of the same deal.
   const seen = new Map(), pkg = new Map(), top = [], rest = [];
   for (const s of out) {
-    const key = s.them.rid, pk = [...s.give].sort().join("+"); if ((pkg.get(pk) || 0) >= 3) continue; // and not the same package nine times over
+    const key = s.them.rid, pk = [...s.give].sort().join("+"); if ((pkg.get(pk) || 0) >= 3) continue;
     if (!seen.has(key)) { seen.set(key, 1); pkg.set(pk, (pkg.get(pk) || 0) + 1); top.push(s); } else if (seen.get(key) < 3) { seen.set(key, seen.get(key) + 1); pkg.set(pk, (pkg.get(pk) || 0) + 1); rest.push(s); }
   }
   const res = [...top, ...rest].slice(0, 12);
@@ -288,8 +330,8 @@ function render() {
   app.appendChild(el(`<div><div class="tabs" role="tablist"><button type="button" data-t="calc" ${S.tab === "calc" ? "aria-current=true" : ""}>Calculator</button><button type="button" data-t="sug" ${S.tab === "sug" ? "aria-current=true" : ""}>Suggested trades</button></div><div id="tab"></div></div>`));
   app.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { S.tab = b.dataset.t; render(); });
   (S.tab === "sug" ? suggestions : calculator)($("#tab"));
-  const d = S.data;
-  $("#foot").innerHTML = `Values: FantasyCalc (${new Date(d.sources.fc.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" })})${d.sources.dd.ok ? ` · Dynasty Daddy (${new Date(d.sources.dd.at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" })})` : " · Dynasty Daddy unavailable right now"} · dynasty, superflex, PPR. Rosters from Sleeper. Nobody's bound by any of this.`;
+  const d = S.data, when = (iso) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
+  $("#foot").innerHTML = `Values: FantasyCalc (${when(d.sources.fc.at)})${d.sources.dd.ok ? ` · Dynasty Daddy (${when(d.sources.dd.at)})` : " · Dynasty Daddy unavailable right now"} · dynasty, superflex, PPR. Rosters and trade log from Sleeper. Nobody's bound by any of this.`;
 }
 function gate(err) {
   const v = el(`<div class="gate"><div class="card"><h1>Trade calculator</h1><p class="dim">League word, then value any deal in Big Brains Only.</p>
@@ -303,73 +345,170 @@ function gate(err) {
   };
 }
 async function start(word) {
-  app.innerHTML = `<p class="dim" style="padding-top:24px"><span class="spin"></span> Pulling rosters and values…</p>`;
-  const d = await load(word); prep(d);
-  S.word = word; store.set("word", word); S.data = d;
-  if (!S.a) { S.a = d.teams[0].rid; S.b = d.teams[1].rid; }
+  app.innerHTML = `<p class="dim" style="padding-top:24px"><span class="spin"></span> Pulling rosters, values and the trade log…</p>`;
+  S.word = word;
+  const d = await api({}); prep(d);
+  store.set("word", word); S.data = d;
+  if (!S.sides) S.sides = [{ rid: d.teams[0].rid, give: {} }, { rid: d.teams[1].rid, give: {} }];
   render();
 }
 
+// ---------- calculator ----------
+const otherSides = (i) => S.sides.filter((_, j) => j !== i);
 function calculator(root) {
   const d = S.data;
-  const teamOpts = (sel) => d.teams.map((t) => `<option value="${t.rid}" ${t.rid === sel ? "selected" : ""}>${esc(t.name)}</option>`).join("");
-  const v = el(`<div><p class="dim small" style="margin:4px 0 10px">Pick two teams, tap what each one gives. ${S.src === "both" ? "Numbers are FantasyCalc and Dynasty Daddy side by side; the verdict uses both." : `Numbers are ${SRC_NAME[S.src]}'s.`}</p>
-    <div class="sides"><div class="side" id="sideA"></div><div class="side" id="sideB"></div></div><div id="verdict"></div></div>`);
+  const teamOpts = (sel, taken) => d.teams.map((t) => `<option value="${t.rid}" ${t.rid === sel ? "selected" : ""} ${taken.includes(t.rid) && t.rid !== sel ? "disabled" : ""}>${esc(t.name)}</option>`).join("");
+  const v = el(`<div><p class="dim small" style="margin:4px 0 10px">Pick the teams, tap what each one gives. ${S.sides.length > 2 ? "With three teams, tap a chip in the gives box to change who receives it." : "Arrows show where each piece goes."} ${S.src === "both" ? "Numbers are FantasyCalc and Dynasty Daddy side by side; the verdict uses both." : `Numbers are ${SRC_NAME[S.src]}'s.`}</p>
+    <div class="sides n${S.sides.length}" id="sides"></div><div class="addrow">${S.sides.length < 3 ? `<button type="button" class="btn sm" id="addteam">+ Add a third team</button>` : `<button type="button" class="btn sm" id="dropteam">Remove the third team</button>`}</div><div id="verdict"></div><div id="analytics"></div></div>`);
   root.appendChild(v);
-  const drawSide = (key) => {
-    const box = $(key === "a" ? "#sideA" : "#sideB", v), rid = S[key], t = d.byRid[rid], give = S.give[key], other = key === "a" ? "b" : "a";
+  const sidesEl = $("#sides", v);
+  const drawAll = () => { sidesEl.innerHTML = ""; S.sides.forEach((side, i) => { if (i) sidesEl.appendChild(swapEl(i)); sidesEl.appendChild(sideEl(i)); }); drawVerdict(); };
+  const swapEl = (i) => {
+    const L = d.byRid[S.sides[i - 1].rid], R = d.byRid[S.sides[i].rid];
+    return el(`<div class="swap" aria-hidden="true"><span class="arr">⇄</span><span class="lbl">${esc(L.k)} ⇆ ${esc(R.k)}</span></div>`);
+  };
+  const sideEl = (i) => {
+    const side = S.sides[i], rid = side.rid, t = d.byRid[rid], give = side.give, taken = S.sides.map((s) => s.rid);
     const ids = d.holdings[rid];
     const groups = ["QB", "RB", "WR", "TE", "PICK"].map((pos) => [pos, ids.filter((id) => d.assets[id].pos === pos).sort((x, y) => val(d.assets[y]) - val(d.assets[x]))]).filter(([, l]) => l.length);
     const vals = (a) => S.src === "both" ? `<span class="vals"><b>${fmt(val(a))}</b>${a.fc ? fmt(a.fc) : "–"} · ${a.dd ? fmt(a.dd) : "–"}</span>` : `<span class="vals"><b>${fmt(val(a))}</b></span>`;
-    box.innerHTML = `<div class="hd">${badge(t)}<select aria-label="Team ${key.toUpperCase()}">${teamOpts(rid)}</select></div><div class="rec">${t.wins}–${t.losses}${t.ties ? `–${t.ties}` : ""} · seed ${t.seed} · ${contending(t, d) ? "contending" : "rebuilding"}</div>
-      <div class="lab">${esc(t.k)} gives</div><div class="gives">${give.size ? [...give].map((id) => { const a = d.assets[id]; return `<span class="asset"><span class="pos ${a.pos}">${a.pos === "PICK" ? "PICK" : a.pos}</span>${esc(a.name)}<span class="v num">${fmt(val(a))}</span><button type="button" class="x" data-rm="${id}" aria-label="Remove">✕</button></span>`; }).join("") : `<span class="empty">Nothing yet. Tap players or picks below.</span>`}</div>
-      <div class="roster">${groups.map(([pos, l]) => `<div class="grp">${pos === "PICK" ? "Draft picks" : pos}</div>` + l.map((id) => { const a = d.assets[id]; return `<button type="button" data-id="${id}" class="${give.has(id) ? "in" : ""}" aria-pressed="${give.has(id)}"><span class="pos ${a.pos}">${a.pos === "PICK" ? a.round + (["st", "nd", "rd"][a.round - 1] || "th") : a.pos}</span><span>${esc(a.name)}<small>${a.kind === "pick" ? `${a.season} rookie draft` : `${esc(a.team || "FA")}${a.age ? ` · ${Math.floor(a.age)}` : ""}${a.posRank ? ` · ${a.pos}${a.posRank}` : ""}`}</small></span>${vals(a)}</button>`; }).join("")).join("")}</div>`;
-    $("select", box).onchange = (e) => { const nrid = Number(e.target.value); if (nrid === S[other]) { S[other] = S[key]; S.give[other] = new Set(); } S[key] = nrid; S.give[key] = new Set(); drawSide("a"); drawSide("b"); drawVerdict(); };
-    box.querySelectorAll(".roster button").forEach((b) => b.onclick = () => { const id = b.dataset.id; give.has(id) ? give.delete(id) : give.add(id); drawSide(key); drawVerdict(); });
-    box.querySelectorAll("[data-rm]").forEach((b) => b.onclick = () => { give.delete(b.dataset.rm); drawSide(key); drawVerdict(); });
+    const chips = Object.entries(give).map(([id, to]) => { const a = d.assets[id], T = d.byRid[to]; return `<span class="asset ${S.sides.length > 2 ? "cyc" : ""}" data-cyc="${id}" title="${S.sides.length > 2 ? "Tap to change who gets this" : ""}">${posTag(a)}${esc(a.name)}<span class="v num">${fmt(val(a))}</span><span class="to" style="--c:var(${T.c})">→ ${esc(T.k)}</span><button type="button" class="x" data-rm="${id}" aria-label="Remove">✕</button></span>`; }).join("");
+    const box = el(`<div class="side" data-i="${i}"><div class="hd">${badge(t)}<select aria-label="Team ${i + 1}">${teamOpts(rid, taken)}</select></div><div class="rec">${t.wins}–${t.losses}${t.ties ? `–${t.ties}` : ""} · seed ${t.seed} · ${contending(t, d) ? "contending" : "rebuilding"}</div>
+      <div class="lab">${esc(t.k)} gives</div><div class="gives">${chips || `<span class="empty">Nothing yet. Tap players or picks below.</span>`}</div>
+      <div class="roster">${groups.map(([pos, l]) => `<div class="grp">${pos === "PICK" ? "Draft picks" : pos}</div>` + l.map((id) => { const a = d.assets[id]; return `<button type="button" data-id="${id}" class="${give[id] ? "in" : ""}" aria-pressed="${!!give[id]}"><span class="pos ${a.pos}">${a.pos === "PICK" ? a.round + (["st", "nd", "rd"][a.round - 1] || "th") : a.pos}</span><span>${esc(a.name)}<small>${a.kind === "pick" ? `${a.season} rookie draft` : `${esc(a.team || "FA")}${a.age ? ` · ${Math.floor(a.age)}` : ""}${a.posRank ? ` · ${a.pos}${a.posRank}` : ""}${a.x.injury ? ` · ${esc(a.x.injury)}` : ""}`}</small></span>${vals(a)}</button>`; }).join("")).join("")}</div></div>`);
+    $("select", box).onchange = (e) => { side.rid = Number(e.target.value); side.give = {}; S.sides.forEach((s) => { for (const id of Object.keys(s.give)) if (!S.sides.some((x) => x.rid === s.give[id]) || s.give[id] === s.rid) s.give[id] = otherSides(S.sides.indexOf(s))[0].rid; }); drawAll(); };
+    box.querySelectorAll(".roster button").forEach((b) => b.onclick = () => { const id = b.dataset.id; if (give[id]) delete give[id]; else give[id] = otherSides(i)[0].rid; drawAll(); });
+    box.querySelectorAll("[data-rm]").forEach((b) => b.onclick = (e) => { e.stopPropagation(); delete give[b.dataset.rm]; drawAll(); });
+    if (S.sides.length > 2) box.querySelectorAll("[data-cyc]").forEach((c) => c.onclick = () => { const id = c.dataset.cyc, others = otherSides(i).map((s) => s.rid); give[id] = others[(others.indexOf(give[id]) + 1) % others.length]; drawAll(); });
+    return box;
   };
-  const drawVerdict = () => {
-    const box = $("#verdict", v), A = d.byRid[S.a], B = d.byRid[S.b], ga = [...S.give.a].map((id) => d.assets[id]), gb = [...S.give.b].map((id) => d.assets[id]);
-    if (!ga.length && !gb.length) { box.innerHTML = ""; return; }
-    const sum = (list, src) => list.reduce((s, a) => s + val(a, src), 0);
-    const srcs = S.src === "both" ? ["fc", "dd"] : [S.src];
-    const line = (src) => { const x = sum(ga, src), y = sum(gb, src); const tot = x + y || 1, diff = Math.abs(x - y) / Math.max(x, y, 1); const w = x > y ? B : A; // the side receiving more value wins
-      return { src, x, y, diff, winner: diff < 0.05 ? null : w, text: diff < 0.05 ? "Dead even" : `${w.k} wins by ${Math.round(diff * 100)}%`, pct: (x / tot) * 100 }; };
-    const L = srcs.map(line), main = S.src === "both" ? line("both") : L[0];
-    const agree = L.length === 2 && ((L[0].winner && L[1].winner && L[0].winner === L[1].winner) || (!L[0].winner && !L[1].winner));
-    const headline = main.winner ? `${main.winner.name} wins this one` : "Call it even";
-    const sub = main.winner ? `${main.winner.k} takes in ${fmt(Math.abs(main.x - main.y))} more value (${Math.round(main.diff * 100)}%)${S.src === "both" ? agree ? ", and both sites agree." : ", but the two sites don't agree; see below." : "."}` : `Within ${Math.round(main.diff * 100)}%${S.src === "both" ? agree ? ", and both sites say so." : " overall, though the two sites lean different ways." : "."}`;
-    const rows = (list, who) => list.map((a) => `<tr><td>${esc(a.name)} <span class="who">${esc(who.k)} gives</span></td><td class="num">${a.fc ? fmt(a.fc) : "–"}</td><td class="num">${a.dd ? fmt(a.dd) : "–"}</td><td class="num">${fmt(val(a, "both"))}</td></tr>`).join("");
-    box.innerHTML = `<div class="verdict" style="--ca:var(${A.c});--cb:var(${B.c})"><div class="lab">Verdict · ${SRC_NAME[S.src]}</div><div class="big">${esc(headline)}</div><p class="small" style="margin:6px 0 0">${sub}</p>
-      <div class="bar" aria-hidden="true"><i class="a" style="width:${main.pct.toFixed(1)}%"></i><i class="b" style="width:${(100 - main.pct).toFixed(1)}%"></i></div>
-      <div class="legend"><span>${esc(A.k)} gives ${fmt(main.x)}</span><span>${esc(B.k)} gives ${fmt(main.y)}</span></div>
-      ${S.src === "both" ? `<div class="srcline">${L.map((l) => `<div><div class="k">${SRC_NAME[l.src]}</div><div class="r ${l.winner ? "win" : "even"}">${esc(l.text)}</div><div class="small dim num">${fmt(l.x)} vs ${fmt(l.y)}</div></div>`).join("")}</div>` : ""}
-      <table class="cmp"><thead><tr><th>Asset</th><th>FantasyCalc</th><th>Dynasty Daddy</th><th>Blend</th></tr></thead><tbody>${rows(ga, A)}${rows(gb, B)}
-      <tr class="tot"><td>${esc(A.k)} gives</td><td class="num">${fmt(sum(ga, "fc"))}</td><td class="num">${fmt(sum(ga, "dd"))}</td><td class="num">${fmt(sum(ga, "both"))}</td></tr>
-      <tr class="tot"><td>${esc(B.k)} gives</td><td class="num">${fmt(sum(gb, "fc"))}</td><td class="num">${fmt(sum(gb, "dd"))}</td><td class="num">${fmt(sum(gb, "both"))}</td></tr></tbody></table>
-      <p class="note">Dynasty Daddy runs 0–9,999 and FantasyCalc tops out higher, so the Blend column puts Dynasty Daddy on FantasyCalc's scale (×${d.scale.toFixed(2)}) before averaging. Raw numbers are shown as each site publishes them.</p>
-      <div class="actions"><button type="button" class="btn sm" id="copy">Copy for the group chat</button><button type="button" class="btn sm" id="clear">Clear</button></div></div>`;
-    $("#copy", box).onclick = async () => { const txt = `${A.name} gives ${ga.map((a) => a.name).join(", ") || "nothing"} · ${B.name} gives ${gb.map((a) => a.name).join(", ") || "nothing"} → ${main.text} (FantasyCalc ${L[0].text}${L[1] ? `, Dynasty Daddy ${L[1].text}` : ""}). BBT trade calc: https://noahszmand-wq.github.io/big-brains-tribune/trade/`; try { await navigator.clipboard.writeText(txt); $("#copy", box).textContent = "Copied"; } catch (_) { prompt("Copy this:", txt); } };
-    $("#clear", box).onclick = () => { S.give.a = new Set(); S.give.b = new Set(); drawSide("a"); drawSide("b"); drawVerdict(); };
-  };
-  drawSide("a"); drawSide("b"); drawVerdict();
-}
+  const addBtn = $("#addteam", v), dropBtn = $("#dropteam", v);
+  if (addBtn) addBtn.onclick = () => { const free = d.teams.find((t) => !S.sides.some((s) => s.rid === t.rid)); if (!free) return; S.sides.push({ rid: free.rid, give: {} }); render(); };
+  if (dropBtn) dropBtn.onclick = () => { const gone = S.sides.pop().rid; S.sides.forEach((s, i) => { for (const id of Object.keys(s.give)) if (s.give[id] === gone) s.give[id] = otherSides(i)[0].rid; }); render(); };
 
+  const drawVerdict = () => {
+    const box = $("#verdict", v), teams = S.sides.map((s) => d.byRid[s.rid]);
+    const moves = S.sides.flatMap((s) => Object.entries(s.give).map(([id, to]) => ({ a: d.assets[id], from: s.rid, to })));
+    if (!moves.length) { box.innerHTML = ""; $("#analytics", v).innerHTML = ""; return; }
+    const flows = (src) => teams.map((t) => { const out = moves.filter((m) => m.from === t.rid).reduce((s, m) => s + val(m.a, src), 0), inn = moves.filter((m) => m.to === t.rid).reduce((s, m) => s + val(m.a, src), 0); return { t, out, inn, net: inn - out }; });
+    const summarize = (src) => {
+      const f = flows(src), moved = f.reduce((s, x) => s + x.out, 0) || 1, best = [...f].sort((x, y) => y.net - x.net)[0], worst = [...f].sort((x, y) => x.net - y.net)[0];
+      const spread = (best.net - worst.net) / 2 / Math.max(...f.map((x) => Math.max(x.out, x.inn)), 1);
+      return { src, f, moved, best, worst, spread, even: spread < 0.05, text: spread < 0.05 ? "Dead even" : `${best.t.k} wins by ${Math.round(spread * 100)}%` };
+    };
+    const srcs = S.src === "both" ? ["fc", "dd"] : [S.src], L = srcs.map(summarize), main = summarize(S.src);
+    const agree = L.length === 2 && ((L[0].even && L[1].even) || (!L[0].even && !L[1].even && L[0].best.t === L[1].best.t));
+    const headline = main.even ? "Call it even" : `${main.best.t.name} wins this one`;
+    const sub = main.even ? `Every side lands within ${Math.round(main.spread * 100)}% of what it gives up${S.src === "both" ? agree ? ", and both sites say so." : ", though the two sites lean different ways." : "."}` : `${main.best.t.k} nets ${fmt(main.best.net)} in value${teams.length > 2 ? `; ${main.worst.t.k} gives up the most (${fmt(main.worst.net)})` : ""}${S.src === "both" ? agree ? ", and both sites agree." : ", but the two sites don't agree; see below." : "."}`;
+    // Lineup / future impact per team, on the blended number.
+    const impact = teams.map((t) => { const before = d.holdings[t.rid], after = [...before.filter((id) => !moves.some((m) => m.from === t.rid && m.a.id === id)), ...moves.filter((m) => m.to === t.rid).map((m) => m.a.id)]; const l0 = lineupValue(before, d), l1 = lineupValue(after, d); return { t, lineup: l1.starters - l0.starters, future: futureValue(after, d) - futureValue(before, d), ageBefore: avgAge(before, d), ageAfter: avgAge(after, d) }; });
+    const rows = moves.map((m) => `<tr><td>${esc(m.a.name)}<span class="who">${esc(d.byRid[m.from].k)} → ${esc(d.byRid[m.to].k)}</span></td><td class="num">${m.a.fc ? fmt(m.a.fc) : "–"}</td><td class="num">${m.a.dd ? fmt(m.a.dd) : "–"}</td><td class="num">${fmt(val(m.a, "both"))}</td></tr>`).join("");
+    const tot = (t) => ["fc", "dd", "both"].map((src) => { const f = flows(src).find((x) => x.t === t); return `<td class="num"><b>${f.net >= 0 ? "+" : "−"}${fmt(Math.abs(f.net))}</b><small>${fmt(f.inn)} in · ${fmt(f.out)} out</small></td>`; }).join("");
+    box.innerHTML = `<div class="verdict"><div class="lab">Verdict · ${SRC_NAME[S.src]}</div><div class="big">${esc(headline)}</div><p class="small" style="margin:6px 0 0">${sub}</p>
+      <div class="bar" aria-hidden="true">${main.f.map((x) => `<i style="width:${((x.inn / (main.f.reduce((s, y) => s + y.inn, 0) || 1)) * 100).toFixed(1)}%;background:var(${x.t.c})"></i>`).join("")}</div>
+      <div class="legend">${main.f.map((x) => `<span>${esc(x.t.k)} gets ${fmt(x.inn)} · gives ${fmt(x.out)}</span>`).join("")}</div>
+      ${S.src === "both" ? `<div class="srcline">${L.map((l) => `<div><div class="k">${SRC_NAME[l.src]}</div><div class="r ${l.even ? "even" : "win"}">${esc(l.text)}</div><div class="small dim num">${l.f.map((x) => `${esc(x.t.k)} ${x.net >= 0 ? "+" : "−"}${fmt(Math.abs(x.net))}`).join(" · ")}</div></div>`).join("")}</div>` : ""}
+      <div class="impact">${impact.map((x) => `<div><div class="k">${badge(x.t)} ${contending(x.t, d) ? "contending" : "rebuilding"}</div><div class="r"><span>Lineup <b class="${x.lineup > 0 ? "up" : x.lineup < 0 ? "dn" : ""}">${x.lineup >= 0 ? "+" : "−"}${fmt(Math.abs(x.lineup))}</b></span><span>Future <b class="${x.future > 0 ? "up" : x.future < 0 ? "dn" : ""}">${x.future >= 0 ? "+" : "−"}${fmt(Math.abs(x.future))}</b></span><span>Avg age <b>${x.ageBefore.toFixed(1)} → ${x.ageAfter.toFixed(1)}</b></span></div></div>`).join("")}</div>
+      <table class="cmp"><thead><tr><th>Asset</th><th>FantasyCalc</th><th>Dynasty Daddy</th><th>Blend</th></tr></thead><tbody>${rows}
+      ${teams.map((t) => `<tr class="tot"><td>${esc(t.k)} net</td>${tot(t)}</tr>`).join("")}</tbody></table>
+      <p class="note">Dynasty Daddy runs 0–9,999 and FantasyCalc tops out higher, so the Blend column puts Dynasty Daddy on FantasyCalc's scale (×${d.scale.toFixed(2)}) before averaging. Lineup is the change in starting-lineup value; Future weights youth and picks.</p>
+      <div class="actions"><button type="button" class="btn sm" id="copy">Copy for the group chat</button><button type="button" class="btn sm" id="clear">Clear</button></div></div>`;
+    $("#copy", box).onclick = async () => { const txt = `${teams.map((t) => `${t.name} gives ${moves.filter((m) => m.from === t.rid).map((m) => `${m.a.name}${teams.length > 2 ? ` (to ${d.byRid[m.to].k})` : ""}`).join(", ") || "nothing"}`).join(" · ")} → ${main.text} (FantasyCalc ${L[0].text}${L[1] ? `, Dynasty Daddy ${L[1].text}` : ""}). BBT trade calc: https://noahszmand-wq.github.io/big-brains-tribune/trade/`; try { await navigator.clipboard.writeText(txt); $("#copy", box).textContent = "Copied"; } catch (_) { prompt("Copy this:", txt); } };
+    $("#clear", box).onclick = () => { S.sides.forEach((s) => { s.give = {}; }); drawAll(); };
+    analytics($("#analytics", v), moves, teams);
+  };
+  drawAll();
+}
+const avgAge = (ids, d) => { const a = ids.map((id) => d.assets[id]).filter((x) => x && x.kind === "player" && x.age); return a.length ? a.reduce((s, x) => s + x.age, 0) / a.length : 0; };
+
+// ---------- analytics: trends, projections, trade volume ----------
+function spark(pts, w = 180, h = 44) {
+  const fc = pts.map((p) => p.fc).filter(Boolean), dd = pts.map((p) => p.dd * S.data.scale).filter(Boolean);
+  const all = [...fc, ...dd]; if (all.length < 2) return `<span class="dim small">Not enough history yet</span>`;
+  const lo = Math.min(...all), hi = Math.max(...all), span = hi - lo || 1, n = pts.length;
+  const line = (key, color) => { const q = pts.map((p, i) => [p, i]).filter(([p]) => p[key]); if (q.length < 2) return ""; return `<polyline fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" points="${q.map(([p, i]) => `${((i / (n - 1)) * (w - 4) + 2).toFixed(1)},${(h - 3 - ((key === "fc" ? p.fc : p.dd * S.data.scale) - lo) / span * (h - 6)).toFixed(1)}`).join(" ")}"/>`; };
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Value history">${line("fc", "var(--pylon)")}${line("dd", "var(--blue)")}</svg>`;
+}
+function projection(a, pts) {
+  // Rough six-month projection: the recent slope (dampened), plus an age curve by position. Clamped to ±40%.
+  const now = val(a, "both"); if (!now) return null;
+  const series = pts.map((p) => (p.fc && p.dd ? (p.fc + p.dd * S.data.scale) / 2 : p.fc || p.dd * S.data.scale)).filter(Boolean);
+  let slope = 0; if (series.length >= 7) { const k = Math.min(series.length, 90), s = series.slice(-k); slope = (s[s.length - 1] - s[0]) / k; }
+  const trendPart = slope * 180 * 0.5;
+  const age = a.age ?? 26, pos = a.pos;
+  const ageMult = pos === "RB" ? (age >= 27 ? 0.92 : age <= 24 ? 1.03 : 1) : pos === "QB" ? (age >= 34 ? 0.95 : age <= 25 ? 1.03 : 1) : (age >= 30 ? 0.95 : age <= 24 ? 1.03 : 1);
+  const raw = (now + trendPart) * ageMult;
+  return Math.max(now * 0.6, Math.min(now * 1.4, raw));
+}
+function analytics(root, moves, teams) {
+  const d = S.data, players = moves.map((m) => m.a).filter((a) => a.kind === "player");
+  const ids = players.map((a) => a.id), need = ids.filter((id) => !S.hist[id]);
+  const draw = () => {
+    const since = d.history_since ? `The Tribune has kept its own daily record since ${esc(d.history_since)} (${d.history_days} day${d.history_days === 1 ? "" : "s"} so far), so this grows into a full six months.` : "";
+    const pl = players.map((a) => {
+      const pts = S.hist[a.id] || [], x = a.x || {};
+      const first = pts[0], last = pts[pts.length - 1];
+      const chg = (k) => first && last && first[k] && last[k] ? last[k] - first[k] : null;
+      const m1 = x.lastMonth ? a.dd - x.lastMonth : null;
+      const proj = projection(a, pts), projPct = proj ? (proj / val(a, "both") - 1) * 100 : null;
+      const range = x.m3Low && x.m3High ? `<div class="range"><span class="k">3-mo range</span><div class="rl"><i style="left:${(((a.dd - x.m3Low) / Math.max(x.m3High - x.m3Low, 1)) * 100).toFixed(0)}%"></i></div><span class="num">${fmt(x.m3Low)}–${fmt(x.m3High)}</span></div>` : "";
+      const span = pts.length ? `${pts.length} day${pts.length === 1 ? "" : "s"}` : "";
+      return `<div class="pcard"><div class="ph"><div>${posTag(a)} <b>${esc(a.name)}</b><small class="dim"> · ${esc(a.team || "FA")}${a.age ? ` · age ${Math.floor(a.age)}` : ""}${x.injury ? ` · <span class="inj">${esc(x.injury)}</span>` : ""}</small></div><div class="num dim small">FC ${fmt(a.fc)} · DD ${fmt(a.dd)}</div></div>
+        <div class="trend">${spark(pts)}<div class="tl">${span ? `<span>${span}</span>` : ""}<span class="fcl">FantasyCalc</span><span class="ddl">Dynasty Daddy</span></div></div>
+        <div class="stats">
+          <div><span class="k">30-day</span><b class="${sign(a.trend)}">${pm(a.trend)}</b><small>FC</small>${m1 != null ? `<b class="${sign(m1)}">${pm(m1)}</b><small>DD</small>` : ""}</div>
+          ${chg("fc") != null && pts.length > 31 ? `<div><span class="k">${span}</span><b class="${sign(chg("fc"))}">${pm(chg("fc"))}</b><small>FC</small>${chg("dd") != null ? `<b class="${sign(chg("dd"))}">${pm(chg("dd"))}</b><small>DD</small>` : ""}</div>` : ""}
+          <div><span class="k">Pos rank</span><b>${a.pos}${a.posRank || "–"}</b><small>FC</small>${a.ddPosRank ? `<b>${a.pos}${a.ddPosRank}</b><small>DD${x.lastMonthRank ? `, was ${x.lastMonthRank}` : ""}</small>` : ""}</div>
+          ${x.atHigh ? `<div><span class="k">All-time</span><b>${fmt(x.atLow)}–${fmt(x.atHigh)}</b><small>DD · now ${Math.round((a.dd / x.atHigh) * 100)}% of peak</small></div>` : ""}
+          ${x.redraft ? `<div><span class="k">Win-now</span><b>${fmt(x.redraft)}</b><small>FC redraft value, ${x.redraft > a.fc ? "above" : "below"} dynasty</small></div>` : ""}
+          ${proj ? `<div><span class="k">Projected 6 mo</span><b class="${sign(projPct)}">${fmt(proj)}</b><small>${projPct >= 0 ? "+" : ""}${projPct.toFixed(0)}% · blend</small></div>` : ""}
+          ${x.tradeFreq ? `<div><span class="k">Trade volume</span><b>${(x.tradeFreq * 100).toFixed(1)}%</b><small>of FantasyCalc trades${x.rosterPct ? ` · rostered ${Math.round(x.rosterPct * 100)}%` : ""}</small></div>` : ""}
+          ${x.pctStarted ? `<div><span class="k">Started</span><b>${Math.round(x.pctStarted)}%</b><small>of DD leagues${x.pctOwned ? ` · owned ${Math.round(x.pctOwned)}%` : ""}</small></div>` : ""}
+        </div>${range}</div>`;
+    }).join("");
+    // League trade volume
+    const tr = d.trades, rids = teams.map((t) => t.rid), byTeam = (rid) => tr.filter((x) => x.rids.includes(rid)).length;
+    const between = tr.filter((x) => rids.every((r) => x.rids.includes(r))).length;
+    const pair = teams.length === 2 ? between : tr.filter((x) => rids.filter((r) => x.rids.includes(r)).length >= 2).length;
+    const moved = moves.map((m) => { const a = m.a; const hit = a.kind === "player" ? tr.find((x) => x.adds[a.id] != null) : tr.find((x) => x.picks.some((p) => p.season === a.season && p.round === a.round && p.orig === a.orig)); return hit ? `${a.name} (Week ${hit.week}${a.kind === "player" ? `, to ${esc(d.byRid[hit.adds[a.id]]?.k || "?")}` : ""})` : null; }).filter(Boolean);
+    const busiest = [...d.teams].map((t) => ({ t, n: byTeam(t.rid) })).sort((x, y) => y.n - x.n)[0];
+    const weeks = tr.length ? `${tr.filter((x) => x.week >= (Number(d.settings.season) ? 0 : 0)).length}` : "0";
+    root.innerHTML = `<div class="anal"><h2>The numbers behind it</h2>
+      <p class="dim small">Value history is Dynasty Daddy's last 30 days (both lines). ${since}</p>
+      ${pl || `<div class="card dim">Picks only, so no player trends to show.</div>`}
+      <div class="vol"><div class="k">League trade volume · ${d.settings.season}</div><div class="grid">
+        <div><b>${tr.length}</b><small>trades this season</small></div>
+        ${teams.map((t) => `<div><b>${byTeam(t.rid)}</b><small>${esc(t.k)} trades</small></div>`).join("")}
+        <div><b>${pair}</b><small>between these ${teams.length === 2 ? "two" : "teams"}</small></div>
+        ${busiest && busiest.n ? `<div><b>${esc(busiest.t.k)}</b><small>busiest desk (${busiest.n})</small></div>` : ""}
+        ${tr[0] ? `<div><b>Wk ${tr[0].week}</b><small>last league trade</small></div>` : ""}
+      </div>${moved.length ? `<p class="small" style="margin:8px 0 0"><b>Already moved this season:</b> ${moved.join("; ")}.</p>` : `<p class="small dim" style="margin:8px 0 0">None of these pieces has changed hands this season.</p>`}</div>
+      <p class="note">Projected 6 mo is a rough call: the recent slope, dampened, plus an age curve by position, capped at ±40%. Trade volume per player is FantasyCalc's share of real trades involving him; league volume is from Sleeper's transaction log.</p></div>`;
+  };
+  draw();
+  if (need.length) {
+    const req = ++S.histReq;
+    api({ action: "history", ids: need }).then((r) => { Object.assign(S.hist, r.history || {}); if (r.own_since && !d.history_since) d.history_since = r.own_since; if (req === S.histReq && root.isConnected) draw(); }).catch(() => {});
+  }
+}
+const sign = (n) => n > 0 ? "up" : n < 0 ? "dn" : "";
+const pm = (n) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${fmt(Math.abs(n))}`;
+
+// ---------- suggestions ----------
 function suggestions(root) {
-  const d = S.data; if (!S.sugTeam) S.sugTeam = S.a;
+  const d = S.data; if (!S.sugTeam) S.sugTeam = S.sides[0].rid;
   const v = el(`<div><div class="field" style="margin-top:4px"><label class="lab" for="sugteam">Suggestions for</label><select id="sugteam">${d.teams.map((t) => `<option value="${t.rid}" ${t.rid === S.sugTeam ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select></div><div id="sugbody"><p class="dim"><span class="spin"></span> Running the numbers…</p></div></div>`);
   root.appendChild(v);
   $("#sugteam", v).onchange = (e) => { S.sugTeam = Number(e.target.value); S.tab = "sug"; render(); };
   setTimeout(() => {
     const body = $("#sugbody", v), n = needs(S.sugTeam, d), list = suggest(S.sugTeam, d), t = n.t;
-    const posLabel = { QB: "QB", RB: "RB", WR: "WR", TE: "TE" };
-    body.innerHTML = `<div class="needs"><div><div class="k">Mode</div><div class="v">${n.mode === "contending" ? "Contending" : "Rebuilding"}</div><div class="small dim">${t.wins}–${t.losses} · seed ${t.seed}</div></div><div><div class="k">Weakest spot</div><div class="v">${posLabel[n.weakest.pos]}</div><div class="small dim">starters avg ${fmt(n.weakest.start)}</div></div><div><div class="k">Deepest</div><div class="v">${posLabel[n.deepest.pos]}</div><div class="small dim">${fmt(n.deepest.depth)} on the bench</div></div><div><div class="k">Picks owned</div><div class="v">${n.picks}</div><div class="small dim">${d.settings.season + 1}–${d.settings.season + 2}</div></div></div>
+    body.innerHTML = `<div class="needs"><div><div class="k">Mode</div><div class="v">${n.mode === "contending" ? "Contending" : "Rebuilding"}</div><div class="small dim">${t.wins}–${t.losses} · seed ${t.seed}</div></div><div><div class="k">Weakest spot</div><div class="v">${n.weakest.pos}</div><div class="small dim">starters avg ${fmt(n.weakest.start)}</div></div><div><div class="k">Deepest</div><div class="v">${n.deepest.pos}</div><div class="small dim">${fmt(n.deepest.depth)} on the bench</div></div><div><div class="k">Picks owned</div><div class="v">${n.picks}</div><div class="small dim">${d.settings.season + 1}–${d.settings.season + 2}</div></div></div>
       <p class="dim small">${n.mode === "contending" ? `${esc(t.name)} is in the hunt, so these deals are judged on this year's starting lineup.` : `${esc(t.name)} is building, so these deals are judged on youth and picks.`} Every one is within 12% on ${SRC_NAME[S.src]} values and helps the other team too, so it has a chance of actually getting accepted.</p>
       ${list.length ? list.map((s, i) => { const r = contending(s.them, d); return `<div class="sug"><span class="tag ${r ? "" : "rebuild"}">${esc(s.them.k)} is ${r ? "contending" : "rebuilding"}</span>
-        <div class="row"><div><div class="k">${esc(t.k)} gives</div><ul>${s.give.map((id) => { const a = d.assets[id]; return `<li><span class="pos ${a.pos}">${a.pos === "PICK" ? "PICK" : a.pos}</span> ${esc(a.name)} <small class="num">${fmt(val(a))}</small></li>`; }).join("")}</ul></div><div class="arrow">⇄</div><div><div class="k">${badge(s.them)} gives</div><ul>${s.get.map((id) => { const a = d.assets[id]; return `<li><span class="pos ${a.pos}">${a.pos === "PICK" ? "PICK" : a.pos}</span> ${esc(a.name)} <small class="num">${fmt(val(a))}</small></li>`; }).join("")}</ul></div></div>
+        <div class="row"><div><div class="k">${esc(t.k)} gives</div><ul>${s.give.map((id) => { const a = d.assets[id]; return `<li>${posTag(a)} ${esc(a.name)} <small class="num">${fmt(val(a))}</small></li>`; }).join("")}</ul></div><div class="arrow">⇄</div><div><div class="k">${badge(s.them)} gives</div><ul>${s.get.map((id) => { const a = d.assets[id]; return `<li>${posTag(a)} ${esc(a.name)} <small class="num">${fmt(val(a))}</small></li>`; }).join("")}</ul></div></div>
         <div class="why">${esc(t.k)} ${n.mode === "contending" ? "lineup" : "future"} +${fmt(s.g1)} · ${esc(s.them.k)} ${r ? "lineup" : "future"} +${fmt(s.g2)} · value ${fmt(s.gv)} for ${fmt(s.rv)}</div>
         <div class="foot"><span class="vals">#${i + 1}</span><button type="button" class="btn sm" data-load="${i}">Open in calculator</button></div></div>`; }).join("") : `<div class="card dim">No fair, win-win deals found for ${esc(t.name)} right now. Try the other value source, or build one by hand in the calculator.</div>`}`;
-    body.querySelectorAll("[data-load]").forEach((b) => b.onclick = () => { const s = list[Number(b.dataset.load)]; S.a = S.sugTeam; S.b = s.them.rid; S.give.a = new Set(s.give); S.give.b = new Set(s.get); S.tab = "calc"; render(); window.scrollTo(0, 0); });
+    body.querySelectorAll("[data-load]").forEach((b) => b.onclick = () => { const s = list[Number(b.dataset.load)]; S.sides = [{ rid: S.sugTeam, give: Object.fromEntries(s.give.map((id) => [id, s.them.rid])) }, { rid: s.them.rid, give: Object.fromEntries(s.get.map((id) => [id, S.sugTeam])) }]; S.tab = "calc"; render(); window.scrollTo(0, 0); });
   }, 30);
 }
 

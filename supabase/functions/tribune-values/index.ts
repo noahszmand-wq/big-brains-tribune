@@ -55,7 +55,8 @@ async function get(url: string, timeout = 15000) {
 }
 
 // ---------- the pieces ----------
-type Val = { name: string; pos: string; team: string | null; age: number | null; value: number; rank: number; posRank: number; trend: number };
+type Extra = { nameId?: string; redraft?: number; tradeFreq?: number; rosterPct?: number; lastMonth?: number; m3Low?: number; m3High?: number; atHigh?: number; atLow?: number; lastMonthRank?: number; pctOwned?: number; pctStarted?: number; injury?: string | null };
+type Val = { name: string; pos: string; team: string | null; age: number | null; value: number; rank: number; posRank: number; trend: number; x?: Extra };
 async function values(): Promise<Record<string, Val>> {
   const rows: any[] = await get(FC, 20000);
   const out: Record<string, Val> = {};
@@ -63,7 +64,8 @@ async function values(): Promise<Record<string, Val>> {
     const p = r.player ?? {};
     const key = p.position === "PICK" ? `pick:${p.name}` : p.sleeperId ? String(p.sleeperId) : null;
     if (!key) continue;
-    out[key] = { name: p.name, pos: p.position, team: p.maybeTeam ?? null, age: p.maybeAge ?? null, value: Number(r.value) || 0, rank: Number(r.overallRank) || 0, posRank: Number(r.positionRank) || 0, trend: Number(r.trend30Day) || 0 };
+    out[key] = { name: p.name, pos: p.position, team: p.maybeTeam ?? null, age: p.maybeAge ?? null, value: Number(r.value) || 0, rank: Number(r.overallRank) || 0, posRank: Number(r.positionRank) || 0, trend: Number(r.trend30Day) || 0,
+      x: { redraft: Number(r.redraftValue) || 0, tradeFreq: Number(r.maybeTradeFrequency) || 0, rosterPct: Number(r.maybeRosterPercent) || 0 } };
   }
   if (Object.keys(out).length < 100) throw new Fail("values_thin", 502);
   return out;
@@ -83,7 +85,8 @@ async function ddValues(): Promise<Record<string, Val>> {
       continue;
     }
     if (!r.sleeper_id) continue;
-    out[String(r.sleeper_id)] = { name: r.full_name, pos: r.position, team: r.team ?? null, age: r.age ?? null, value: v, rank: 0, posRank: Number(r.sf_position_rank) || 0, trend: v - (Number(r.last_month_value_sf) || v) };
+    out[String(r.sleeper_id)] = { name: r.full_name, pos: r.position, team: r.team ?? null, age: r.age ?? null, value: v, rank: 0, posRank: Number(r.sf_position_rank) || 0, trend: v - (Number(r.last_month_value_sf) || v),
+      x: { nameId: String(r.name_id ?? ""), lastMonth: Number(r.last_month_value_sf) || 0, m3Low: Number(r.three_month_low_sf) || 0, m3High: Number(r.three_month_high_sf) || 0, atHigh: Number(r.all_time_high_sf) || 0, atLow: Number(r.all_time_low_sf) || 0, lastMonthRank: Number(r.last_month_rank_sf) || 0, pctOwned: Number(r.percent_owned) || 0, pctStarted: Number(r.percent_started) || 0, injury: r.injury_status ?? null } };
   }
   if (Object.keys(out).length < 100) throw new Fail("dd_thin", 502);
   // Overall rank from the superflex value, since the feed only carries position ranks.
@@ -122,6 +125,30 @@ async function playerFile(): Promise<Record<string, PlayerMeta>> {
   return out;
 }
 
+// Every completed trade this season, from Sleeper's weekly transaction logs.
+type Trade = { week: number; at: number; rids: number[]; adds: Record<string, number>; picks: { season: number; round: number; owner: number; prev: number; orig: number }[] };
+async function tradeLog(leagueId: string, upToWeek: number): Promise<Trade[]> {
+  const weeks = Array.from({ length: Math.min(18, Math.max(1, upToWeek)) }, (_, i) => i + 1);
+  const all = await Promise.all(weeks.map((w) => get(`${SLEEPER}/league/${leagueId}/transactions/${w}`).catch(() => [])));
+  const out: Trade[] = [];
+  all.forEach((list: any[], i) => { for (const t of list ?? []) if (t.type === "trade" && t.status === "complete") out.push({ week: weeks[i], at: Number(t.status_updated ?? t.created) || 0, rids: (t.roster_ids ?? []).map(Number), adds: Object.fromEntries(Object.entries(t.adds ?? {}).map(([k, v]) => [String(k), Number(v)])), picks: (t.draft_picks ?? []).map((p: any) => ({ season: Number(p.season), round: Number(p.round), owner: Number(p.owner_id), prev: Number(p.previous_owner_id), orig: Number(p.roster_id) })) }); });
+  return out.sort((a, b) => b.at - a.at);
+}
+// Dynasty Daddy's 30-day daily history for one player (their value and FantasyCalc's, as they record it).
+async function ddHistory(nameId: string): Promise<{ d: string; dd: number; fc: number }[]> {
+  const j = await get(`${DD.replace("/all/today", "")}/${encodeURIComponent(nameId)}/history`, 20000);
+  return (j?.history ?? []).map((h: any) => ({ d: String(h.date).slice(0, 10), dd: Number(h.sf_trade_value) || 0, fc: Number(h.fc_sf_trade_value) || 0 })).filter((h: any) => h.dd || h.fc);
+}
+// One row per asset per day, so the paper builds its own long-run history (the public feeds only carry 30 days).
+async function snapshot(rows: { key: string; fc: number; dd: number }[]) {
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const today = (await sql`select count(*)::int as n from tribune.value_history where day = ${day}`)[0]?.n ?? 0;
+    if (today > 0 || !rows.length) return;
+    await sql`insert into tribune.value_history ${sql(rows.map((r) => ({ day, key: r.key, fc: Math.round(r.fc), dd: Math.round(r.dd) })), "day", "key", "fc", "dd")} on conflict do nothing`;
+  } catch (e) { console.error("snapshot", String(e).slice(0, 160)); }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ ok: false, error: "method" }, 405);
@@ -132,17 +159,35 @@ Deno.serve(async (req) => {
 
     const [V, D, L] = await Promise.all([cached("fc_values", 3600_000, values), cached("dd_values", 3600_000, ddValues).catch(() => null), cached("sleeper_league", 600_000, () => league(S.league_id))]);
     const DDv: Record<string, Val> = D?.v ?? {};
+
+    // history {ids}: daily points per asset, Dynasty Daddy's last 30 days merged with the paper's own snapshots (up to 6 months).
+    if (String(b.action ?? "") === "history") {
+      const ids: string[] = Array.isArray(b.ids) ? b.ids.map(String).slice(0, 12) : [];
+      const out: Record<string, { d: string; dd: number; fc: number }[]> = {};
+      const own = ids.length ? await sql`select key, to_char(day, 'YYYY-MM-DD') as d, fc, dd from tribune.value_history where key = any(${ids}) and day >= current_date - 183 order by day` : [];
+      await Promise.all(ids.map(async (id) => {
+        const pts: Record<string, { d: string; dd: number; fc: number }> = {};
+        for (const r of own) if (r.key === id) pts[r.d] = { d: r.d, dd: Number(r.dd), fc: Number(r.fc) };
+        const nameId = DDv[id]?.x?.nameId;
+        if (nameId) { try { const h = (await cached(`ddh:${nameId}`, 43200_000, () => ddHistory(nameId))).v; for (const p of h) pts[p.d] = { d: p.d, dd: p.dd || pts[p.d]?.dd || 0, fc: p.fc || pts[p.d]?.fc || 0 }; } catch (e) { console.error("ddh", nameId, String(e).slice(0, 100)); } }
+        out[id] = Object.values(pts).sort((a, b) => a.d.localeCompare(b.d));
+      }));
+      const since = (await sql`select to_char(min(day), 'Mon D, YYYY') as s from tribune.value_history`)[0]?.s ?? null;
+      return json({ ok: true, history: out, own_since: since });
+    }
+    const T = await cached("sleeper_trades", 3600_000, () => tradeLog(S.league_id, Number(S.current_week) || 18)).catch(() => ({ v: [] as Trade[], at: Date.now() }));
     const rostered = new Set(L.v.teams.flatMap((t) => t.players));
     // The player file is a day old at most, and refreshed early if a newly rostered id is missing from it.
     const P = await cached("sleeper_players", 86400_000, playerFile, (m) => [...rostered].every((id) => m[id] || V.v[id]));
 
     type Src = { value: number; rank: number; posRank: number; trend: number };
     const src = (v: Val | undefined): Src => ({ value: v?.value ?? 0, rank: v?.rank ?? 0, posRank: v?.posRank ?? 0, trend: v?.trend ?? 0 });
-    const players: Record<string, PlayerMeta & { fc: Src; dd: Src }> = {};
+    const players: Record<string, PlayerMeta & { fc: Src; dd: Src; x: Extra }> = {};
     for (const id of rostered) {
       const v = V.v[id], d = DDv[id], m = P.v[id];
       if (!v && !d && !m) continue;
-      players[id] = { name: v?.name ?? d?.name ?? m!.name, pos: v?.pos ?? d?.pos ?? m!.pos, team: v?.team ?? d?.team ?? m?.team ?? null, age: v?.age ?? d?.age ?? m?.age ?? null, fc: src(v), dd: src(d) };
+      const { nameId: _n, ...dx } = (d?.x ?? {}) as Extra;
+      players[id] = { name: v?.name ?? d?.name ?? m!.name, pos: v?.pos ?? d?.pos ?? m!.pos, team: v?.team ?? d?.team ?? m?.team ?? null, age: v?.age ?? d?.age ?? m?.age ?? null, fc: src(v), dd: src(d), x: { ...(v?.x ?? {}), ...dx } };
     }
 
     // Picks: every team's own picks for the coming seasons, re-homed by Sleeper's traded_picks (last trade wins).
@@ -165,8 +210,12 @@ Deno.serve(async (req) => {
       picks.push({ id: `pick:${season}:${round}:${t.rid}`, season, round, orig: t.rid, owner, label: `${season} ${ord(round)}${next ? ` (${tr_})` : ""}${owner !== t.rid ? ` via ${t.k}` : ""}`, fc: fcv?.value ?? 0, dd: ddv?.value ?? 0 });
     }
 
+    // Today's snapshot (once a day, first request wins), then the payload.
+    await snapshot([...Object.entries(players).map(([id, p]) => ({ key: id, fc: p.fc.value, dd: p.dd.value })), ...picks.map((p) => ({ key: p.id, fc: p.fc, dd: p.dd }))]);
+    const hist = (await sql`select to_char(min(day), 'Mon D, YYYY') as s, count(distinct day)::int as n from tribune.value_history`)[0];
+
     return json({ ok: true, settings: { dynasty: true, superflex: L.v.slots.includes("SUPER_FLEX"), ppr: 1, slots: L.v.slots, season: L.v.season },
-      teams: L.v.teams.map((t) => ({ ...t, players: t.players.filter((id) => players[id]) })), players, picks,
+      teams: L.v.teams.map((t) => ({ ...t, players: t.players.filter((id) => players[id]) })), players, picks, trades: T.v, history_since: hist?.s ?? null, history_days: hist?.n ?? 0,
       sources: { fc: { name: "FantasyCalc", at: new Date(V.at).toISOString(), ok: true }, dd: { name: "Dynasty Daddy", at: D ? new Date(D.at).toISOString() : null, ok: !!D } },
       values_at: new Date(V.at).toISOString(), rosters_at: new Date(L.at).toISOString() });
   } catch (e) {
