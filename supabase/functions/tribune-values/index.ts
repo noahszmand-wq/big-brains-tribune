@@ -146,26 +146,51 @@ async function tradeLog(leagueId: string, upToWeek: number): Promise<Trade[]> {
 // every final record, this season and the two before. Names come straight from Sleeper's full player file so a bust who
 // has since left the league still has one.
 type Move = { season: number; week: number; at: number; type: string; rid: number; adds: Record<string, number>; drops: Record<string, number>; bid: number };
-type Game = { season: number; week: number; rid: number; pts: number; opp: number; oppPts: number };
-type Shame = { seasons: { season: number; teams: { rid: number; wins: number; losses: number; ties: number; pf: number; pa: number }[] }[]; moves: Move[]; games: Game[]; draft: { season: number; type: string; round: number; pick: number; rid: number; pid: string }[]; names: Record<string, PlayerMeta> };
+// opt = the best lineup the roster could have started that week (bench and taxi/IR excluded where known); miss = the single
+// swap that would have gained the most (a benched player over a starter he was eligible to replace).
+type Game = { season: number; week: number; rid: number; pts: number; opp: number; oppPts: number; opt?: number; miss?: { in: string; inPts: number; out: string; outPts: number } | null };
+type Shame = { seasons: { season: number; teams: { rid: number; wins: number; losses: number; ties: number; pf: number; pa: number }[] }[]; moves: Move[]; games: Game[]; draft: { season: number; type: string; round: number; pick: number; rid: number; pid: string }[]; names: Record<string, PlayerMeta>;
+  schedule: { week: number; a: number; b: number }[]; settings: { playoff_teams: number; playoff_week_start: number; trade_deadline: number; last_scored: number; season: number } };
+const SLOT_OK_S: Record<string, string[]> = { QB: ["QB"], RB: ["RB"], WR: ["WR"], TE: ["TE"], FLEX: ["RB", "WR", "TE"], SUPER_FLEX: ["QB", "RB", "WR", "TE"], K: ["K"], DEF: ["DEF"], REC_FLEX: ["WR", "TE"], WRRB_FLEX: ["RB", "WR"] };
+function bestLineup(slots: string[], pool: { id: string; pos: string; pts: number }[]): number {
+  const fixed = slots.filter((s) => SLOT_OK_S[s]?.length === 1), flex = slots.filter((s) => (SLOT_OK_S[s]?.length ?? 0) > 1);
+  const used = new Set<string>(); let total = 0; const sorted = [...pool].sort((x, y) => y.pts - x.pts);
+  for (const s of [...fixed, ...flex]) { const a = sorted.find((x) => !used.has(x.id) && SLOT_OK_S[s].includes(x.pos)); if (a) { used.add(a.id); total += a.pts; } }
+  return total;
+}
 async function leagueHistory(leagueId: string, upToWeek: number): Promise<Shame> {
-  const out: Shame = { seasons: [], moves: [], games: [], draft: [], names: {} };
+  const out: Shame = { seasons: [], moves: [], games: [], draft: [], names: {}, schedule: [], settings: { playoff_teams: 5, playoff_week_start: 14, trade_deadline: 0, last_scored: 0, season: 0 } };
+  const raw: { game: Game; slots: string[]; starters: string[]; players: string[]; pp: Record<string, number>; dead: Set<string> }[] = [];
   let id = leagueId, hops = 0;
   while (id && hops < 3) {
     const lg = await get(`${SLEEPER}/league/${id}`).catch(() => null); if (!lg) break;
     const season = Number(lg.season) || 0, last = hops === 0 ? Math.min(18, Math.max(1, upToWeek)) : 18;
     const weeks = Array.from({ length: last }, (_, i) => i + 1);
+    const pstart = Number(lg.settings?.playoff_week_start) || 15, allWeeks = hops === 0 ? Array.from({ length: Math.max(last, pstart - 1) }, (_, i) => i + 1) : weeks;
     const [rosters, drafts, tx, mu] = await Promise.all([
       get(`${SLEEPER}/league/${id}/rosters`).catch(() => []), get(`${SLEEPER}/league/${id}/drafts`).catch(() => []),
       Promise.all(weeks.map((w) => get(`${SLEEPER}/league/${id}/transactions/${w}`).catch(() => []))),
-      Promise.all(weeks.map((w) => get(`${SLEEPER}/league/${id}/matchups/${w}`).catch(() => []))),
+      Promise.all(allWeeks.map((w) => get(`${SLEEPER}/league/${id}/matchups/${w}`).catch(() => []))),
     ]);
+    const scored = hops === 0 ? Math.min(last, Number(lg.settings?.last_scored_leg) || last) : 18;
+    const slots: string[] = (lg.roster_positions ?? []).filter((x: string) => x !== "BN" && x !== "IR" && x !== "TAXI");
+    const deadBy: Record<number, Set<string>> = {}; for (const r of rosters ?? []) deadBy[Number(r.roster_id)] = new Set<string>([...(r.taxi ?? []), ...(r.reserve ?? [])].map(String));
+    if (hops === 0) out.settings = { playoff_teams: Number(lg.settings?.playoff_teams) || 5, playoff_week_start: pstart, trade_deadline: Number(lg.settings?.trade_deadline) || 0, last_scored: scored, season };
     out.seasons.push({ season, teams: (rosters ?? []).map((r: any) => { const s = r.settings ?? {}; return { rid: Number(r.roster_id), wins: s.wins ?? 0, losses: s.losses ?? 0, ties: s.ties ?? 0, pf: (s.fpts ?? 0) + (s.fpts_decimal ?? 0) / 100, pa: (s.fpts_against ?? 0) + (s.fpts_against_decimal ?? 0) / 100 }; }) });
     tx.forEach((list: any[], i) => { for (const t of list ?? []) if ((t.type === "waiver" || t.type === "free_agent") && t.status === "complete") out.moves.push({ season, week: weeks[i], at: Number(t.status_updated ?? t.created) || 0, type: t.type, rid: Number((t.roster_ids ?? [])[0]), adds: Object.fromEntries(Object.entries(t.adds ?? {}).map(([k, v]) => [String(k), Number(v)])), drops: Object.fromEntries(Object.entries(t.drops ?? {}).map(([k, v]) => [String(k), Number(v)])), bid: Number(t.settings?.waiver_bid) || 0 }); });
     mu.forEach((list: any[], i) => {
+      const week = allWeeks[i];
       const by: Record<string, any[]> = {}; for (const m of list ?? []) if (m.matchup_id != null) (by[m.matchup_id] ??= []).push(m);
-      for (const pair of Object.values(by)) { if (pair.length !== 2) continue; const [a, b] = pair; if (!(Number(a.points) + Number(b.points) > 0)) continue;
-        out.games.push({ season, week: weeks[i], rid: Number(a.roster_id), pts: Number(a.points) || 0, opp: Number(b.roster_id), oppPts: Number(b.points) || 0 }, { season, week: weeks[i], rid: Number(b.roster_id), pts: Number(b.points) || 0, opp: Number(a.roster_id), oppPts: Number(a.points) || 0 }); }
+      for (const pair of Object.values(by)) { if (pair.length !== 2) continue; const [a, b] = pair;
+        // Weeks past the last fully scored one are schedule, not results (a game in progress would otherwise count as a loss).
+        if (hops === 0 && week > scored) { if (week < pstart) out.schedule.push({ week, a: Number(a.roster_id), b: Number(b.roster_id) }); continue; }
+        if (!(Number(a.points) + Number(b.points) > 0)) continue;
+        for (const [m, o] of [[a, b], [b, a]]) {
+          const game: Game = { season, week, rid: Number(m.roster_id), pts: Number(m.points) || 0, opp: Number(o.roster_id), oppPts: Number(o.points) || 0 };
+          out.games.push(game);
+          raw.push({ game, slots, starters: (m.starters ?? []).map(String), players: (m.players ?? []).map(String), pp: Object.fromEntries(Object.entries(m.players_points ?? {}).map(([k, v]) => [String(k), Number(v) || 0])), dead: deadBy[Number(m.roster_id)] ?? new Set() });
+        }
+      }
     });
     for (const d of drafts ?? []) {
       if (d.status !== "complete") continue;
@@ -178,7 +203,17 @@ async function leagueHistory(leagueId: string, upToWeek: number): Promise<Shame>
   const ids = new Set<string>([...out.moves.flatMap((m) => [...Object.keys(m.adds), ...Object.keys(m.drops)]), ...out.draft.map((p) => p.pid)]);
   try {
     const all = await get(`${SLEEPER}/players/nfl`, 40000);
-    for (const pid of ids) { const p = all[pid]; if (p) out.names[pid] = { name: p.full_name || `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || pid, pos: p.position ?? "?", team: p.team ?? null, age: p.age ?? null }; }
+    const meta = (pid: string): PlayerMeta | null => { const p = all[pid]; return p ? { name: p.full_name || `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || pid, pos: p.position ?? "?", team: p.team ?? null, age: p.age ?? null } : null; };
+    // Optimal lineups need every rostered player's position that week.
+    for (const r of raw) {
+      const pool = r.players.filter((pid) => !r.dead.has(pid) || r.starters.includes(pid)).map((pid) => ({ id: pid, pos: all[pid]?.position ?? "?", pts: r.pp[pid] ?? 0 }));
+      r.game.opt = Math.round(bestLineup(r.slots, pool) * 100) / 100;
+      let best: Game["miss"] = null;
+      r.starters.forEach((sid, k) => { const slot = r.slots[k]; const ok = SLOT_OK_S[slot]; if (!ok || !sid || sid === "0") return; const sp = r.pp[sid] ?? 0;
+        for (const b of pool) { if (r.starters.includes(b.id) || !ok.includes(b.pos)) continue; const gain = b.pts - sp; if (gain > 0 && (!best || gain > best.inPts - best.outPts)) best = { in: b.id, inPts: b.pts, out: sid, outPts: sp }; } });
+      r.game.miss = best; if (best) { ids.add(best.in); ids.add(best.out); }
+    }
+    for (const pid of ids) { const m = meta(pid); if (m) out.names[pid] = m; }
   } catch (e) { console.error("names", String(e).slice(0, 120)); }
   return out;
 }
@@ -225,8 +260,8 @@ Deno.serve(async (req) => {
     }
     // shame: the league's full move/score/draft history plus today's value for every player it mentions (compact).
     if (String(b.action ?? "") === "shame") {
-      const H = await cached("sleeper_shame_v1", 6 * 3600_000, () => leagueHistory(S.league_id, Number(S.current_week) || 18));
-      const ids = new Set<string>([...H.v.moves.flatMap((m) => [...Object.keys(m.adds), ...Object.keys(m.drops)]), ...H.v.draft.map((p) => p.pid)]);
+      const H = await cached("sleeper_history_v2", 6 * 3600_000, () => leagueHistory(S.league_id, Number(S.current_week) || 18));
+      const ids = new Set<string>([...H.v.moves.flatMap((m) => [...Object.keys(m.adds), ...Object.keys(m.drops)]), ...H.v.draft.map((p) => p.pid), ...H.v.games.flatMap((g) => g.miss ? [g.miss.in, g.miss.out] : [])]);
       const players: Record<string, { n: string; p: string; t: string | null; a: number | null; fc: number; dd: number }> = {};
       for (const pid of ids) { const v = V.v[pid], d = DDv[pid], m = H.v.names[pid]; if (!v && !d && !m) continue; players[pid] = { n: v?.name ?? d?.name ?? m!.name, p: v?.pos ?? d?.pos ?? m!.pos, t: v?.team ?? d?.team ?? m?.team ?? null, a: v?.age ?? d?.age ?? m?.age ?? null, fc: v?.value ?? 0, dd: d?.value ?? 0 }; }
       const { names: _n, ...rest } = H.v;
