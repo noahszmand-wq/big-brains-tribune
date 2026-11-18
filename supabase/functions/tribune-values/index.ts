@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
       const since = (await sql`select to_char(min(day), 'Mon FMDD, YYYY') as s from tribune.value_history`)[0]?.s ?? null;
       return json({ ok: true, history: out, own_since: since });
     }
-    const T = await cached("sleeper_trades", 6 * 3600_000, () => tradeLog(S.league_id, Number(S.current_week) || 18)).catch(() => ({ v: [] as Trade[], at: Date.now() }));
+    const T = await cached("sleeper_trades_v2", 6 * 3600_000, () => tradeLog(S.league_id, Number(S.current_week) || 18)).catch(() => ({ v: [] as Trade[], at: Date.now() }));
     // Values for every rostered player, plus anyone who has been traded (so old deals can be scored at today's prices).
     const rostered = new Set([...L.v.teams.flatMap((t) => t.players), ...T.v.flatMap((t) => Object.keys(t.adds))]);
     // The player file is a day old at most, and refreshed early if a newly rostered id is missing from it.
