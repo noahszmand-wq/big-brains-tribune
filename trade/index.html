@@ -44,10 +44,43 @@ a { color: inherit; }
 .brand .word { font-family: var(--display); font-weight: 800; font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1; }
 .menu-btn { width: 44px; height: 44px; border: 1px solid var(--rule); background: var(--surface); border-radius: 10px; display: grid; place-items: center; gap: 4px; padding: 11px 10px; flex: none; }
 .menu-btn i { display: block; width: 20px; height: 2px; background: var(--ink); border-radius: 2px; }
-.src { display: flex; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; margin: 0 0 12px; }
-.src button { flex: 1; border: 0; background: var(--surface); padding: 8px 6px; font-size: 0.85rem; font-weight: 700; color: var(--ink-2); }
-.src button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-.src .k { flex: none; display: grid; place-items: center; padding: 0 10px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); background: var(--surface-2); }
+.tool { display: flex; gap: 8px; align-items: stretch; margin: 12px 0 0; }
+.seg { display: flex; flex: 1; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.seg button { flex: 1; border: 0; background: transparent; padding: 7px 4px; font-size: 1rem; font-weight: 800; color: var(--ink-2); display: grid; gap: 0; line-height: 1.1; white-space: nowrap; }
+.seg button small { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; opacity: 0.8; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.tunebtn { flex: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); padding: 0 12px; font-weight: 700; font-size: 0.88rem; }
+.tunebtn .n { display: none; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--pylon); color: var(--on-pylon); font-size: 0.72rem; place-items: center; }
+.tunebtn.on .n { display: grid; }
+.tunebtn.on { border-color: var(--pylon); }
+.tweaks { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+.tweaks span { font-size: 0.72rem; font-weight: 700; border: 1px solid var(--rule); border-radius: 999px; padding: 2px 8px; color: var(--ink-2); background: var(--surface); }
+.sheet-bg { position: fixed; inset: 0; background: rgba(5, 10, 20, 0.55); z-index: 60; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; max-height: 88dvh; overflow-y: auto; background: var(--surface); border-top: 1px solid var(--rule); border-radius: 16px 16px 0 0; z-index: 61; padding: 14px 16px calc(20px + env(safe-area-inset-bottom)); animation: up 0.18s ease-out; }
+@keyframes up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet .in { max-width: 720px; margin: 0 auto; }
+.sheet .sh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.sheet h2 { margin: 0; }
+.sheet .dclose { width: 40px; height: 40px; border: 1px solid var(--rule); background: var(--bg); border-radius: 10px; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px; }
+.presets button { border: 1px solid var(--rule); background: var(--bg); border-radius: 999px; padding: 6px 12px; font-size: 0.85rem; font-weight: 700; }
+.presets button[aria-pressed="true"] { background: var(--pylon); color: var(--on-pylon); border-color: var(--pylon); }
+.knob { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule); }
+.knob .l { font-weight: 700; }
+.knob .l small { display: block; font-weight: 500; color: var(--ink-2); font-size: 0.8rem; }
+.knob .v { font-variant-numeric: tabular-nums; font-weight: 800; min-width: 56px; text-align: right; }
+.knob input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--pylon); margin: 4px 0 0; }
+.knob .row4 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.knob .row4 label { display: grid; gap: 2px; font-size: 0.72rem; font-weight: 700; color: var(--ink-2); text-align: center; }
+.knob .row4 input { width: 100%; min-height: 40px; text-align: center; background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; font-weight: 700; }
+.sheet .acts { display: flex; gap: 8px; margin-top: 14px; }
+.sheet .acts .btn { flex: 1; }
+.faabrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; }
+.faabrow small { display: block; color: var(--ink-2); font-size: 0.74rem; }
+.faabrow .step { display: inline-flex; align-items: center; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.faabrow .step button { width: 36px; height: 36px; border: 0; background: var(--bg); font-weight: 800; }
+.faabrow .step input { width: 56px; min-height: 36px; border: 0; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); text-align: center; background: var(--surface); font-weight: 700; }
+.pos.FAAB { background: #8FE3B5; }
 .ddrawer-bg { position: fixed; inset: 0; background: rgba(5, 10, 20, 0.55); z-index: 50; }
 .ddrawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(320px, 86vw); background: var(--surface); border-right: 1px solid var(--rule); z-index: 51; padding: calc(14px + env(safe-area-inset-top)) 16px 24px; overflow-y: auto; animation: din 0.18s ease-out; }
 @keyframes din { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -166,6 +199,36 @@ footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20
 .impact .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
 .impact .r { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.88rem; margin-top: 4px; }
 .impact .r b.up, .stats b.up { color: var(--win); } .impact .r b.dn, .stats b.dn { color: var(--loss); }
+.dash .dh { display: grid; gap: 2px; margin: 6px 0 12px; } .dash .dh .big { font-family: var(--display); font-weight: 900; font-size: 1.8rem; text-transform: uppercase; line-height: 1; vertical-align: middle; }
+.dtiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.dt { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; }
+.dt .k { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.dt .v { font-family: var(--display); font-weight: 900; font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.dt .s { font-size: 0.74rem; color: var(--ink-2); }
+.lbars { display: grid; gap: 4px; } .lb { display: grid; grid-template-columns: 52px 1fr 60px; gap: 8px; align-items: center; font-size: 0.82rem; }
+.lb .bar { height: 12px; background: var(--surface-2); border-radius: 999px; overflow: hidden; } .lb .bar i { display: block; height: 100%; } .lb.me { font-weight: 800; } .lb.me .bar { outline: 2px solid var(--pylon); }
+.postab { width: 100%; border-collapse: collapse; font-size: 0.9rem; } .postab th, .postab td { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; } .postab th { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.postab td i { font-style: normal; font-weight: 700; color: var(--ink-2); font-size: 0.8rem; }
+.needtag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; background: var(--loss); color: #fff; padding: 1px 5px; border-radius: 4px; } .strtag { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; background: var(--win); color: #0A1220; padding: 1px 5px; border-radius: 4px; }
+.core { display: grid; gap: 4px; } .ca { display: grid; grid-template-columns: 22px 36px 1fr auto; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--rule); padding: 6px 8px; border-radius: 6px; }
+.ca .i { font-family: var(--display); font-weight: 900; color: var(--ink-2); } .ca .nm small { display: block; font-size: 0.74rem; color: var(--ink-2); } .ca .num { text-align: right; } .ca .num b { display: block; } .ca .num small { font-size: 0.72rem; color: var(--ink-2); }
+.ages { display: grid; gap: 6px; } .ages .k { font-size: 0.72rem; font-weight: 700; color: var(--ink-2); } .ages .bar { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 2px 0; } .ages .bar i { display: block; height: 100%; background: var(--blue); } .ages .s { font-size: 0.74rem; color: var(--ink-2); }
+.trs { display: grid; gap: 6px; } .tr { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 4px; }
+.tr .w { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); } .tr .gg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.88rem; } .tr .gg small { display: block; font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.tr .net { font-weight: 800; font-size: 0.85rem; } .tr .net.up { color: var(--win); } .tr .net.dn { color: var(--loss); }
+.gm { color: var(--ink-2); } .gm b { color: var(--ink); font-variant-numeric: tabular-nums; } .gm i { font-style: normal; font-weight: 700; }
+.gmgrid { display: grid; gap: 8px; }
+.gmgrid > div { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; }
+.gmgrid .idx { display: flex; gap: 16px; margin: 4px 0; }
+.gmgrid .idx span { display: grid; } .gmgrid .idx b { font-family: var(--display); font-weight: 900; font-size: 1.6rem; line-height: 1; } .gmgrid .idx small { font-size: 0.72rem; color: var(--ink-2); }
+.needsgrid { display: grid; gap: 8px; margin-top: 10px; }
+.needs2 { background: var(--bg); border: 1px solid var(--rule); border-left: 4px solid var(--yellow); padding: 8px 10px; border-radius: 6px; }
+.needs2 .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.needs2 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.needs2 li { font-size: 0.92rem; line-height: 1.3; }
+.needs2 li small { display: block; color: var(--ink-2); font-size: 0.78rem; }
+.needs2 li small i { font-style: normal; font-weight: 700; color: var(--ink); }
+.needs2 b.up { color: var(--win); } .needs2 b.dn { color: var(--loss); }
 .cmp td b { display: block; } .cmp tr.tot td small { display: block; font-weight: 500; color: var(--ink-2); font-size: 0.72rem; }
 /* Analytics */
 .anal h2 { margin-top: 18px; }
@@ -199,7 +262,7 @@ footer { text-align: center; font-size: 0.8rem; color: var(--ink-2); padding: 20
   <button type="button" class="menu-btn" id="menubtn" aria-expanded="false" aria-controls="ddrawer" aria-label="Open the menu"><i></i><i></i><i></i></button>
   <a class="brand" href="#" id="brand"><span class="mark">BBT</span><span class="word">Trade calc</span></a>
 </div></header>
-<main class="wrap"><div class="src" id="src" role="group" aria-label="Value source" hidden><span class="k">Values</span><button type="button" data-s="both" aria-pressed="true">Both</button><button type="button" data-s="fc" aria-pressed="false">FantasyCalc</button><button type="button" data-s="dd" aria-pressed="false">Dynasty Daddy</button></div><div id="app" aria-live="polite"></div></main>
+<main class="wrap"><div id="toolwrap" hidden><div class="tool"><div class="seg" id="src" role="group" aria-label="Value model"><button type="button" data-s="fc" aria-pressed="false">FC<small>FantasyCalc</small></button><button type="button" data-s="dd" aria-pressed="false">DD<small>Dynasty Daddy</small></button><button type="button" data-s="both" aria-pressed="true">Blend<small>FC + DD</small></button></div><button type="button" class="tunebtn" id="tune" aria-haspopup="dialog">⚙ Tune<span class="n" id="tunen"></span></button></div><div class="tweaks" id="tweaks"></div></div><div id="app" aria-live="polite"></div></main>
 <footer id="foot"></footer>
 <div class="ddrawer-bg" id="ddbg" hidden></div>
 <aside class="ddrawer" id="ddrawer" aria-label="Menu" hidden>
@@ -222,7 +285,17 @@ const el = (html) => { const t = document.createElement("template"); t.innerHTML
 const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const fmt = (n) => Math.round(n).toLocaleString("en-US");
 const store = { get(k) { try { return localStorage.getItem("bbtdesk_" + k); } catch (_) { return null; } }, set(k, v) { try { if (v == null) localStorage.removeItem("bbtdesk_" + k); else localStorage.setItem("bbtdesk_" + k, v); } catch (_) {} } };
-const S = { word: store.get("word"), data: null, src: store.get("tradesrc") || "both", tab: "calc", sides: null, sugTeam: null, sugCache: {}, hist: {}, histReq: 0 };
+const TUNE_DEFAULT = { lean: 0, qb: 1, rb: 1, wr: 1, te: 1, pick: 1, age: 0, star: 0, injury: 0, faab: 12 };
+const PRESETS = {
+  default: { label: "Default", t: {} },
+  qbheavy: { label: "QB-heavy SF", t: { qb: 1.2, te: 1.05 } },
+  picks: { label: "Picks are gold", t: { pick: 1.3 } },
+  winnow: { label: "Win now", t: { lean: 60, age: 0, star: 10, injury: 15 } },
+  rebuild: { label: "Rebuild", t: { lean: 0, age: 6, pick: 1.15 } },
+  consolidate: { label: "Stars matter", t: { star: 15 } },
+};
+const loadTune = () => { try { const t = JSON.parse(store.get("tune") || "{}"); return { ...TUNE_DEFAULT, ...(t && typeof t === "object" ? t : {}) }; } catch (_) { return { ...TUNE_DEFAULT }; } };
+const S = { word: store.get("word"), data: null, src: store.get("tradesrc") || "both", tab: "calc", sides: null, sugTeam: null, sugCache: {}, hist: {}, histReq: 0, tune: loadTune() };
 const SRC_NAME = { fc: "FantasyCalc", dd: "Dynasty Daddy", both: "Both" };
 
 // ---------- side menu ----------
@@ -254,9 +327,38 @@ function prep(d) {
   d.byRid = Object.fromEntries(d.teams.map((t) => [t.rid, t]));
   d.holdings = {};
   for (const t of d.teams) d.holdings[t.rid] = [...t.players, ...d.picks.filter((p) => p.owner === t.rid).map((p) => p.id)];
-  d.trades = d.trades || [];
+  d.trades = (d.trades || []).sort((a, b) => b.at - a.at);
+  // FAAB as a tradable asset (one per team, amount set in the calculator). Only when the league actually runs FAAB.
+  for (const t of d.teams) if (d.settings.faab_budget) d.assets[`faab:${t.rid}`] = { id: `faab:${t.rid}`, kind: "faab", name: "FAAB", pos: "FAAB", team: null, age: null, fc: 0, dd: 0, ddn: 0, amount: 0, left: t.faab ?? 0, rid: t.rid, x: {} };
+  recompute(d);
 }
-const val = (a, src = S.src) => src === "fc" ? a.fc : src === "dd" ? a.ddn : (a.fc && a.ddn ? (a.fc + a.ddn) / 2 : a.fc || a.ddn);
+// The tuning knobs turn each site's raw number into the number the calculator actually uses (a.v.fc / a.v.dd / a.v.both).
+function recompute(d) {
+  const T = S.tune, top = Math.max(...Object.values(d.assets).map((a) => a.fc || 0), 1);
+  const posMul = { QB: T.qb, RB: T.rb, WR: T.wr, TE: T.te };
+  const ageLine = { RB: 26, QB: 32, WR: 28, TE: 28 };
+  for (const a of Object.values(d.assets)) {
+    if (a.kind === "faab") { const v = (a.amount || 0) * T.faab; a.v = { fc: v, dd: v, both: v }; continue; }
+    const adj = (raw, isFc) => {
+      if (!raw) return 0;
+      let v = raw;
+      if (a.kind === "player") {
+        if (isFc && T.lean && a.x.redraft) v = raw * (1 - T.lean / 100) + a.x.redraft * (T.lean / 100); // win-now lean mixes in FantasyCalc's redraft number
+        v *= posMul[a.pos] ?? 1;
+        const over = Math.max(0, (a.age ?? 0) - (ageLine[a.pos] ?? 28)); if (T.age && over) v *= Math.pow(1 - T.age / 100, over);
+        if (T.injury && a.x.injury) v *= 1 - T.injury / 100;
+      } else v *= T.pick;
+      if (T.star) v *= 1 + (T.star / 100) * Math.pow(Math.min(raw, top) / top, 2); // the best assets get the consolidation premium
+      return v;
+    };
+    const fc = adj(a.fc, true), dd = adj(a.ddn, false);
+    a.v = { fc, dd, both: fc && dd ? (fc + dd) / 2 : fc || dd };
+  }
+  S.sugCache = {};
+}
+const val = (a, src = S.src) => a.v ? a.v[src] : 0;
+const tuneHash = () => JSON.stringify(S.tune);
+const tweaksActive = () => Object.keys(TUNE_DEFAULT).filter((k) => S.tune[k] !== TUNE_DEFAULT[k] && k !== "faab");
 const badge = (t) => `<span class="tb" style="--c:var(${t.c})">${esc(t.k)}</span>`;
 const posTag = (a) => `<span class="pos ${a.pos}">${a.pos === "PICK" ? "PICK" : a.pos}</span>`;
 
@@ -279,6 +381,7 @@ function objective(t, ids, d) { if (contending(t, d)) { const l = lineupValue(id
 function combos(arr, k) { const out = []; if (k === 1) return arr.map((x) => [x]); for (let i = 0; i < arr.length; i++) for (let j = i + 1; j < arr.length; j++) out.push([arr[i], arr[j]]); return out; }
 function suggest(rid, d) {
   if (S.sugCache[S.src + ":" + rid]) return S.sugCache[S.src + ":" + rid];
+  // (recompute() empties this cache whenever a knob changes)
   const me = d.byRid[rid], mine = d.holdings[rid];
   const pool = (ids) => { const pl = ids.filter((id) => d.assets[id].kind === "player" && val(d.assets[id]) > 0).sort((x, y) => val(d.assets[y]) - val(d.assets[x])).slice(0, 11); const pk = ids.filter((id) => d.assets[id].kind === "pick" && val(d.assets[id]) > 0); return [...pl, ...pk]; };
   const myPool = pool(mine), myCombos = [...combos(myPool, 1), ...combos(myPool, 2)];
@@ -325,11 +428,12 @@ function needs(rid, d) {
 // ---------- views ----------
 function render() {
   app.innerHTML = "";
-  $("#src").hidden = !(S.word && S.data);
+  $("#toolwrap").hidden = !(S.word && S.data);
   if (!S.word || !S.data) return gate();
-  app.appendChild(el(`<div><div class="tabs" role="tablist"><button type="button" data-t="calc" ${S.tab === "calc" ? "aria-current=true" : ""}>Calculator</button><button type="button" data-t="sug" ${S.tab === "sug" ? "aria-current=true" : ""}>Suggested trades</button></div><div id="tab"></div></div>`));
+  drawTweaks();
+  app.appendChild(el(`<div><div class="tabs" role="tablist"><button type="button" data-t="calc" ${S.tab === "calc" ? "aria-current=true" : ""}>Calculator</button><button type="button" data-t="sug" ${S.tab === "sug" ? "aria-current=true" : ""}>Suggested trades</button><button type="button" data-t="dash" ${S.tab === "dash" ? "aria-current=true" : ""}>Big Brain analytics</button></div><div id="tab"></div></div>`));
   app.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => { S.tab = b.dataset.t; render(); });
-  (S.tab === "sug" ? suggestions : calculator)($("#tab"));
+  ({ sug: suggestions, dash: dashboard }[S.tab] || calculator)($("#tab"));
   const d = S.data, when = (iso) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric" });
   $("#foot").innerHTML = `Values: FantasyCalc (${when(d.sources.fc.at)})${d.sources.dd.ok ? ` · Dynasty Daddy (${when(d.sources.dd.at)})` : " · Dynasty Daddy unavailable right now"} · dynasty, superflex, PPR. Rosters and trade log from Sleeper. Nobody's bound by any of this.`;
 }
@@ -372,13 +476,21 @@ function calculator(root) {
     const ids = d.holdings[rid];
     const groups = ["QB", "RB", "WR", "TE", "PICK"].map((pos) => [pos, ids.filter((id) => d.assets[id].pos === pos).sort((x, y) => val(d.assets[y]) - val(d.assets[x]))]).filter(([, l]) => l.length);
     const vals = (a) => S.src === "both" ? `<span class="vals"><b>${fmt(val(a))}</b>${a.fc ? fmt(a.fc) : "–"} · ${a.dd ? fmt(a.dd) : "–"}</span>` : `<span class="vals"><b>${fmt(val(a))}</b></span>`;
-    const chips = Object.entries(give).map(([id, to]) => { const a = d.assets[id], T = d.byRid[to]; return `<span class="asset ${S.sides.length > 2 ? "cyc" : ""}" data-cyc="${id}" title="${S.sides.length > 2 ? "Tap to change who gets this" : ""}">${posTag(a)}${esc(a.name)}<span class="v num">${fmt(val(a))}</span><span class="to" style="--c:var(${T.c})">→ ${esc(T.k)}</span><button type="button" class="x" data-rm="${id}" aria-label="Remove">✕</button></span>`; }).join("");
-    const box = el(`<div class="side" data-i="${i}"><div class="hd">${badge(t)}<select aria-label="Team ${i + 1}">${teamOpts(rid, taken)}</select></div><div class="rec">${t.wins}–${t.losses}${t.ties ? `–${t.ties}` : ""} · seed ${t.seed} · ${contending(t, d) ? "contending" : "rebuilding"}</div>
+    const label = (a) => a.kind === "faab" ? `$${a.amount} FAAB` : a.name;
+    const chips = Object.entries(give).map(([id, to]) => { const a = d.assets[id], T = d.byRid[to]; return `<span class="asset ${S.sides.length > 2 ? "cyc" : ""}" data-cyc="${id}" title="${S.sides.length > 2 ? "Tap to change who gets this" : ""}">${posTag(a)}${esc(label(a))}<span class="v num">${fmt(val(a))}</span><span class="to" style="--c:var(${T.c})">→ ${esc(T.k)}</span><button type="button" class="x" data-rm="${id}" aria-label="Remove">✕</button></span>`; }).join("");
+    const fa = d.assets[`faab:${rid}`];
+    const faabRow = fa ? `<div class="grp">FAAB</div><div class="faabrow"><div>$${fa.left} left of $${d.settings.faab_budget}<small>$1 ≈ ${S.tune.faab} value · set in Tune</small></div><div class="step"><button type="button" data-fa="-5" aria-label="Less">−</button><input type="number" inputmode="numeric" min="0" max="${fa.left}" step="1" value="${fa.amount}" aria-label="FAAB dollars to include"><button type="button" data-fa="5" aria-label="More">+</button></div></div>` : "";
+    const box = el(`<div class="side" data-i="${i}"><div class="hd">${badge(t)}<select aria-label="Team ${i + 1}">${teamOpts(rid, taken)}</select></div><div class="rec">${t.wins}–${t.losses}${t.ties ? `–${t.ties}` : ""} · seed ${t.seed} · ${contending(t, d) ? "contending" : "rebuilding"}<br>${gmLine(t, d)}</div>
       <div class="lab">${esc(t.k)} gives</div><div class="gives">${chips || `<span class="empty">Nothing yet. Tap players or picks below.</span>`}</div>
-      <div class="roster">${groups.map(([pos, l]) => `<div class="grp">${pos === "PICK" ? "Draft picks" : pos}</div>` + l.map((id) => { const a = d.assets[id]; return `<button type="button" data-id="${id}" class="${give[id] ? "in" : ""}" aria-pressed="${!!give[id]}"><span class="pos ${a.pos}">${a.pos === "PICK" ? a.round + (["st", "nd", "rd"][a.round - 1] || "th") : a.pos}</span><span>${esc(a.name)}<small>${a.kind === "pick" ? `${a.season} rookie draft` : `${esc(a.team || "FA")}${a.age ? ` · ${Math.floor(a.age)}` : ""}${a.posRank ? ` · ${a.pos}${a.posRank}` : ""}${a.x.injury ? ` · ${esc(a.x.injury)}` : ""}`}</small></span>${vals(a)}</button>`; }).join("")).join("")}</div></div>`);
+      <div class="roster">${groups.map(([pos, l]) => `<div class="grp">${pos === "PICK" ? "Draft picks" : pos}</div>` + l.map((id) => { const a = d.assets[id]; return `<button type="button" data-id="${id}" class="${give[id] ? "in" : ""}" aria-pressed="${!!give[id]}"><span class="pos ${a.pos}">${a.pos === "PICK" ? a.round + (["st", "nd", "rd"][a.round - 1] || "th") : a.pos}</span><span>${esc(a.name)}<small>${a.kind === "pick" ? `${a.season} rookie draft` : `${esc(a.team || "FA")}${a.age ? ` · ${Math.floor(a.age)}` : ""}${a.posRank ? ` · ${a.pos}${a.posRank}` : ""}${a.x.injury ? ` · ${esc(a.x.injury)}` : ""}`}</small></span>${vals(a)}</button>`; }).join("")).join("")}${faabRow}</div></div>`);
+    if (fa) {
+      const setFa = (n) => { fa.amount = Math.max(0, Math.min(fa.left, Math.round(n) || 0)); fa.v = { fc: fa.amount * S.tune.faab, dd: fa.amount * S.tune.faab, both: fa.amount * S.tune.faab }; if (fa.amount > 0) { if (!give[fa.id]) give[fa.id] = otherSides(i)[0].rid; } else delete give[fa.id]; drawAll(); };
+      box.querySelectorAll("[data-fa]").forEach((b) => b.onclick = () => setFa(fa.amount + Number(b.dataset.fa)));
+      $(".faabrow input", box).onchange = (e) => setFa(Number(e.target.value));
+    }
     $("select", box).onchange = (e) => { side.rid = Number(e.target.value); side.give = {}; S.sides.forEach((s) => { for (const id of Object.keys(s.give)) if (!S.sides.some((x) => x.rid === s.give[id]) || s.give[id] === s.rid) s.give[id] = otherSides(S.sides.indexOf(s))[0].rid; }); drawAll(); };
-    box.querySelectorAll(".roster button").forEach((b) => b.onclick = () => { const id = b.dataset.id; if (give[id]) delete give[id]; else give[id] = otherSides(i)[0].rid; drawAll(); });
-    box.querySelectorAll("[data-rm]").forEach((b) => b.onclick = (e) => { e.stopPropagation(); delete give[b.dataset.rm]; drawAll(); });
+    box.querySelectorAll(".roster button[data-id]").forEach((b) => b.onclick = () => { const id = b.dataset.id; if (give[id]) delete give[id]; else give[id] = otherSides(i)[0].rid; drawAll(); });
+    box.querySelectorAll("[data-rm]").forEach((b) => b.onclick = (e) => { e.stopPropagation(); const id = b.dataset.rm; if (d.assets[id].kind === "faab") { d.assets[id].amount = 0; d.assets[id].v = { fc: 0, dd: 0, both: 0 }; } delete give[id]; drawAll(); });
     if (S.sides.length > 2) box.querySelectorAll("[data-cyc]").forEach((c) => c.onclick = () => { const id = c.dataset.cyc, others = otherSides(i).map((s) => s.rid); give[id] = others[(others.indexOf(give[id]) + 1) % others.length]; drawAll(); });
     return box;
   };
@@ -402,22 +514,97 @@ function calculator(root) {
     const sub = main.even ? `Every side lands within ${Math.round(main.spread * 100)}% of what it gives up${S.src === "both" ? agree ? ", and both sites say so." : ", though the two sites lean different ways." : "."}` : `${main.best.t.k} nets ${fmt(main.best.net)} in value${teams.length > 2 ? `; ${main.worst.t.k} gives up the most (${fmt(main.worst.net)})` : ""}${S.src === "both" ? agree ? ", and both sites agree." : ", but the two sites don't agree; see below." : "."}`;
     // Lineup / future impact per team, on the blended number.
     const impact = teams.map((t) => { const before = d.holdings[t.rid], after = [...before.filter((id) => !moves.some((m) => m.from === t.rid && m.a.id === id)), ...moves.filter((m) => m.to === t.rid).map((m) => m.a.id)]; const l0 = lineupValue(before, d), l1 = lineupValue(after, d); return { t, lineup: l1.starters - l0.starters, future: futureValue(after, d) - futureValue(before, d), ageBefore: avgAge(before, d), ageAfter: avgAge(after, d) }; });
-    const rows = moves.map((m) => `<tr><td>${esc(m.a.name)}<span class="who">${esc(d.byRid[m.from].k)} → ${esc(d.byRid[m.to].k)}</span></td><td class="num">${m.a.fc ? fmt(m.a.fc) : "–"}</td><td class="num">${m.a.dd ? fmt(m.a.dd) : "–"}</td><td class="num">${fmt(val(m.a, "both"))}</td></tr>`).join("");
+    const nm = (a) => a.kind === "faab" ? `$${a.amount} FAAB` : a.name;
+    const rows = moves.map((m) => `<tr><td>${esc(nm(m.a))}<span class="who">${esc(d.byRid[m.from].k)} → ${esc(d.byRid[m.to].k)}</span></td><td class="num">${m.a.fc ? fmt(m.a.fc) : "–"}</td><td class="num">${m.a.dd ? fmt(m.a.dd) : "–"}</td><td class="num">${fmt(val(m.a, "both"))}</td></tr>`).join("");
     const tot = (t) => ["fc", "dd", "both"].map((src) => { const f = flows(src).find((x) => x.t === t); return `<td class="num"><b>${f.net >= 0 ? "+" : "−"}${fmt(Math.abs(f.net))}</b><small>${fmt(f.inn)} in · ${fmt(f.out)} out</small></td>`; }).join("");
     box.innerHTML = `<div class="verdict"><div class="lab">Verdict · ${SRC_NAME[S.src]}</div><div class="big">${esc(headline)}</div><p class="small" style="margin:6px 0 0">${sub}</p>
       <div class="bar" aria-hidden="true">${main.f.map((x) => `<i style="width:${((x.inn / (main.f.reduce((s, y) => s + y.inn, 0) || 1)) * 100).toFixed(1)}%;background:var(${x.t.c})"></i>`).join("")}</div>
       <div class="legend">${main.f.map((x) => `<span>${esc(x.t.k)} gets ${fmt(x.inn)} · gives ${fmt(x.out)}</span>`).join("")}</div>
       ${S.src === "both" ? `<div class="srcline">${L.map((l) => `<div><div class="k">${SRC_NAME[l.src]}</div><div class="r ${l.even ? "even" : "win"}">${esc(l.text)}</div><div class="small dim num">${l.f.map((x) => `${esc(x.t.k)} ${x.net >= 0 ? "+" : "−"}${fmt(Math.abs(x.net))}`).join(" · ")}</div></div>`).join("")}</div>` : ""}
       <div class="impact">${impact.map((x) => `<div><div class="k">${badge(x.t)} ${contending(x.t, d) ? "contending" : "rebuilding"}</div><div class="r"><span>Lineup <b class="${x.lineup > 0 ? "up" : x.lineup < 0 ? "dn" : ""}">${x.lineup >= 0 ? "+" : "−"}${fmt(Math.abs(x.lineup))}</b></span><span>Future <b class="${x.future > 0 ? "up" : x.future < 0 ? "dn" : ""}">${x.future >= 0 ? "+" : "−"}${fmt(Math.abs(x.future))}</b></span><span>Avg age <b>${x.ageBefore.toFixed(1)} → ${x.ageAfter.toFixed(1)}</b></span></div></div>`).join("")}</div>
+      <div class="needsgrid">${teams.map((t) => needsHtml(t, d, [...d.holdings[t.rid].filter((id) => !moves.some((m) => m.from === t.rid && m.a.id === id)), ...moves.filter((m) => m.to === t.rid).map((m) => m.a.id)])).join("")}</div>
       <table class="cmp"><thead><tr><th>Asset</th><th>FantasyCalc</th><th>Dynasty Daddy</th><th>Blend</th></tr></thead><tbody>${rows}
       ${teams.map((t) => `<tr class="tot"><td>${esc(t.k)} net</td>${tot(t)}</tr>`).join("")}</tbody></table>
       <p class="note">Dynasty Daddy runs 0–9,999 and FantasyCalc tops out higher, so the Blend column puts Dynasty Daddy on FantasyCalc's scale (×${d.scale.toFixed(2)}) before averaging. Lineup is the change in starting-lineup value; Future weights youth and picks.</p>
       <div class="actions"><button type="button" class="btn sm" id="copy">Copy for the group chat</button><button type="button" class="btn sm" id="clear">Clear</button></div></div>`;
-    $("#copy", box).onclick = async () => { const txt = `${teams.map((t) => `${t.name} gives ${moves.filter((m) => m.from === t.rid).map((m) => `${m.a.name}${teams.length > 2 ? ` (to ${d.byRid[m.to].k})` : ""}`).join(", ") || "nothing"}`).join(" · ")} → ${main.text} (FantasyCalc ${L[0].text}${L[1] ? `, Dynasty Daddy ${L[1].text}` : ""}). BBT trade calc: https://noahszmand-wq.github.io/big-brains-tribune/trade/`; try { await navigator.clipboard.writeText(txt); $("#copy", box).textContent = "Copied"; } catch (_) { prompt("Copy this:", txt); } };
+    $("#copy", box).onclick = async () => { const txt = `${teams.map((t) => `${t.name} gives ${moves.filter((m) => m.from === t.rid).map((m) => `${nm(m.a)}${teams.length > 2 ? ` (to ${d.byRid[m.to].k})` : ""}`).join(", ") || "nothing"}`).join(" · ")} → ${main.text} (FantasyCalc ${L[0].text}${L[1] ? `, Dynasty Daddy ${L[1].text}` : ""}). BBT trade calc: https://noahszmand-wq.github.io/big-brains-tribune/trade/`; try { await navigator.clipboard.writeText(txt); $("#copy", box).textContent = "Copied"; } catch (_) { prompt("Copy this:", txt); } };
     $("#clear", box).onclick = () => { S.sides.forEach((s) => { s.give = {}; }); drawAll(); };
     analytics($("#analytics", v), moves, teams);
   };
   drawAll();
+}
+// GM indices, from the league's own trade log scored at today's values (how each deal has aged).
+// Aggression 0–1: how often a GM trades, how much value moves per deal, and how often a 1st or a star is in it, as league percentiles.
+// Success 0–1: half win rate (deals where what you got is worth more today than what you gave), half net value as a share of what moved.
+const SIX_MO = 183 * 864e5;
+function tradeSides(t, d) {
+  const cur = d.settings.season, proxy = (round) => { const next = d.picks.filter((p) => p.round === round && p.season === cur + 1); return next.length ? next.reduce((s, p) => s + val(d.assets[p.id], "both"), 0) / next.length : 0; };
+  const pickVal = (p) => { const a = d.assets[`pick:${p.season}:${p.round}:${p.orig}`]; return a ? val(a, "both") : proxy(p.round); };
+  const out = {};
+  for (const rid of t.rids) out[rid] = { got: 0, gave: 0, bold: false, n: 0 };
+  for (const [id, to] of Object.entries(t.adds)) { const v = d.assets[id] ? val(d.assets[id], "both") : 0, from = t.drops[id]; if (out[to]) { out[to].got += v; out[to].n++; } if (out[from]) out[from].gave += v; if (v >= 0.7 * (d.top || 1)) for (const r of t.rids) out[r].bold = true; }
+  for (const p of t.picks) { const v = pickVal(p); if (out[p.owner]) { out[p.owner].got += v; out[p.owner].n++; } if (out[p.prev]) out[p.prev].gave += v; if (p.round === 1) for (const r of t.rids) out[r].bold = true; }
+  return out;
+}
+function gmStats(d, sinceMs) {
+  const trades = d.trades.filter((t) => !sinceMs || t.at >= sinceMs);
+  const seasons = Math.max(1, new Set(trades.map((t) => t.season)).size);
+  const per = Object.fromEntries(d.teams.map((t) => [t.rid, { n: 0, moved: 0, net: 0, wins: 0, bold: 0, best: null, worst: null }]));
+  for (const t of trades) { const sides = tradeSides(t, d); for (const [rid, x] of Object.entries(sides)) { const p = per[rid]; if (!p) continue; const net = x.got - x.gave; p.n++; p.moved += (x.got + x.gave) / 2; p.net += net; if (net > 0) p.wins++; if (x.bold) p.bold++; if (!p.best || net > p.best.net) p.best = { net, t }; if (!p.worst || net < p.worst.net) p.worst = { net, t }; } }
+  const rids = d.teams.map((t) => t.rid), pr = (key) => { const vals = rids.map((r) => key(per[r])); return Object.fromEntries(rids.map((r) => [r, rids.length > 1 ? vals.filter((v) => v < key(per[r])).length / (rids.length - 1) : 0])); };
+  const rate = pr((p) => p.n / seasons), size = pr((p) => p.n ? p.moved / p.n : 0), bold = pr((p) => p.n ? p.bold / p.n : 0);
+  const out = {};
+  for (const r of rids) { const p = per[r]; const aggression = p.n ? 0.5 * rate[r] + 0.3 * size[r] + 0.2 * bold[r] : 0; const success = p.n ? 0.5 * (p.wins / p.n) + 0.5 * (0.5 + 0.5 * Math.max(-1, Math.min(1, p.net / (p.moved || 1)))) : null; out[r] = { ...p, aggression, success, seasons }; }
+  return out;
+}
+function gmIndex(d) {
+  const key = S.src + tuneHash(); if (d._gm && d._gm.key === key) return d._gm.v;
+  d.top = Math.max(...Object.values(d.assets).map((a) => val(a, "both") || 0), 1);
+  const all = gmStats(d, 0), recent = gmStats(d, Date.now() - SIX_MO), v = {};
+  const arrow = (a, b) => a == null || b == null ? "–" : b - a > 0.1 ? "↑" : a - b > 0.1 ? "↓" : "–";
+  for (const t of d.teams) v[t.rid] = { ...all[t.rid], aggrTrend: arrow(all[t.rid].aggression, recent[t.rid].n ? recent[t.rid].aggression : null), succTrend: arrow(all[t.rid].success, recent[t.rid].success), recent: recent[t.rid] };
+  d._gm = { key, v }; return v;
+}
+const gmLine = (t, d) => { const g = gmIndex(d)[t.rid]; return g.n ? `<span class="gm" title="Aggression: how often and how big this GM trades, league percentile. Success: how those deals have aged at today's values."><b>${g.aggression.toFixed(2)}</b> aggr <i>(${g.aggrTrend})</i> · <b>${g.success.toFixed(2)}</b> success <i>(${g.succTrend})</i> · ${g.n} trade${g.n === 1 ? "" : "s"}</span>` : `<span class="gm">No trades on record</span>`; };
+
+// Positional needs, league-relative: each team's starters at a position ranked against the other nine, picks counted the same way.
+const STARTERS = { QB: 2, RB: 2, WR: 3, TE: 1 };
+function posStrength(ids, d) {
+  const by = { QB: [], RB: [], WR: [], TE: [] };
+  for (const id of ids) { const a = d.assets[id]; if (a && a.kind === "player" && by[a.pos]) by[a.pos].push(a); }
+  const out = {};
+  for (const [pos, n] of Object.entries(STARTERS)) { const l = by[pos].sort((x, y) => val(y) - val(x)); out[pos] = { sum: l.slice(0, n).reduce((s, a) => s + val(a), 0), top: l.slice(0, n) }; }
+  out.picks = ids.filter((id) => d.assets[id]?.kind === "pick").length;
+  out.firsts = ids.filter((id) => d.assets[id]?.kind === "pick" && d.assets[id].round === 1).length;
+  return out;
+}
+function leagueTable(d) {
+  if (d._lt && d._lt.key === S.src + tuneHash()) return d._lt.v;
+  const v = Object.fromEntries(d.teams.map((t) => [t.rid, posStrength(d.holdings[t.rid], d)])); d._lt = { key: S.src + tuneHash(), v }; return v;
+}
+const rankOf = (value, values) => values.filter((x) => x > value).length + 1;
+function teamNeeds(rid, d, afterIds) {
+  const lt = leagueTable(d), mine = lt[rid], n = d.teams.length;
+  const after = afterIds ? posStrength(afterIds, d) : null;
+  const rows = Object.keys(STARTERS).map((pos) => {
+    const others = d.teams.filter((t) => t.rid !== rid).map((t) => lt[t.rid][pos].sum);
+    const rank = rankOf(mine[pos].sum, others), rankAfter = after ? rankOf(after[pos].sum, others) : null;
+    return { pos, rank, rankAfter, top: mine[pos].top, topAfter: after ? after[pos].top : null, need: rank >= Math.ceil(n * 0.6) };
+  });
+  const othersPicks = d.teams.filter((t) => t.rid !== rid).map((t) => lt[t.rid].picks);
+  const pickRank = rankOf(mine.picks, othersPicks), pickRankAfter = after ? rankOf(after.picks, othersPicks) : null;
+  const pickNeed = !contending(d.byRid[rid], d) && (pickRank >= Math.ceil(n * 0.6) || mine.firsts === 0);
+  return { rows, needs: rows.filter((r) => r.need), picks: { count: mine.picks, countAfter: after ? after.picks : null, firsts: mine.firsts, rank: pickRank, rankAfter: pickRankAfter, need: pickNeed } };
+}
+const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th"}`;
+const prank = (a) => `${a.posRank ? `${a.pos}${a.posRank}` : "–"}${a.ddPosRank ? ` / ${a.pos}${a.ddPosRank}` : ""}`;
+function needsHtml(t, d, afterIds) {
+  const N = teamNeeds(t.rid, d, afterIds), n = d.teams.length;
+  const arrow = (r, ra) => ra != null && ra !== r ? ` → <b class="${ra < r ? "up" : "dn"}">${ordinal(ra)}</b>` : "";
+  const items = N.needs.map((r) => `<li><b>${r.pos}</b> <span class="dim">${ordinal(r.rank)} of ${n}${arrow(r.rank, r.rankAfter)}</span><small>${r.top.length ? r.top.map((a) => `${esc(a.name)} <i>${prank(a)}</i>`).join(", ") : "nobody startable"}${r.topAfter && r.rankAfter !== r.rank ? ` → ${r.topAfter.map((a) => `${esc(a.name)} <i>${prank(a)}</i>`).join(", ")}` : ""}</small></li>`);
+  if (N.picks.need) items.push(`<li><b>Picks</b> <span class="dim">${N.picks.count} owned, ${ordinal(N.picks.rank)} of ${n}${N.picks.firsts === 0 ? ", no 1sts" : ""}${N.picks.countAfter != null && N.picks.countAfter !== N.picks.count ? ` → <b class="${N.picks.countAfter > N.picks.count ? "up" : "dn"}">${N.picks.countAfter}</b>` : ""}</span><small>rebuilding without draft capital</small></li>`);
+  const strengths = N.rows.filter((r) => r.rank <= 2).map((r) => r.pos);
+  return `<div class="needs2"><div class="k">${badge(t)} needs</div>${items.length ? `<ul>${items.join("")}</ul>` : `<p class="small dim" style="margin:0">No glaring hole: every position sits in the top half of the league.</p>`}${strengths.length ? `<p class="small dim" style="margin:4px 0 0">Strength: ${strengths.join(", ")} (top 2 in the league). Ranks are FC / DD position ranks.</p>` : ""}</div>`;
 }
 const avgAge = (ids, d) => { const a = ids.map((id) => d.assets[id]).filter((x) => x && x.kind === "player" && x.age); return a.length ? a.reduce((s, x) => s + x.age, 0) / a.length : 0; };
 
@@ -467,7 +654,7 @@ function analytics(root, moves, teams) {
         </div>${range}</div>`;
     }).join("");
     // League trade volume
-    const tr = d.trades, rids = teams.map((t) => t.rid), byTeam = (rid) => tr.filter((x) => x.rids.includes(rid)).length;
+    const tr = d.trades.filter((x) => x.season === d.settings.season).sort((a, b) => b.at - a.at), rids = teams.map((t) => t.rid), byTeam = (rid) => tr.filter((x) => x.rids.includes(rid)).length;
     const between = tr.filter((x) => rids.every((r) => x.rids.includes(r))).length;
     const pair = teams.length === 2 ? between : tr.filter((x) => rids.filter((r) => x.rids.includes(r)).length >= 2).length;
     const moved = moves.map((m) => { const a = m.a; const hit = a.kind === "player" ? tr.find((x) => x.adds[a.id] != null) : tr.find((x) => x.picks.some((p) => p.season === a.season && p.round === a.round && p.orig === a.orig)); return hit ? `${a.name} (Week ${hit.week}${a.kind === "player" ? `, to ${esc(d.byRid[hit.adds[a.id]]?.k || "?")}` : ""})` : null; }).filter(Boolean);
@@ -482,7 +669,9 @@ function analytics(root, moves, teams) {
         <div><b>${pair}</b><small>between these ${teams.length === 2 ? "two" : "teams"}</small></div>
         ${busiest && busiest.n ? `<div><b>${esc(busiest.t.k)}</b><small>busiest desk (${busiest.n})</small></div>` : ""}
         ${tr[0] ? `<div><b>Wk ${tr[0].week}</b><small>last league trade</small></div>` : ""}
-      </div>${moved.length ? `<p class="small" style="margin:8px 0 0"><b>Already moved this season:</b> ${moved.join("; ")}.</p>` : `<p class="small dim" style="margin:8px 0 0">None of these pieces has changed hands this season.</p>`}</div>
+      </div>${moved.length ? `<p class="small" style="margin:8px 0 0"><b>Already moved this season:</b> ${moved.join("; ")}.</p>` : `<p class="small dim" style="margin:8px 0 0">None of these pieces has changed hands this season.</p>`}
+      <div class="k" style="margin-top:12px">GM track record</div><div class="gmgrid">${teams.map((t) => { const g = gmIndex(d)[t.rid]; return `<div><div class="nm">${badge(t)}</div>${g.n ? `<div class="idx"><span><b>${g.aggression.toFixed(2)}</b><small>aggression (${g.aggrTrend})</small></span><span><b>${g.success.toFixed(2)}</b><small>success (${g.succTrend})</small></span></div><div class="small dim">${g.n} trade${g.n === 1 ? "" : "s"} over ${g.seasons} season${g.seasons === 1 ? "" : "s"} · ${g.wins} aged well · net ${g.net >= 0 ? "+" : "−"}${fmt(Math.abs(g.net))} at today's values${g.recent.n ? ` · ${g.recent.n} in the last 6 months` : " · quiet lately"}</div>` : `<div class="small dim">No trades on record.</div>`}</div>`; }).join("")}</div>
+      <p class="note">Aggression ranks how often a GM deals, how much value moves per deal and how often a 1st or a star is involved (league percentiles). Success scores how deals have aged: half win rate, half net value as a share of what moved, all at today's values. The arrow compares the last six months with the full record.</p></div>
       <p class="note">Projected 6 mo is a rough call: the recent slope, dampened, plus an age curve by position, capped at ±40%. Trade volume per player is FantasyCalc's share of real trades involving him; league volume is from Sleeper's transaction log.</p></div>`;
   };
   draw();
@@ -494,6 +683,57 @@ function analytics(root, moves, teams) {
 const sign = (n) => n > 0 ? "up" : n < 0 ? "dn" : "";
 const pm = (n) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${fmt(Math.abs(n))}`;
 
+// ---------- Big Brain analytics: a full dashboard per team ----------
+function teamTotals(d) {
+  const key = "tt" + S.src + tuneHash(); if (d._tt && d._tt.key === key) return d._tt.v;
+  const v = {};
+  for (const t of d.teams) {
+    const ids = d.holdings[t.rid], pl = ids.filter((id) => d.assets[id].kind === "player"), pk = ids.filter((id) => d.assets[id].kind === "pick");
+    const l = lineupValue(ids, d);
+    v[t.rid] = { total: ids.reduce((s, id) => s + val(d.assets[id]), 0), players: pl.reduce((s, id) => s + val(d.assets[id]), 0), picks: pk.reduce((s, id) => s + val(d.assets[id]), 0), starters: l.starters, bench: l.bench, age: avgAge(ids, d), momentum: pl.reduce((s, id) => s + (d.assets[id].trend || 0), 0), n: pl.length, nPicks: pk.length, firsts: pk.filter((id) => d.assets[id].round === 1).length };
+  }
+  d._tt = { key, v }; return v;
+}
+function dashboard(root) {
+  const d = S.data; if (!S.dashTeam) S.dashTeam = S.sides[0].rid;
+  const v = el(`<div><div class="field" style="margin-top:4px"><label class="lab" for="dashteam">Team</label><select id="dashteam">${d.teams.map((t) => `<option value="${t.rid}" ${t.rid === S.dashTeam ? "selected" : ""}>${esc(t.name)}</option>`).join("")}</select></div><div id="dashbody"></div></div>`);
+  root.appendChild(v);
+  $("#dashteam", v).onchange = (e) => { S.dashTeam = Number(e.target.value); render(); };
+  const t = d.byRid[S.dashTeam], tt = teamTotals(d), me = tt[t.rid], n = d.teams.length, g = gmIndex(d)[t.rid], N = teamNeeds(t.rid, d);
+  const rank = (key) => rankOf(me[key], d.teams.filter((x) => x.rid !== t.rid).map((x) => tt[x.rid][key]));
+  const rankLow = (key) => rankOf(-me[key], d.teams.filter((x) => x.rid !== t.rid).map((x) => -tt[x.rid][key]));
+  const tile = (k, v, sub) => `<div class="dt"><div class="k">${k}</div><div class="v">${v}</div>${sub ? `<div class="s">${sub}</div>` : ""}</div>`;
+  const ids = d.holdings[t.rid], assets = ids.map((id) => d.assets[id]).sort((x, y) => val(y) - val(x));
+  const top5 = assets.slice(0, 5), top5share = me.total ? top5.reduce((s, a) => s + val(a), 0) / me.total : 0;
+  const maxTotal = Math.max(...d.teams.map((x) => tt[x.rid].total), 1);
+  const leagueBars = [...d.teams].sort((a, b) => tt[b.rid].total - tt[a.rid].total).map((x) => `<div class="lb ${x.rid === t.rid ? "me" : ""}"><span class="nm">${badge(x)}</span><div class="bar"><i style="width:${((tt[x.rid].total / maxTotal) * 100).toFixed(1)}%;background:var(${x.c})"></i></div><span class="num">${fmt(tt[x.rid].total)}</span></div>`).join("");
+  const posRows = N.rows.map((r) => `<tr><td><b>${r.pos}</b></td><td>${ordinal(r.rank)}${r.need ? ' <span class="needtag">need</span>' : r.rank <= 2 ? ' <span class="strtag">strength</span>' : ""}</td><td>${r.top.map((a) => `${esc(a.name)} <i>${prank(a)}</i>`).join("<br>") || "<span class=dim>—</span>"}</td></tr>`).join("");
+  const picks = ids.filter((id) => d.assets[id].kind === "pick").map((id) => d.assets[id]).sort((a, b) => a.season - b.season || a.round - b.round);
+  const ageBuckets = [["≤24", (a) => a.age <= 24], ["25–27", (a) => a.age > 24 && a.age <= 27], ["28–30", (a) => a.age > 27 && a.age <= 30], ["31+", (a) => a.age > 30]].map(([k, f]) => { const l = assets.filter((a) => a.kind === "player" && a.age && f(a)); return { k, n: l.length, v: l.reduce((s, a) => s + val(a), 0) }; });
+  const myTrades = d.trades.filter((x) => x.rids.includes(t.rid)).slice(0, 8).map((x) => { const sd = tradeSides(x, d)[t.rid]; const gave = [...Object.entries(x.drops).filter(([, r]) => r === t.rid).map(([id]) => d.assets[id]?.name || "a player"), ...x.picks.filter((p) => p.prev === t.rid).map((p) => `${p.season} ${ordinal(p.round)}`)]; const got = [...Object.entries(x.adds).filter(([, r]) => r === t.rid).map(([id]) => d.assets[id]?.name || "a player"), ...x.picks.filter((p) => p.owner === t.rid).map((p) => `${p.season} ${ordinal(p.round)}`)]; const net = sd.got - sd.gave; return `<div class="tr"><div class="w">${x.season} · Wk ${x.week} · with ${x.rids.filter((r) => r !== t.rid).map((r) => esc(d.byRid[r]?.k || "?")).join(", ")}</div><div class="gg"><span><small>Gave</small>${gave.map(esc).join(", ") || "—"}</span><span><small>Got</small>${got.map(esc).join(", ") || "—"}</span></div><div class="net ${net > 0 ? "up" : net < 0 ? "dn" : ""}">${net >= 0 ? "+" : "−"}${fmt(Math.abs(net))} today</div></div>`; }).join("");
+  $("#dashbody", v).innerHTML = `<div class="dash">
+    <div class="dh"><div>${badge(t)} <b class="big">${esc(t.name)}</b></div><div class="small dim">${t.wins}–${t.losses}${t.ties ? `–${t.ties}` : ""} · seed ${t.seed} · ${fmt(t.pf)} PF · ${contending(t, d) ? "contending" : "rebuilding"}</div><div class="small">${gmLine(t, d)}</div></div>
+    <div class="dtiles">
+      ${tile("Roster value", fmt(me.total), `${ordinal(rank("total"))} of ${n} · ${SRC_NAME[S.src]}`)}
+      ${tile("Starting lineup", fmt(me.starters), `${ordinal(rank("starters"))} of ${n}`)}
+      ${tile("Bench", fmt(me.bench), `${ordinal(rank("bench"))} of ${n}`)}
+      ${tile("Draft capital", fmt(me.picks), `${me.nPicks} picks, ${me.firsts} first${me.firsts === 1 ? "" : "s"} · ${ordinal(rank("picks"))} of ${n}`)}
+      ${tile("Average age", me.age.toFixed(1), `${ordinal(rankLow("age"))} youngest`)}
+      ${tile("30-day momentum", `${me.momentum >= 0 ? "+" : "−"}${fmt(Math.abs(me.momentum))}`, `FantasyCalc trend, summed · ${ordinal(rank("momentum"))} of ${n}`)}
+      ${tile("Top-5 share", `${Math.round(top5share * 100)}%`, top5share > 0.6 ? "top-heavy roster" : top5share < 0.4 ? "spread thin" : "balanced")}
+      ${tile("GM aggression", g.n ? g.aggression.toFixed(2) : "–", g.n ? `trend (${g.aggrTrend}) · ${g.n} trades` : "no trades on record")}
+      ${tile("Trade success", g.n && g.success != null ? g.success.toFixed(2) : "–", g.n ? `trend (${g.succTrend}) · ${g.wins} aged well` : "")}
+    </div>
+    <h2>League by roster value</h2><div class="lbars">${leagueBars}</div>
+    <h2>Positions</h2><table class="postab"><thead><tr><th>Pos</th><th>Rank</th><th>Starters · FC / DD rank</th></tr></thead><tbody>${posRows}</tbody><tbody><tr><td><b>Picks</b></td><td>${ordinal(N.picks.rank)}${N.picks.need ? ' <span class="needtag">need</span>' : ""}</td><td>${picks.length ? picks.map((a) => `${esc(a.name)} <i>${fmt(val(a))}</i>`).join("<br>") : "<span class=dim>none</span>"}</td></tr></tbody></table>
+    <h2>Core assets</h2><div class="core">${top5.map((a, i) => `<div class="ca"><span class="i">${i + 1}</span>${posTag(a)}<span class="nm">${esc(a.name)}<small>${a.kind === "pick" ? `${a.season} rookie draft` : `${esc(a.team || "FA")}${a.age ? ` · ${Math.floor(a.age)}` : ""} · ${prank(a)}${a.trend ? ` · 30d ${pm(a.trend)}` : ""}`}</small></span><span class="num"><b>${fmt(val(a))}</b><small>${Math.round((val(a) / (me.total || 1)) * 100)}%</small></span></div>`).join("")}</div>
+    <h2>Age profile</h2><div class="ages">${ageBuckets.map((b) => `<div><div class="k">${b.k}</div><div class="bar"><i style="width:${((b.v / (me.players || 1)) * 100).toFixed(1)}%"></i></div><div class="s">${b.n} player${b.n === 1 ? "" : "s"} · ${Math.round((b.v / (me.players || 1)) * 100)}% of player value</div></div>`).join("")}</div>
+    ${needsHtml(t, d)}
+    <h2>Trade history</h2>${myTrades ? `<div class="trs">${myTrades}</div>` : `<p class="dim small">No trades on record for ${esc(t.name)}.</p>`}
+    <p class="note">Ranks are against the other ${n - 1} teams on ${SRC_NAME[S.src]} values with your Tune settings applied. Trade history is scored at today's values (how each deal has aged), not what the pieces were worth on the day.</p>
+  </div>`;
+}
+
 // ---------- suggestions ----------
 function suggestions(root) {
   const d = S.data; if (!S.sugTeam) S.sugTeam = S.sides[0].rid;
@@ -502,7 +742,8 @@ function suggestions(root) {
   $("#sugteam", v).onchange = (e) => { S.sugTeam = Number(e.target.value); S.tab = "sug"; render(); };
   setTimeout(() => {
     const body = $("#sugbody", v), n = needs(S.sugTeam, d), list = suggest(S.sugTeam, d), t = n.t;
-    body.innerHTML = `<div class="needs"><div><div class="k">Mode</div><div class="v">${n.mode === "contending" ? "Contending" : "Rebuilding"}</div><div class="small dim">${t.wins}–${t.losses} · seed ${t.seed}</div></div><div><div class="k">Weakest spot</div><div class="v">${n.weakest.pos}</div><div class="small dim">starters avg ${fmt(n.weakest.start)}</div></div><div><div class="k">Deepest</div><div class="v">${n.deepest.pos}</div><div class="small dim">${fmt(n.deepest.depth)} on the bench</div></div><div><div class="k">Picks owned</div><div class="v">${n.picks}</div><div class="small dim">${d.settings.season + 1}–${d.settings.season + 2}</div></div></div>
+    body.innerHTML = `<div class="needs"><div><div class="k">Mode</div><div class="v">${n.mode === "contending" ? "Contending" : "Rebuilding"}</div><div class="small dim">${t.wins}–${t.losses} · seed ${t.seed}</div><div class="small">${gmLine(t, d)}</div></div><div><div class="k">Weakest spot</div><div class="v">${n.weakest.pos}</div><div class="small dim">starters avg ${fmt(n.weakest.start)}</div></div><div><div class="k">Deepest</div><div class="v">${n.deepest.pos}</div><div class="small dim">${fmt(n.deepest.depth)} on the bench</div></div><div><div class="k">Picks owned</div><div class="v">${n.picks}</div><div class="small dim">${d.settings.season + 1}–${d.settings.season + 2}</div></div></div>
+      ${needsHtml(t, d)}
       <p class="dim small">${n.mode === "contending" ? `${esc(t.name)} is in the hunt, so these deals are judged on this year's starting lineup.` : `${esc(t.name)} is building, so these deals are judged on youth and picks.`} Every one is within 12% on ${SRC_NAME[S.src]} values and helps the other team too, so it has a chance of actually getting accepted.</p>
       ${list.length ? list.map((s, i) => { const r = contending(s.them, d); return `<div class="sug"><span class="tag ${r ? "" : "rebuild"}">${esc(s.them.k)} is ${r ? "contending" : "rebuilding"}</span>
         <div class="row"><div><div class="k">${esc(t.k)} gives</div><ul>${s.give.map((id) => { const a = d.assets[id]; return `<li>${posTag(a)} ${esc(a.name)} <small class="num">${fmt(val(a))}</small></li>`; }).join("")}</ul></div><div class="arrow">⇄</div><div><div class="k">${badge(s.them)} gives</div><ul>${s.get.map((id) => { const a = d.assets[id]; return `<li>${posTag(a)} ${esc(a.name)} <small class="num">${fmt(val(a))}</small></li>`; }).join("")}</ul></div></div>
@@ -513,8 +754,38 @@ function suggestions(root) {
 }
 
 // ---------- source toggle + boot ----------
-$("#src").querySelectorAll("button").forEach((b) => b.onclick = () => { S.src = b.dataset.s; store.set("tradesrc", S.src); $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); if (S.data) render(); });
+$("#src").querySelectorAll("button").forEach((b) => b.onclick = () => { S.src = b.dataset.s; store.set("tradesrc", S.src); $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); S.sugCache = {}; if (S.data) render(); });
 $("#src").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.s === S.src)));
+$("#tune").onclick = () => tuneSheet();
+function drawTweaks() {
+  const on = tweaksActive(); const btn = $("#tune"); btn.classList.toggle("on", on.length > 0); $("#tunen").textContent = on.length;
+  const T = S.tune, chip = (k) => ({ lean: `Win-now lean ${T.lean}%`, qb: `QB ×${T.qb}`, rb: `RB ×${T.rb}`, wr: `WR ×${T.wr}`, te: `TE ×${T.te}`, pick: `Picks ×${T.pick}`, age: `Age −${T.age}%/yr`, star: `Star premium +${T.star}%`, injury: `Injured −${T.injury}%` }[k]);
+  $("#tweaks").innerHTML = on.map((k) => `<span>${esc(chip(k))}</span>`).join("");
+}
+function tuneSheet() {
+  const T = { ...S.tune };
+  const knob = (k, label, hint, min, max, step, fmtv) => `<div class="knob"><div class="l">${label}<small>${hint}</small></div><div class="v" data-v="${k}">${fmtv(T[k])}</div><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${T[k]}"></div>`;
+  const sheet = el(`<div><div class="sheet-bg" id="tbg"></div><div class="sheet" role="dialog" aria-label="Tune the calculator"><div class="in"><div class="sh"><h2>Tune the calculator</h2><button type="button" class="dclose" id="tclose" aria-label="Close">✕</button></div>
+    <p class="dim small">Start from a preset or drag the knobs. Everything here changes the numbers across the calculator, the verdict and the suggested trades. Your settings stick on this phone.</p>
+    <div class="presets" id="presets">${Object.entries(PRESETS).map(([k, p]) => `<button type="button" data-p="${k}">${p.label}</button>`).join("")}</div>
+    ${knob("lean", "Win-now lean", "Mix FantasyCalc's redraft (this-season) value into dynasty value", 0, 100, 5, (v) => `${v}%`)}
+    <div class="knob"><div class="l">Position premiums<small>Multiply every player at a position. Superflex leagues often run QB 1.1–1.3</small></div><div class="v"></div><div class="row4">${["qb", "rb", "wr", "te"].map((k) => `<label>${k.toUpperCase()}<input type="number" data-k="${k}" min="0.5" max="2" step="0.05" value="${T[k]}"></label>`).join("")}</div></div>
+    ${knob("pick", "Pick premium", "Multiply every rookie pick. Above 1 if your league overpays for picks", 0.5, 1.6, 0.05, (v) => `×${v}`)}
+    ${knob("age", "Age discount", "Per year past the cliff (RB 26, WR/TE 28, QB 32)", 0, 15, 1, (v) => `−${v}%/yr`)}
+    ${knob("star", "Star premium", "Consolidation bonus: the best assets get up to this much extra, so 2-for-1s stop looking like a steal", 0, 30, 1, (v) => `+${v}%`)}
+    ${knob("injury", "Injury discount", "Players carrying an injury tag on Dynasty Daddy", 0, 50, 5, (v) => `−${v}%`)}
+    ${S.data.settings.faab_budget ? knob("faab", "FAAB dollar", "Value of one FAAB dollar when it's part of a deal ($${S.data.settings.faab_budget} budget)", 2, 40, 1, (v) => `${v} / $1`) : ""}
+    <div class="acts"><button type="button" class="btn" id="treset">Reset</button><button type="button" class="btn primary" id="tapply">Apply</button></div></div></div></div>`);
+  document.body.appendChild(sheet);
+  const close = () => sheet.remove();
+  const sync = () => { sheet.querySelectorAll("input[data-k]").forEach((inp) => { inp.value = T[inp.dataset.k]; }); sheet.querySelectorAll("[data-v]").forEach((x) => { const k = x.dataset.v, fv = { lean: (v) => `${v}%`, pick: (v) => `×${v}`, age: (v) => `−${v}%/yr`, star: (v) => `+${v}%`, injury: (v) => `−${v}%`, faab: (v) => `${v} / $1` }[k]; x.textContent = fv ? fv(T[k]) : T[k]; }); const match = Object.entries(PRESETS).find(([, p]) => Object.keys(TUNE_DEFAULT).every((k) => k === "faab" || String(T[k]) === String(k in p.t ? p.t[k] : TUNE_DEFAULT[k]))); sheet.querySelectorAll("#presets button").forEach((b) => b.setAttribute("aria-pressed", String(!!match && match[0] === b.dataset.p))); };
+  sheet.querySelectorAll("input[data-k]").forEach((inp) => inp.addEventListener("input", () => { T[inp.dataset.k] = Number(inp.value); sync(); }));
+  sheet.querySelectorAll("#presets button").forEach((b) => b.onclick = () => { Object.assign(T, { ...TUNE_DEFAULT, faab: T.faab }, PRESETS[b.dataset.p].t); sync(); });
+  $("#treset", sheet).onclick = () => { Object.assign(T, TUNE_DEFAULT); sync(); };
+  $("#tapply", sheet).onclick = () => { S.tune = { ...T }; store.set("tune", JSON.stringify(S.tune)); recompute(S.data); close(); render(); };
+  $("#tclose", sheet).onclick = close; $("#tbg", sheet).onclick = close;
+  sync();
+}
 $("#brand").onclick = (e) => { e.preventDefault(); S.tab = "calc"; if (S.data) render(); };
 if (S.word) start(S.word).catch(() => { S.word = null; render(); }); else render();
 })();

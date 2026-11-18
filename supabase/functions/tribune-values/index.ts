@@ -94,8 +94,8 @@ async function ddValues(): Promise<Record<string, Val>> {
   return out;
 }
 
-type Team = { rid: number; name: string; k: string; c: string; wins: number; losses: number; ties: number; pf: number; seed: number; players: string[] };
-type LeagueBits = { season: number; slots: string[]; rounds: number; teams: Team[]; traded: any[]; seasons: number[] };
+type Team = { rid: number; name: string; k: string; c: string; wins: number; losses: number; ties: number; pf: number; seed: number; players: string[]; faab: number };
+type LeagueBits = { season: number; slots: string[]; rounds: number; teams: Team[]; traded: any[]; seasons: number[]; faab_budget: number };
 async function league(leagueId: string): Promise<LeagueBits> {
   const [lg, users, rosters, traded, drafts] = await Promise.all([get(`${SLEEPER}/league/${leagueId}`), get(`${SLEEPER}/league/${leagueId}/users`), get(`${SLEEPER}/league/${leagueId}/rosters`), get(`${SLEEPER}/league/${leagueId}/traded_picks`).catch(() => []), get(`${SLEEPER}/league/${leagueId}/drafts`).catch(() => [])]);
   const teams: Team[] = rosters.map((r: any, i: number) => {
@@ -104,13 +104,15 @@ async function league(leagueId: string): Promise<LeagueBits> {
     const known = KNOWN[name];
     const k = known?.[0] ?? (name.replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(Boolean).map((w: string) => w[0]).join("").toUpperCase().slice(0, 4) || `T${r.roster_id}`);
     const s = r.settings ?? {};
-    return { rid: r.roster_id, name, k, c: known?.[1] ?? `--t${(i % 10) + 1}`, wins: s.wins ?? 0, losses: s.losses ?? 0, ties: s.ties ?? 0, pf: (s.fpts ?? 0) + (s.fpts_decimal ?? 0) / 100, seed: 0, players: (r.players ?? []).map(String) };
+    return { rid: r.roster_id, name, k, c: known?.[1] ?? `--t${(i % 10) + 1}`, wins: s.wins ?? 0, losses: s.losses ?? 0, ties: s.ties ?? 0, pf: (s.fpts ?? 0) + (s.fpts_decimal ?? 0) / 100, seed: 0, players: (r.players ?? []).map(String), faab: Math.max(0, (Number(lg.settings?.waiver_budget) || 0) - (Number(s.waiver_budget_used) || 0)) };
   });
   teams.sort((a, b) => (b.wins - a.wins) || (a.losses - b.losses) || (b.pf - a.pf)).forEach((t, i) => { t.seed = i + 1; });
   const season = Number(lg.season) || new Date().getFullYear();
   const rounds = Math.max(1, Number(drafts?.[0]?.settings?.rounds ?? 3) || 3);
   const seasons = [...new Set([season + 1, season + 2, ...traded.map((t: any) => Number(t.season)).filter((s: number) => s > season)])].sort();
-  return { season, slots: (lg.roster_positions ?? []).filter((s: string) => s !== "BN" && s !== "IR" && s !== "TAXI"), rounds, teams, traded, seasons };
+  // FAAB only means anything when the league runs blind-bid waivers (Sleeper waiver_type 2).
+  const faab_budget = Number(lg.settings?.waiver_type) === 2 ? Number(lg.settings?.waiver_budget) || 0 : 0;
+  return { season, slots: (lg.roster_positions ?? []).filter((s: string) => s !== "BN" && s !== "IR" && s !== "TAXI"), rounds, teams, traded, seasons, faab_budget };
 }
 
 type PlayerMeta = { name: string; pos: string; team: string | null; age: number | null };
@@ -125,13 +127,19 @@ async function playerFile(): Promise<Record<string, PlayerMeta>> {
   return out;
 }
 
-// Every completed trade this season, from Sleeper's weekly transaction logs.
-type Trade = { week: number; at: number; rids: number[]; adds: Record<string, number>; picks: { season: number; round: number; owner: number; prev: number; orig: number }[] };
+// Every completed trade, this season and up to two seasons back (Sleeper keeps a previous_league_id chain for dynasty leagues).
+type Trade = { season: number; week: number; at: number; rids: number[]; adds: Record<string, number>; drops: Record<string, number>; picks: { season: number; round: number; owner: number; prev: number; orig: number }[] };
 async function tradeLog(leagueId: string, upToWeek: number): Promise<Trade[]> {
-  const weeks = Array.from({ length: Math.min(18, Math.max(1, upToWeek)) }, (_, i) => i + 1);
-  const all = await Promise.all(weeks.map((w) => get(`${SLEEPER}/league/${leagueId}/transactions/${w}`).catch(() => [])));
   const out: Trade[] = [];
-  all.forEach((list: any[], i) => { for (const t of list ?? []) if (t.type === "trade" && t.status === "complete") out.push({ week: weeks[i], at: Number(t.status_updated ?? t.created) || 0, rids: (t.roster_ids ?? []).map(Number), adds: Object.fromEntries(Object.entries(t.adds ?? {}).map(([k, v]) => [String(k), Number(v)])), picks: (t.draft_picks ?? []).map((p: any) => ({ season: Number(p.season), round: Number(p.round), owner: Number(p.owner_id), prev: Number(p.previous_owner_id), orig: Number(p.roster_id) })) }); });
+  let id = leagueId, hops = 0;
+  while (id && hops < 3) {
+    const lg = await get(`${SLEEPER}/league/${id}`).catch(() => null); if (!lg) break;
+    const season = Number(lg.season) || 0, last = hops === 0 ? Math.min(18, Math.max(1, upToWeek)) : 18;
+    const weeks = Array.from({ length: last }, (_, i) => i + 1);
+    const all = await Promise.all(weeks.map((w) => get(`${SLEEPER}/league/${id}/transactions/${w}`).catch(() => [])));
+    all.forEach((list: any[], i) => { for (const t of list ?? []) if (t.type === "trade" && t.status === "complete") out.push({ season, week: weeks[i], at: Number(t.status_updated ?? t.created) || 0, rids: (t.roster_ids ?? []).map(Number), adds: Object.fromEntries(Object.entries(t.adds ?? {}).map(([k, v]) => [String(k), Number(v)])), drops: Object.fromEntries(Object.entries(t.drops ?? {}).map(([k, v]) => [String(k), Number(v)])), picks: (t.draft_picks ?? []).map((p: any) => ({ season: Number(p.season), round: Number(p.round), owner: Number(p.owner_id), prev: Number(p.previous_owner_id), orig: Number(p.roster_id) })) }); });
+    id = lg.previous_league_id ? String(lg.previous_league_id) : ""; hops++;
+  }
   return out.sort((a, b) => b.at - a.at);
 }
 // Dynasty Daddy's 30-day daily history for one player (their value and FantasyCalc's, as they record it).
@@ -172,13 +180,15 @@ Deno.serve(async (req) => {
         if (nameId) { try { const h = (await cached(`ddh:${nameId}`, 43200_000, () => ddHistory(nameId))).v; for (const p of h) pts[p.d] = { d: p.d, dd: p.dd || pts[p.d]?.dd || 0, fc: p.fc || pts[p.d]?.fc || 0 }; } catch (e) { console.error("ddh", nameId, String(e).slice(0, 100)); } }
         out[id] = Object.values(pts).sort((a, b) => a.d.localeCompare(b.d));
       }));
-      const since = (await sql`select to_char(min(day), 'Mon D, YYYY') as s from tribune.value_history`)[0]?.s ?? null;
+      const since = (await sql`select to_char(min(day), 'Mon FMDD, YYYY') as s from tribune.value_history`)[0]?.s ?? null;
       return json({ ok: true, history: out, own_since: since });
     }
-    const T = await cached("sleeper_trades", 3600_000, () => tradeLog(S.league_id, Number(S.current_week) || 18)).catch(() => ({ v: [] as Trade[], at: Date.now() }));
-    const rostered = new Set(L.v.teams.flatMap((t) => t.players));
+    const T = await cached("sleeper_trades", 6 * 3600_000, () => tradeLog(S.league_id, Number(S.current_week) || 18)).catch(() => ({ v: [] as Trade[], at: Date.now() }));
+    // Values for every rostered player, plus anyone who has been traded (so old deals can be scored at today's prices).
+    const rostered = new Set([...L.v.teams.flatMap((t) => t.players), ...T.v.flatMap((t) => Object.keys(t.adds))]);
     // The player file is a day old at most, and refreshed early if a newly rostered id is missing from it.
-    const P = await cached("sleeper_players", 86400_000, playerFile, (m) => [...rostered].every((id) => m[id] || V.v[id]));
+    const nowIds = L.v.teams.flatMap((t) => t.players);
+    const P = await cached("sleeper_players", 86400_000, playerFile, (m) => nowIds.every((id) => m[id] || V.v[id]));
 
     type Src = { value: number; rank: number; posRank: number; trend: number };
     const src = (v: Val | undefined): Src => ({ value: v?.value ?? 0, rank: v?.rank ?? 0, posRank: v?.posRank ?? 0, trend: v?.trend ?? 0 });
@@ -211,10 +221,10 @@ Deno.serve(async (req) => {
     }
 
     // Today's snapshot (once a day, first request wins), then the payload.
-    await snapshot([...Object.entries(players).map(([id, p]) => ({ key: id, fc: p.fc.value, dd: p.dd.value })), ...picks.map((p) => ({ key: p.id, fc: p.fc, dd: p.dd }))]);
-    const hist = (await sql`select to_char(min(day), 'Mon D, YYYY') as s, count(distinct day)::int as n from tribune.value_history`)[0];
+    await snapshot([...nowIds.filter((id) => players[id]).map((id) => ({ key: id, fc: players[id].fc.value, dd: players[id].dd.value })), ...picks.map((p) => ({ key: p.id, fc: p.fc, dd: p.dd }))]);
+    const hist = (await sql`select to_char(min(day), 'Mon FMDD, YYYY') as s, count(distinct day)::int as n from tribune.value_history`)[0];
 
-    return json({ ok: true, settings: { dynasty: true, superflex: L.v.slots.includes("SUPER_FLEX"), ppr: 1, slots: L.v.slots, season: L.v.season },
+    return json({ ok: true, settings: { dynasty: true, superflex: L.v.slots.includes("SUPER_FLEX"), ppr: 1, slots: L.v.slots, season: L.v.season, faab_budget: L.v.faab_budget ?? 0 },
       teams: L.v.teams.map((t) => ({ ...t, players: t.players.filter((id) => players[id]) })), players, picks, trades: T.v, history_since: hist?.s ?? null, history_days: hist?.n ?? 0,
       sources: { fc: { name: "FantasyCalc", at: new Date(V.at).toISOString(), ok: true }, dd: { name: "Dynasty Daddy", at: D ? new Date(D.at).toISOString() : null, ok: !!D } },
       values_at: new Date(V.at).toISOString(), rosters_at: new Date(L.at).toISOString() });
